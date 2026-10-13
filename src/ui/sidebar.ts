@@ -67,6 +67,7 @@ export class SidebarController {
     const headerBadge = document.getElementById('header-corridor-badge');
 
     const loadCorridor = (code: string) => {
+      const realCrashes = (window as any).__REAL_CRASHES__;
       if (code === 'PE-1S') {
         const coords = MOCK_ALIGNMENT_DATA.coordinates.map((c: number[]) => ({
           longitude: c[0],
@@ -74,7 +75,7 @@ export class SidebarController {
         }));
         const alignment = createAlignment(coords, MOCK_ALIGNMENT_DATA.id, MOCK_ALIGNMENT_DATA.name);
         this.store.setAlignment(alignment);
-        this.store.setCrashes(MOCK_CRASHES_DATA);
+        this.store.setCrashes(realCrashes || MOCK_CRASHES_DATA);
         if (headerBadge) headerBadge.textContent = 'PE-1S: Panamericana Sur (Km 18 al 25)';
       } else if (code === 'PE-1N') {
         const coords = MOCK_ALIGNMENT_NORTE_DATA.coordinates.map((c: number[]) => ({
@@ -83,7 +84,7 @@ export class SidebarController {
         }));
         const alignment = createAlignment(coords, MOCK_ALIGNMENT_NORTE_DATA.id, MOCK_ALIGNMENT_NORTE_DATA.name);
         this.store.setAlignment(alignment);
-        this.store.setCrashes(MOCK_CRASHES_NORTE_DATA);
+        this.store.setCrashes(realCrashes || MOCK_CRASHES_NORTE_DATA);
         if (headerBadge) headerBadge.textContent = 'PE-1N: Panamericana Norte (Km 35 al 41)';
       } else if (code === 'CUSTOM') {
         const fileInput = document.getElementById('file-input-alignment') as HTMLInputElement;
@@ -167,14 +168,24 @@ export class SidebarController {
       });
     });
 
-    // 4. Selector de Métrica (Tabs)
-    const metricTabs = document.querySelectorAll<HTMLButtonElement>('.metric-tab-btn');
-    metricTabs.forEach((tab) => {
+    // 4. Selector de Métrica (Tabs y Botones)
+    const metricButtons = document.querySelectorAll<HTMLButtonElement>('.metric-tab-btn, .btn-metric-selector');
+    metricButtons.forEach((tab) => {
       tab.addEventListener('click', () => {
-        const mode = tab.getAttribute('data-mode') as MetricMode;
-        this.setMetricMode(mode);
+        const mode = (tab.getAttribute('data-mode') || tab.getAttribute('data-metric')) as MetricMode;
+        if (mode) this.setMetricMode(mode);
       });
     });
+
+    // 5. Botón Minimizar/Restaurar Panel de Perfil Longitudinal Inferior
+    const btnTogglePanel = document.getElementById('btn-toggle-profile-panel');
+    const profilePanel = document.getElementById('panel-longitudinal-profile');
+    if (btnTogglePanel && profilePanel) {
+      btnTogglePanel.addEventListener('click', () => {
+        profilePanel.classList.toggle('minimized');
+        btnTogglePanel.textContent = profilePanel.classList.contains('minimized') ? '▲ Restaurar' : '▼ Minimizar';
+      });
+    }
   }
 
   private initCurvilinearControls(): void {
@@ -205,8 +216,8 @@ export class SidebarController {
     const mapMetricPills = document.querySelectorAll<HTMLButtonElement>('.map-metric-pill');
     mapMetricPills.forEach((pill) => {
       pill.addEventListener('click', () => {
-        const mode = pill.getAttribute('data-mode') as MetricMode;
-        this.setMetricMode(mode);
+        const mode = (pill.getAttribute('data-mode') || pill.getAttribute('data-metric')) as MetricMode;
+        if (mode) this.setMetricMode(mode);
       });
     });
 
@@ -241,13 +252,32 @@ export class SidebarController {
 
   private setMetricMode(mode: MetricMode): void {
     // Sincronizar clases activas en sidebar y mapa
-    document.querySelectorAll('.metric-tab-btn, .map-metric-pill').forEach((el) => {
-      if (el.getAttribute('data-mode') === mode) {
+    document.querySelectorAll('.metric-tab-btn, .map-metric-pill, .btn-metric-selector').forEach((el) => {
+      const elMode = el.getAttribute('data-mode') || el.getAttribute('data-metric');
+      if (elMode === mode) {
         el.classList.add('active');
+        el.classList.remove('btn-outline');
+        if (el.classList.contains('btn')) el.classList.add('btn-secondary');
       } else {
         el.classList.remove('active');
+        if (el.classList.contains('btn')) {
+          el.classList.remove('btn-secondary');
+          el.classList.add('btn-outline');
+        }
       }
     });
+
+    const badge = document.getElementById('badge-profile-metric');
+    if (badge) {
+      const labels: Record<MetricMode, string> = {
+        COUNT: 'Siniestros',
+        VEHICLES: 'Vehículos',
+        PERSONS: 'Personas (Gravedad)',
+        EPDO: 'EPDO',
+        DENSITY_KM: 'Densidad (/km)'
+      };
+      badge.textContent = labels[mode] || mode;
+    }
 
     this.store.updateConfig({ metricMode: mode });
   }
@@ -281,6 +311,8 @@ export class SidebarController {
     const elInside = document.getElementById('kpi-inside-buffer');
     const elOutside = document.getElementById('kpi-outside-buffer');
     const elTotalEpdo = document.getElementById('kpi-total-epdo');
+    const elVehicles = document.getElementById('kpi-total-vehicles');
+    const elPersons = document.getElementById('kpi-total-persons');
     const elHotspot = document.getElementById('kpi-hotspot-station');
 
     if (!results || !state.alignment) return;
@@ -293,6 +325,17 @@ export class SidebarController {
     }
     if (elOutside) {
       elOutside.textContent = String(results.projectedOutsideBufferCount);
+    }
+
+    // SPEC-14: Totales acumulados de vehículos y personas
+    const totalVehicles = results.bins.reduce((sum, b) => sum + (b.totalVehicles || 0), 0);
+    const totalPersons = results.bins.reduce((sum, b) => sum + (b.totalPersons || 0), 0);
+
+    if (elVehicles) {
+      elVehicles.textContent = String(totalVehicles);
+    }
+    if (elPersons) {
+      elPersons.textContent = String(totalPersons);
     }
 
     // Calcular EPDO acumulado

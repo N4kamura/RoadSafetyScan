@@ -157,7 +157,11 @@ export function generateCurvilinearProfile(
 
     // Altura proporcional a la métrica seleccionada
     let value = bin.totalCount;
-    if (opts.metricMode === 'EPDO') {
+    if (opts.metricMode === 'VEHICLES') {
+      value = bin.totalVehicles;
+    } else if (opts.metricMode === 'PERSONS') {
+      value = bin.totalPersons;
+    } else if (opts.metricMode === 'EPDO') {
       value = bin.epdoScore;
     } else if (opts.metricMode === 'DENSITY_KM') {
       value = bin.densityPerKm;
@@ -192,7 +196,10 @@ export function generateCurvilinearProfile(
         grave: bin.severityCounts[SeverityLevel.LESIONES_GRAVES] || 0,
         leve: bin.severityCounts[SeverityLevel.LESIONES_LEVES] || 0,
         danos: bin.severityCounts[SeverityLevel.SOLO_DANOS] || 0
-      }
+      },
+      totalVehicles: bin.totalVehicles,
+      totalPersons: bin.totalPersons,
+      personsBreakdown: { ...bin.personsBreakdown }
     });
   }
 
@@ -200,7 +207,11 @@ export function generateCurvilinearProfile(
   let activeTicks = opts.scaleTicks;
   if (!options?.scaleTicks && results.bins.length > 0) {
     const maxVal = results.bins.reduce((max, b) => {
-      const v = opts.metricMode === 'EPDO' ? b.epdoScore : opts.metricMode === 'DENSITY_KM' ? b.densityPerKm : b.totalCount;
+      let v = b.totalCount;
+      if (opts.metricMode === 'VEHICLES') v = b.totalVehicles;
+      else if (opts.metricMode === 'PERSONS') v = b.totalPersons;
+      else if (opts.metricMode === 'EPDO') v = b.epdoScore;
+      else if (opts.metricMode === 'DENSITY_KM') v = b.densityPerKm;
       return Math.max(max, v);
     }, 0);
 

@@ -123,36 +123,59 @@ export class LongitudinalProfileView {
       const isSelected = selectedIdx === idx;
       const isHighlighted = isHovered || isSelected;
 
-      // Desglose proporcional de severidad si metricMode es COUNT
-      let fatalH = 0;
-      let graveH = 0;
-      let leveH = 0;
-      let danosH = 0;
+      let barElementsHtml = '';
 
-      if (metricMode === 'COUNT' && d.totalValue > 0) {
-        fatalH = (d.fatalCount / d.totalValue) * totalBarHeight;
-        graveH = (d.graveCount / d.totalValue) * totalBarHeight;
-        leveH = (d.leveCount / d.totalValue) * totalBarHeight;
-        danosH = (d.danosCount / d.totalValue) * totalBarHeight;
+      if (metricMode === 'PERSONS') {
+        const pBreak = d.personsBreakdown || { fallecido: 0, lesionado: 0, noSeConoce: 0, ileso: 0 };
+        const totalP = d.totalValue;
+
+        if (totalP > 0) {
+          const hFatal = (pBreak.fallecido / totalP) * totalBarHeight;
+          const hGrave = (pBreak.lesionado / totalP) * totalBarHeight;
+          const hNoConoce = (pBreak.noSeConoce / totalP) * totalBarHeight;
+          const hIleso = (pBreak.ileso / totalP) * totalBarHeight;
+
+          let currentY = innerHeight;
+
+          if (hFatal > 0) {
+            currentY -= hFatal;
+            barElementsHtml += `<rect x="${x + 0.5}" y="${currentY}" width="${Math.max(1, barWidth - 1)}" height="${Math.max(1, hFatal)}" fill="#DC2626" opacity="${isHighlighted ? 1.0 : (hoveredIdx !== null ? 0.4 : 0.9)}" />`;
+          }
+          if (hGrave > 0) {
+            currentY -= hGrave;
+            barElementsHtml += `<rect x="${x + 0.5}" y="${currentY}" width="${Math.max(1, barWidth - 1)}" height="${Math.max(1, hGrave)}" fill="#EA580C" opacity="${isHighlighted ? 1.0 : (hoveredIdx !== null ? 0.4 : 0.9)}" />`;
+          }
+          if (hNoConoce > 0) {
+            currentY -= hNoConoce;
+            barElementsHtml += `<rect x="${x + 0.5}" y="${currentY}" width="${Math.max(1, barWidth - 1)}" height="${Math.max(1, hNoConoce)}" fill="#94A3B8" opacity="${isHighlighted ? 1.0 : (hoveredIdx !== null ? 0.4 : 0.9)}" />`;
+          }
+          if (hIleso > 0) {
+            currentY -= hIleso;
+            barElementsHtml += `<rect x="${x + 0.5}" y="${currentY}" width="${Math.max(1, barWidth - 1)}" height="${Math.max(1, hIleso)}" fill="#10B981" opacity="${isHighlighted ? 1.0 : (hoveredIdx !== null ? 0.4 : 0.9)}" />`;
+          }
+        }
+      } else if (metricMode === 'VEHICLES') {
+        barElementsHtml = `
+          <rect 
+            x="${x + 0.5}" 
+            y="${y}" 
+            width="${Math.max(1, barWidth - 1)}" 
+            height="${Math.max(1, totalBarHeight)}" 
+            fill="#0284C7"
+            opacity="${isHighlighted ? 1.0 : (hoveredIdx !== null ? 0.4 : 0.85)}"
+            rx="1"
+          />
+        `;
       } else {
-        // En modo EPDO o DENSITY, usar color según nivel de severidad predominante
-        fatalH = totalBarHeight;
-      }
+        const barFill = d.fatalCount > 0 
+          ? SEVERITY_COLORS['FATAL']
+          : d.graveCount > 0 
+          ? SEVERITY_COLORS['LESIONES_GRAVES'] 
+          : d.leveCount > 0 
+          ? SEVERITY_COLORS['LESIONES_LEVES'] 
+          : SEVERITY_COLORS['SOLO_DANOS'];
 
-      const barFill = d.fatalCount > 0 
-        ? SEVERITY_COLORS['FATAL']
-        : d.graveCount > 0 
-        ? SEVERITY_COLORS['LESIONES_GRAVES'] 
-        : d.leveCount > 0 
-        ? SEVERITY_COLORS['LESIONES_LEVES'] 
-        : SEVERITY_COLORS['SOLO_DANOS'];
-
-      svgHtml += `
-        <g class="profile-bar-group" data-bin-index="${idx}" style="cursor: pointer;">
-          <!-- Barra de fondo de interacción transparente para facilitar hover -->
-          <rect x="${x}" y="0" width="${barWidth}" height="${innerHeight}" fill="transparent" />
-
-          <!-- Barra de datos -->
+        barElementsHtml = `
           <rect 
             x="${x + 0.5}" 
             y="${y}" 
@@ -162,6 +185,16 @@ export class LongitudinalProfileView {
             opacity="${isHighlighted ? 1.0 : (hoveredIdx !== null ? 0.4 : 0.85)}"
             rx="1"
           />
+        `;
+      }
+
+      svgHtml += `
+        <g class="profile-bar-group" data-bin-index="${idx}" style="cursor: pointer;">
+          <!-- Barra de fondo de interacción transparente para facilitar hover -->
+          <rect x="${x}" y="0" width="${barWidth}" height="${innerHeight}" fill="transparent" />
+
+          <!-- Barras de datos -->
+          ${barElementsHtml}
 
           <!-- Marco de resalte al hacer hover / selección -->
           ${
@@ -210,28 +243,40 @@ export class LongitudinalProfileView {
         // Desplegar tooltip
         const startStation = binData.stationLabel;
         const endStation = formatStation(binData.chainageMeters + this.store.getState().config.binSizeMeters);
+        const pb = binData.personsBreakdown || { fallecido: 0, lesionado: 0, noSeConoce: 0, ileso: 0 };
+        const totalCrashes = (binData.fatalCount || 0) + (binData.graveCount || 0) + (binData.leveCount || 0) + (binData.danosCount || 0);
 
         this.tooltipEl.innerHTML = `
           <div class="chart-tooltip-station">${startStation} - ${endStation}</div>
           <div class="chart-tooltip-row">
-            <span>Total Siniestros:</span>
-            <strong>${binData.totalValue}</strong>
+            <span>Siniestros (Accidentes):</span>
+            <strong>${totalCrashes}</strong>
           </div>
-          <div class="chart-tooltip-row" style="color: #fca5a5;">
-            <span>Fatales:</span>
-            <strong>${binData.fatalCount}</strong>
+          <div class="chart-tooltip-row" style="color: #38bdf8;">
+            <span>🚗 Vehículos involucrados:</span>
+            <strong>${binData.totalVehicles ?? '--'}</strong>
           </div>
-          <div class="chart-tooltip-row" style="color: #fdba74;">
-            <span>Graves:</span>
-            <strong>${binData.graveCount}</strong>
+          <div class="chart-tooltip-row" style="color: #a78bfa;">
+            <span>👥 Personas involucradas:</span>
+            <strong>${binData.totalPersons ?? '--'}</strong>
           </div>
-          <div class="chart-tooltip-row" style="color: #fde047;">
-            <span>Leves:</span>
-            <strong>${binData.leveCount}</strong>
-          </div>
-          <div class="chart-tooltip-row" style="color: #93c5fd;">
-            <span>Solo Daños:</span>
-            <strong>${binData.danosCount}</strong>
+          <div style="padding-left: 8px; border-left: 2px solid #475569; margin: 4px 0 6px 0;">
+            <div class="chart-tooltip-row" style="color: #fca5a5; font-size: 10px;">
+              <span>• Fallecidos:</span>
+              <strong>${pb.fallecido}</strong>
+            </div>
+            <div class="chart-tooltip-row" style="color: #fdba74; font-size: 10px;">
+              <span>• Lesionados:</span>
+              <strong>${pb.lesionado}</strong>
+            </div>
+            <div class="chart-tooltip-row" style="color: #cbd5e1; font-size: 10px;">
+              <span>• No se conoce:</span>
+              <strong>${pb.noSeConoce}</strong>
+            </div>
+            <div class="chart-tooltip-row" style="color: #86efac; font-size: 10px;">
+              <span>• Ilesos:</span>
+              <strong>${pb.ileso}</strong>
+            </div>
           </div>
           <div class="chart-tooltip-row" style="border-top: 1px solid #334155; margin-top: 4px; padding-top: 4px;">
             <span>Índice EPDO (MTC):</span>

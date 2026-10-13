@@ -126,7 +126,16 @@ export function analyzeLrs(
       severityCounts,
       typeCounts,
       epdoScore: 0,
-      densityPerKm: 0
+      densityPerKm: 0,
+      // SPEC-14
+      totalVehicles: 0,
+      totalPersons: 0,
+      personsBreakdown: {
+        fallecido: 0,
+        lesionado: 0,
+        noSeConoce: 0,
+        ileso: 0
+      }
     });
   }
 
@@ -157,6 +166,25 @@ export function analyzeLrs(
     const ctype = proj.crash.type;
     if (targetBin.typeCounts[ctype] !== undefined) {
       targetBin.typeCounts[ctype]++;
+    }
+
+    // SPEC-14: Acumular vehículos y personas por tramo
+    const vCount = proj.crash.vehiclesCount ?? (proj.crash.vehicles ? proj.crash.vehicles.length : 1);
+    targetBin.totalVehicles += vCount;
+
+    const pBreakdown = proj.crash.personsBreakdown;
+    if (pBreakdown) {
+      targetBin.personsBreakdown.fallecido += pBreakdown.fallecido || 0;
+      targetBin.personsBreakdown.lesionado += pBreakdown.lesionado || 0;
+      targetBin.personsBreakdown.noSeConoce += pBreakdown.noSeConoce || 0;
+      targetBin.personsBreakdown.ileso += pBreakdown.ileso || 0;
+      targetBin.totalPersons += proj.crash.personsCount ?? (pBreakdown.fallecido + pBreakdown.lesionado + pBreakdown.noSeConoce + pBreakdown.ileso);
+    } else {
+      const pCount = proj.crash.personsCount ?? 1;
+      targetBin.totalPersons += pCount;
+      if (sev === SeverityLevel.FATAL) targetBin.personsBreakdown.fallecido += pCount;
+      else if (sev === SeverityLevel.LESIONES_GRAVES || sev === SeverityLevel.LESIONES_LEVES) targetBin.personsBreakdown.lesionado += pCount;
+      else targetBin.personsBreakdown.ileso += pCount;
     }
   }
 

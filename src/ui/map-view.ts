@@ -692,21 +692,29 @@ export class MapViewController {
       const feature = e.features[0];
       const props = feature.properties as any;
       const state = this.store.getState();
-      const metricLabel = state.config.metricMode === 'EPDO' ? 'Índice EPDO (MTC)' : state.config.metricMode === 'DENSITY_KM' ? 'Densidad (/km)' : 'Total de Siniestros';
+      let metricLabel = 'Total de Siniestros';
+      if (state.config.metricMode === 'VEHICLES') metricLabel = 'Vehículos Involucrados';
+      else if (state.config.metricMode === 'PERSONS') metricLabel = 'Personas Involucradas';
+      else if (state.config.metricMode === 'EPDO') metricLabel = 'Índice EPDO (MTC)';
+      else if (state.config.metricMode === 'DENSITY_KM') metricLabel = 'Densidad (/km)';
 
       const html = `
-        <div style="font-family: inherit; font-size: 11px; line-height: 1.45; min-width: 175px;">
+        <div style="font-family: inherit; font-size: 11px; line-height: 1.45; min-width: 190px;">
           <div style="font-weight: 700; color: #1e293b; margin-bottom: 3px; border-bottom: 1px solid #e2e8f0; padding-bottom: 3px;">
             📊 Tramo: <code>${props.startStation}</code> - <code>${props.endStation}</code>
           </div>
           <div style="font-size: 12px; font-weight: 700; color: #7c3aed; margin-bottom: 4px;">
             ${metricLabel}: ${Number(props.value).toFixed(state.config.metricMode === 'EPDO' ? 1 : 0)}
           </div>
+          <div style="background: #f8fafc; border-radius: 4px; padding: 3px 6px; margin-bottom: 4px; font-size: 10px;">
+            <div style="color: #0284c7; font-weight: 600;">🚗 Vehículos: <strong>${props.totalVehicles ?? '--'}</strong></div>
+            <div style="color: #6366f1; font-weight: 600;">👥 Personas: <strong>${props.totalPersons ?? '--'}</strong></div>
+          </div>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2px 8px; font-size: 10px; color: #475569;">
-            <div><span style="color: #dc2626; font-weight: 700;">●</span> Fatal: <strong>${props.fatalCount}</strong></div>
-            <div><span style="color: #ea580c; font-weight: 700;">●</span> Graves: <strong>${props.graveCount}</strong></div>
-            <div><span style="color: #facc15; font-weight: 700;">●</span> Leves: <strong>${props.leveCount}</strong></div>
-            <div><span style="color: #2563eb; font-weight: 700;">●</span> Daños: <strong>${props.danosCount}</strong></div>
+            <div><span style="color: #dc2626; font-weight: 700;">●</span> Fallecidos: <strong>${props.fallecido ?? props.fatalCount}</strong></div>
+            <div><span style="color: #ea580c; font-weight: 700;">●</span> Lesionados: <strong>${props.lesionado ?? (props.graveCount + props.leveCount)}</strong></div>
+            <div><span style="color: #94a3b8; font-weight: 700;">●</span> No conoce: <strong>${props.noSeConoce ?? 0}</strong></div>
+            <div><span style="color: #10b981; font-weight: 700;">●</span> Ilesos: <strong>${props.ileso ?? props.danosCount}</strong></div>
           </div>
           <div style="margin-top: 5px; font-size: 9px; color: #94a3b8; font-style: italic;">
             Perfil curvilíneo paralelo (VisQuill GDK)
@@ -742,14 +750,26 @@ export class MapViewController {
       const coords = (feature.geometry as any).coordinates.slice();
 
       const html = `
-        <div style="font-family: inherit; font-size: 11px; line-height: 1.45; min-width: 160px;">
-          <div style="font-weight: 700; color: #0f172a; margin-bottom: 2px;">
+        <div style="font-family: inherit; font-size: 11px; line-height: 1.45; min-width: 185px;">
+          <div style="font-weight: 700; color: #0f172a; margin-bottom: 2px; border-bottom: 1px solid #e2e8f0; padding-bottom: 2px;">
             📍 Siniestro: ${props.id}
           </div>
+          ${props.fecha ? `<div style="font-size: 10px; color: #64748b;">📅 ${props.fecha} ${props.hora ? `• ⏰ ${props.hora}` : ''}</div>` : ''}
           <div><strong>Severidad:</strong> <span style="font-weight: 700; color: ${this.getSeverityColor(props.severity)}">${props.severity}</span></div>
           <div><strong>Tipología:</strong> ${props.type}</div>
           <div><strong>Progresiva MTC:</strong> <code>${props.station}</code></div>
-          <div style="margin-top: 2px; font-size: 10px; color: ${props.isInsideBuffer ? '#10b981' : '#f59e0b'}; font-weight: 600;">
+          <div style="background: #f1f5f9; border-radius: 4px; padding: 3px 6px; margin: 4px 0; font-size: 10px;">
+            <div style="color: #0284c7; font-weight: 600;">🚗 Vehículos involucrados: <strong>${props.vehiclesCount ?? 1}</strong></div>
+            <div style="color: #6366f1; font-weight: 600;">👥 Personas involucradas: <strong>${props.personsCount ?? 1}</strong></div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1px 4px; margin-top: 2px; font-size: 9.5px;">
+              <span style="color: #dc2626;">• Fallecidos: <strong>${props.fallecido ?? 0}</strong></span>
+              <span style="color: #ea580c;">• Lesionados: <strong>${props.lesionado ?? 0}</strong></span>
+              <span style="color: #64748b;">• No conoce: <strong>${props.noSeConoce ?? 0}</strong></span>
+              <span style="color: #16a34a;">• Ilesos: <strong>${props.ileso ?? 0}</strong></span>
+            </div>
+          </div>
+          ${props.distrito || props.provincia ? `<div style="font-size: 10px; color: #64748b;">📍 ${[props.distrito, props.provincia, props.departamento].filter(Boolean).join(', ')}</div>` : ''}
+          <div style="margin-top: 3px; font-size: 10px; color: ${props.isInsideBuffer ? '#10b981' : '#f59e0b'}; font-weight: 600;">
             ${props.isInsideBuffer ? '✓ En faja vial auditada' : '⚠ Fuera de buffer vial'}
           </div>
         </div>

@@ -22,6 +22,13 @@ export enum CrashType {
   OTRO = 'OTRO'
 }
 
+export interface PersonsBreakdown {
+  fallecido: number;
+  lesionado: number;
+  noSeConoce: number;
+  ileso: number;
+}
+
 export interface CrashPoint {
   id: string | number;
   coordinates: [longitude: number, latitude: number]; // WGS84 EPSG:4326 [lon, lat]
@@ -33,6 +40,16 @@ export interface CrashPoint {
   roadCode?: string;
   environmentalCondition?: string;
   rawProperties?: Record<string, unknown>;
+  // SPEC-14: Conexión con BBDD ONSV (Vehículos y Personas)
+  vehiclesCount?: number;
+  personsCount?: number;
+  personsBreakdown?: PersonsBreakdown;
+  fecha?: string;
+  hora?: string;
+  clase?: string;
+  departamento?: string;
+  provincia?: string;
+  distrito?: string;
 }
 
 export enum RoadSide {
@@ -65,6 +82,10 @@ export interface LrsBinAggregate {
   typeCounts: Record<CrashType, number>;
   epdoScore: number;                                     // Índice de Severidad Ponderada (EPDO)
   densityPerKm: number;                                  // Siniestros normalizados por kilómetro
+  // SPEC-14: Agregados consolidados de vehículos y personas
+  totalVehicles: number;
+  totalPersons: number;
+  personsBreakdown: PersonsBreakdown;
 }
 
 export interface EpdoWeights {

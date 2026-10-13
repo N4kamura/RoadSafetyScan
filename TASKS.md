@@ -19,7 +19,9 @@ Este documento gestiona la ejecución técnica del proyecto bajo **Spec-Driven D
 | **Fase 8: Auto-Escalado y Límites de Zoom (SPEC-09)** | [`specs/09-zoom-limits-and-autoscale.md`](file:///d:/Projects/RoadSafetyScan/specs/09-zoom-limits-and-autoscale.md) | `COMPLETADO (IMPLEMENTED)` | 100% (minZoom 10.5 y escala adaptativa) |
 | **Fase 9: Reloj Dinámico Circular (SPEC-10)** | [`specs/10-circular-time-range-clock.md`](file:///d:/Projects/RoadSafetyScan/specs/10-circular-time-range-clock.md) | `COMPLETADO (IMPLEMENTED)` | 100% (Reloj circular dinámico y filtro temporal) |
 | **Fase 10: Puntero y Línea Conectora (SPEC-11)** | [`specs/11-interactive-chainage-pointer.md`](file:///d:/Projects/RoadSafetyScan/specs/11-interactive-chainage-pointer.md) | `COMPLETADO (IMPLEMENTED)` | 100% (Botón semicircular y línea al trazo) |
-| **Fase 11: Handle de Escala Transversal (SPEC-12)** | [`specs/12-interactive-scale-handle.md`](file:///d:/Projects/RoadSafetyScan/specs/12-interactive-scale-handle.md) | `EN PROGRESO` | 0% |
+| **Fase 11: Handle de Escala Transversal (SPEC-12)** | [`specs/12-interactive-scale-handle.md`](file:///d:/Projects/RoadSafetyScan/specs/12-interactive-scale-handle.md) | `COMPLETADO (IMPLEMENTED)` | 100% |
+| **Fase 12: Filtro Temporal por Años (SPEC-13)** | [`specs/13-annual-temporal-filter.md`](file:///d:/Projects/RoadSafetyScan/specs/13-annual-temporal-filter.md) | `COMPLETADO (IMPLEMENTED)` | 100% |
+| **Fase 13: BBDD ONSV, Vehículos y Personas (SPEC-14)** | [`specs/14-database-integration-and-severity-profiling.md`](file:///d:/Projects/RoadSafetyScan/specs/14-database-integration-and-severity-profiling.md) | `COMPLETADO (IMPLEMENTED)` | 100% |
 
 ---
 

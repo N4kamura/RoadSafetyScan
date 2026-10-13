@@ -43,6 +43,13 @@ export function buildCurvilinearMapLibreLayers(
       leveCount: bar.severityBreakdown.leve,
       danosCount: bar.severityBreakdown.danos,
       isHovered: activeBinIndex === bar.binIndex,
+      // SPEC-14:
+      totalVehicles: bar.totalVehicles ?? 0,
+      totalPersons: bar.totalPersons ?? 0,
+      fallecido: bar.personsBreakdown?.fallecido ?? bar.severityBreakdown.fatal,
+      lesionado: bar.personsBreakdown?.lesionado ?? (bar.severityBreakdown.grave + bar.severityBreakdown.leve),
+      noSeConoce: bar.personsBreakdown?.noSeConoce ?? 0,
+      ileso: bar.personsBreakdown?.ileso ?? bar.severityBreakdown.danos,
       // Color según severidad dominante o púrpura VisQuill por defecto
       barColor: bar.severityBreakdown.fatal > 0
         ? '#DC2626'

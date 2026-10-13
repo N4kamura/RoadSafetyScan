@@ -4,9 +4,10 @@
  */
 
 import { Alignment } from '../tracer/types.js';
-import { CrashPoint, LrsAnalysisResult, SeverityLevel, CrashType } from '../lrs/types.js';
+import { CrashPoint, LrsAnalysisResult, SeverityLevel, CrashType, PersonsBreakdown } from '../lrs/types.js';
 
 export { SeverityLevel, CrashType } from '../lrs/types.js';
+export type { PersonsBreakdown } from '../lrs/types.js';
 
 export const VISQUILL_ATTRIBUTION = 'Visualización de perfil longitudinal impulsada por VisQuill GDK.';
 
@@ -17,10 +18,20 @@ export const SEVERITY_COLORS: Record<SeverityLevel, string> = {
   [SeverityLevel.SOLO_DANOS]: '#2563EB'        // Azul acero
 };
 
+// SPEC-14: Colores para categorías de GRAVEDAD de Personas y Vehículos
+export const PERSON_GRAVEDAD_COLORS = {
+  fallecido: '#DC2626',   // Rojo MTC
+  lesionado: '#EA580C',   // Naranja ámbar
+  noSeConoce: '#94A3B8',  // Gris neutro
+  ileso: '#10B981'        // Verde esmeralda
+};
+
+export const VEHICLE_COLOR = '#0284C7'; // Azul cielo / turquesa vial
+
 export const HIGHLIGHT_COLOR = '#10B981'; // Verde esmeralda neón
 export const BUFFER_FILL_COLOR = '#0284C7'; // Azul cielo translúcido
 
-export type MetricMode = 'COUNT' | 'EPDO' | 'DENSITY_KM';
+export type MetricMode = 'COUNT' | 'VEHICLES' | 'PERSONS' | 'EPDO' | 'DENSITY_KM';
 
 export interface TimeRange {
   startMinute: number; // 0 a 1439 minutos desde 00:00

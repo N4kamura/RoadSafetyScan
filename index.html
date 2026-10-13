@@ -32,7 +32,8 @@
 
     <div class="header-badges">
       <span class="badge-corridor" id="header-corridor-badge">PE-1S: Panamericana Sur (Km 18 al 25)</span>
-      <span class="badge-spec">SPEC-06: Profiles along a line</span>
+      <span class="badge-spec" id="header-source-badge" style="background-color: #047857; color: #ecfdf5; display: inline-flex;">BBDD ONSV: SQLite3 / Web</span>
+      <span class="badge-spec">SPEC-14: Profiles along a line</span>
     </div>
 
     <div class="header-actions">
@@ -92,12 +93,41 @@
             <div class="kpi-label">Siniestros en Faja</div>
           </div>
           <div class="kpi-card">
+            <div class="kpi-value" id="kpi-total-vehicles" style="color: #0284c7;">--</div>
+            <div class="kpi-label">Vehículos Involucrados</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-value" id="kpi-total-persons" style="color: #7c3aed;">--</div>
+            <div class="kpi-label">Personas Involucradas</div>
+          </div>
+          <div class="kpi-card">
             <div class="kpi-value" id="kpi-outside-buffer">--</div>
             <div class="kpi-label">Fuera de Buffer</div>
           </div>
           <div class="kpi-card">
             <div class="kpi-value" id="kpi-total-epdo" style="color: #dc2626;">--</div>
             <div class="kpi-label">EPDO Acumulado</div>
+          </div>
+        </div>
+
+        <!-- SPEC-14: Selector de Dimensión de las Barras -->
+        <div class="control-group" style="margin-top: 0.75rem;">
+          <div class="control-label" style="margin-bottom: 0.35rem;">
+            <span>Dimensión a Graficar en Barras:</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.35rem;">
+            <button class="btn btn-secondary btn-metric-selector active" data-metric="COUNT" title="Graficar cantidad de accidentes">
+              📊 Siniestros
+            </button>
+            <button class="btn btn-outline btn-metric-selector" data-metric="VEHICLES" title="Graficar cantidad de vehículos involucrados">
+              🚗 Vehículos
+            </button>
+            <button class="btn btn-outline btn-metric-selector" data-metric="PERSONS" title="Graficar personas involucradas (apiladas por gravedad)">
+              👥 Personas
+            </button>
+            <button class="btn btn-outline btn-metric-selector" data-metric="EPDO" title="Graficar índice de severidad ponderada">
+              ⚖️ EPDO
+            </button>
           </div>
         </div>
 
@@ -256,11 +286,17 @@
         <!-- Pastillas Flotantes de Control Rápido sobre el Mapa -->
         <div class="map-floating-controls">
           <div class="map-pill-group">
-            <button class="map-pill-btn map-metric-pill active" data-mode="COUNT" title="Mostrar conteo total de incidentes">
-              📊 Conteo Total
+            <button class="map-pill-btn map-metric-pill active" data-mode="COUNT" title="Mostrar número de siniestros">
+              📊 Siniestros
+            </button>
+            <button class="map-pill-btn map-metric-pill" data-mode="VEHICLES" title="Mostrar cantidad de vehículos involucrados">
+              🚗 Vehículos
+            </button>
+            <button class="map-pill-btn map-metric-pill" data-mode="PERSONS" title="Mostrar personas involucradas (apiladas por gravedad)">
+              👥 Personas
             </button>
             <button class="map-pill-btn map-metric-pill" data-mode="EPDO" title="Mostrar índice de severidad EPDO ponderado según MTC">
-              ⚖️ Índice EPDO
+              ⚖️ EPDO
             </button>
             <button class="map-pill-btn map-metric-pill" data-mode="DENSITY_KM" title="Mostrar densidad de accidentes por kilómetro">
               📈 Densidad (/km)
@@ -291,15 +327,34 @@
           </div>
           <span><span class="color-dot" style="background-color: #1e293b;"></span> <strong>Eje Vial:</strong> Panamericana Sur (PE-1S)</span>
           <span><span class="color-line" style="background-color: #1e293b;"></span> <strong>Línea Base B(s):</strong> Desplazada en paralelo</span>
-          <span><span class="color-rect" style="background-color: #7c3aed;"></span> <strong>Perfil Curvilíneo:</strong> VisQuill A1 Density</span>
+          <span><span class="color-rect" style="background-color: #7c3aed;"></span> <strong>Perfil Curvilíneo:</strong> VisQuill A1</span>
           <span><span class="color-dot" style="background-color: #10b981;"></span> <strong>Tramo Resaltado:</strong> Enlace interactivo</span>
+          
           <div style="border-top: 1px solid #e2e8f0; margin-top: 4px; padding-top: 4px; display: flex; flex-direction: column; gap: 2px;">
-            <div style="font-size: 0.65rem; color: #64748b; font-weight: 600; text-transform: uppercase;">Siniestros (visibles en zoom cercano ≥13.5):</div>
-            <span><span class="color-dot" style="background-color: #dc2626;"></span> Fatal (Fallecido)</span>
-            <span><span class="color-dot" style="background-color: #ea580c;"></span> Lesiones Graves</span>
-            <span><span class="color-dot" style="background-color: #facc15;"></span> Lesiones Leves</span>
-            <span><span class="color-dot" style="background-color: #2563eb;"></span> Solo Daños Materiales</span>
+            <div style="font-size: 0.65rem; color: #64748b; font-weight: 600; text-transform: uppercase;">Personas (Gravedad ONSV):</div>
+            <span><span class="color-dot" style="background-color: #dc2626;"></span> Fallecido</span>
+            <span><span class="color-dot" style="background-color: #ea580c;"></span> Lesionado</span>
+            <span><span class="color-dot" style="background-color: #94a3b8;"></span> No se conoce</span>
+            <span><span class="color-dot" style="background-color: #10b981;"></span> Ileso</span>
           </div>
+
+          <div style="border-top: 1px solid #e2e8f0; margin-top: 3px; padding-top: 3px; font-size: 0.65rem;">
+            <span><span class="color-dot" style="background-color: #0284c7;"></span> <strong>Vehículos:</strong> Cantidad involucrada</span>
+          </div>
+        </div>
+
+        <!-- Panel Inferior: Diagrama Longitudinal de Barras (VisQuill GDK) -->
+        <div class="longitudinal-profile-panel" id="panel-longitudinal-profile">
+          <div class="profile-panel-header">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span style="font-weight: 700; font-size: 0.78rem; color: #0f172a;">📊 Perfil Longitudinal de Barras (VisQuill GDK)</span>
+              <span class="badge" id="badge-profile-metric" style="background: #2563eb; color: #fff; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; font-weight: 600;">Siniestros</span>
+            </div>
+            <button id="btn-toggle-profile-panel" class="btn btn-outline" style="padding: 2px 8px; font-size: 0.68rem; cursor: pointer;">
+              ▼ Minimizar
+            </button>
+          </div>
+          <div id="visquill-longitudinal-profile" style="height: 145px; width: 100%;"></div>
         </div>
 
         <!-- Atribución Legal Obligatoria de VisQuill GDK -->

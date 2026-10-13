@@ -79,7 +79,20 @@ export function buildMapLibreConfig(
       type: p.crash.type,
       station: p.stationFormatted,
       isInsideBuffer: p.isInsideBuffer,
-      pointColor: SEVERITY_COLORS[p.crash.severity] || '#64748B'
+      pointColor: SEVERITY_COLORS[p.crash.severity] || '#64748B',
+      // SPEC-14: Atributos consolidados de BBDD ONSV
+      vehiclesCount: p.crash.vehiclesCount ?? (p.crash.vehicles ? p.crash.vehicles.length : 1),
+      personsCount: p.crash.personsCount ?? 1,
+      fallecido: p.crash.personsBreakdown?.fallecido ?? (p.crash.severity === 'FATAL' ? 1 : 0),
+      lesionado: p.crash.personsBreakdown?.lesionado ?? (p.crash.severity.includes('LESION') ? 1 : 0),
+      noSeConoce: p.crash.personsBreakdown?.noSeConoce ?? 0,
+      ileso: p.crash.personsBreakdown?.ileso ?? (p.crash.severity === 'SOLO_DANOS' ? 1 : 0),
+      fecha: p.crash.fecha ?? '',
+      hora: p.crash.hora ?? '',
+      distrito: p.crash.distrito ?? '',
+      provincia: p.crash.provincia ?? '',
+      departamento: p.crash.departamento ?? '',
+      roadCode: p.crash.roadCode ?? ''
     }
   }));
 

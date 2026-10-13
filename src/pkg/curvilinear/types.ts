@@ -19,8 +19,8 @@ export interface CurvilinearProfileOptions {
   /** Tamaño de ventana de suavizado para los vectores normales (default: 3) */
   smoothingWindowSize: number;
 
-  /** Modo métrico del histograma: 'COUNT', 'EPDO' o 'DENSITY_KM' (default: 'COUNT') */
-  metricMode?: 'COUNT' | 'EPDO' | 'DENSITY_KM';
+  /** Modo métrico del histograma: 'COUNT', 'VEHICLES', 'PERSONS', 'EPDO' o 'DENSITY_KM' (default: 'COUNT') */
+  metricMode?: 'COUNT' | 'VEHICLES' | 'PERSONS' | 'EPDO' | 'DENSITY_KM';
 }
 
 export interface CurvilinearBarFeature {
@@ -38,6 +38,14 @@ export interface CurvilinearBarFeature {
     grave: number;
     leve: number;
     danos: number;
+  };
+  totalVehicles?: number;
+  totalPersons?: number;
+  personsBreakdown?: {
+    fallecido: number;
+    lesionado: number;
+    noSeConoce: number;
+    ileso: number;
   };
 }
 

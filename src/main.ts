@@ -36,6 +36,27 @@ function initApp() {
   // 3. Crear Store Reactivo Central
   const store = new VizStore(initialAlignment, initialCrashes);
 
+  // SPEC-14: Conexión con BBDD ONSV (SQLite3 convertida a formato web)
+  fetch('/data/crashes_web.json')
+    .then((res) => {
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.json();
+    })
+    .then((realCrashes: CrashPoint[]) => {
+      if (Array.isArray(realCrashes) && realCrashes.length > 0) {
+        console.log(`[SPEC-14] Cargados ${realCrashes.length} siniestros reales georreferenciados de ONSV.`);
+        (window as any).__REAL_CRASHES__ = realCrashes;
+        store.setCrashes(realCrashes);
+        const headerSource = document.getElementById('header-source-badge');
+        if (headerSource) {
+          headerSource.textContent = `BBDD ONSV: ${realCrashes.length} siniestros`;
+        }
+      }
+    })
+    .catch((err) => {
+      console.warn('[SPEC-14] Dataset ONSV no disponible en servidor, manteniendo contingencia local:', err);
+    });
+
   // 4. Inicializar Controladores de la Interfaz
   const mapController = new MapViewController('map-container', store);
   const sidebarController = new SidebarController(store);

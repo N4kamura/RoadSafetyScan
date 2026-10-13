@@ -21,6 +21,15 @@ export interface VisQuillDataPoint {
   danosCount: number;
   epdoScore: number;
   densityPerKm: number;
+  // SPEC-14
+  totalVehicles: number;
+  totalPersons: number;
+  personsBreakdown: {
+    fallecido: number;
+    lesionado: number;
+    noSeConoce: number;
+    ileso: number;
+  };
 }
 
 export interface VisQuillChartConfig {
@@ -60,14 +69,20 @@ export function buildVisQuillConfig(
   metricMode: MetricMode = 'COUNT'
 ): VisQuillChartConfig {
   const yTitles: Record<MetricMode, string> = {
-    COUNT: 'Número de Siniestros',
+    COUNT: 'Número de Siniestros (Accidentes)',
+    VEHICLES: 'Vehículos Involucrados',
+    PERSONS: 'Personas Involucradas (Desagregado por Gravedad)',
     EPDO: 'Índice de Severidad Ponderada (EPDO)',
     DENSITY_KM: 'Densidad de Siniestros (Siniestros / km)'
   };
 
   const data: VisQuillDataPoint[] = results.bins.map((bin) => {
     let yValue = bin.totalCount;
-    if (metricMode === 'EPDO') {
+    if (metricMode === 'VEHICLES') {
+      yValue = bin.totalVehicles;
+    } else if (metricMode === 'PERSONS') {
+      yValue = bin.totalPersons;
+    } else if (metricMode === 'EPDO') {
       yValue = bin.epdoScore;
     } else if (metricMode === 'DENSITY_KM') {
       yValue = bin.densityPerKm;
@@ -83,7 +98,10 @@ export function buildVisQuillConfig(
       leveCount: bin.severityCounts[SeverityLevel.LESIONES_LEVES] || 0,
       danosCount: bin.severityCounts[SeverityLevel.SOLO_DANOS] || 0,
       epdoScore: bin.epdoScore,
-      densityPerKm: bin.densityPerKm
+      densityPerKm: bin.densityPerKm,
+      totalVehicles: bin.totalVehicles,
+      totalPersons: bin.totalPersons,
+      personsBreakdown: { ...bin.personsBreakdown }
     };
   });
 
