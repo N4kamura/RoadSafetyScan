@@ -8,7 +8,7 @@ import * as maplibregl from 'maplibre-gl';
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import { VizStore } from '../pkg/viz/store.js';
 import { buildMapLibreConfig } from '../pkg/viz/maplibre-adapter.js';
-import { generateCurvilinearProfile } from '../pkg/curvilinear/generator.js';
+import { generateCurvilinearProfile, computeZoomScaleFactor } from '../pkg/curvilinear/generator.js';
 import { buildCurvilinearMapLibreLayers } from '../pkg/curvilinear/maplibre-layers.js';
 import { VizStoreState, VizEvent } from '../pkg/viz/types.js';
 
@@ -61,6 +61,8 @@ export class MapViewController {
       style: baseStyle,
       center: [-76.9450, -12.2100], // Coordenadas centrales del corredor Panamericana Sur
       zoom: 13,
+      minZoom: 10.5, // SPEC-09: Límite máximo de alejamiento
+      maxZoom: 18,
       attributionControl: { compact: true }
     });
 
@@ -135,6 +137,13 @@ export class MapViewController {
     });
   }
 
+  private getEffectiveCurvilinearScale(): number {
+    const baseScale = this.store.getState().config.curvilinearHeightScale;
+    const currentZoom = this.map ? this.map.getZoom() : 13.0;
+    const factor = computeZoomScaleFactor(currentZoom);
+    return baseScale * factor;
+  }
+
   private initLayers(): void {
     const state = this.store.getState();
     if (!state.alignment || !state.lrsResults) return;
@@ -164,7 +173,7 @@ export class MapViewController {
     const curvModel = generateCurvilinearProfile(state.alignment, state.lrsResults, {
       offsetDistanceMeters: state.config.curvilinearOffsetMeters,
       side: state.config.curvilinearSide,
-      heightScaleMetersPerUnit: state.config.curvilinearHeightScale,
+      heightScaleMetersPerUnit: this.getEffectiveCurvilinearScale(),
       metricMode: state.config.metricMode
     });
     const curvBundle = buildCurvilinearMapLibreLayers(
@@ -227,11 +236,11 @@ export class MapViewController {
       }
     }
 
-    // 2. Actualizar capas del perfil curvilíneo
+    // 2. Actualizar capas del perfil curvilíneo (SPEC-06 & SPEC-09 Auto-Escalado)
     const curvModel = generateCurvilinearProfile(state.alignment, state.lrsResults, {
       offsetDistanceMeters: state.config.curvilinearOffsetMeters,
       side: state.config.curvilinearSide,
-      heightScaleMetersPerUnit: state.config.curvilinearHeightScale,
+      heightScaleMetersPerUnit: this.getEffectiveCurvilinearScale(),
       metricMode: state.config.metricMode
     });
     const curvBundle = buildCurvilinearMapLibreLayers(curvModel, activeBinIndex);
@@ -255,6 +264,34 @@ export class MapViewController {
         }
       } catch (e) {
         console.warn(`Error verificando capa curvilínea ${layer.id}:`, e);
+      }
+    }
+  }
+
+  /**
+   * Actualiza únicamente las fuentes de datos del perfil curvilíneo (para zoom interactivo rápido)
+   */
+  public updateCurvilinearOnly(): void {
+    const state = this.store.getState();
+    if (!state.alignment || !state.lrsResults || !this.isLoaded) return;
+
+    const activeBinIndex = state.selection.hoveredBinIndex ?? state.selection.selectedBinIndex;
+    const curvModel = generateCurvilinearProfile(state.alignment, state.lrsResults, {
+      offsetDistanceMeters: state.config.curvilinearOffsetMeters,
+      side: state.config.curvilinearSide,
+      heightScaleMetersPerUnit: this.getEffectiveCurvilinearScale(),
+      metricMode: state.config.metricMode
+    });
+    const curvBundle = buildCurvilinearMapLibreLayers(curvModel, activeBinIndex);
+
+    for (const src of curvBundle.sources) {
+      try {
+        const existingSource = this.map.getSource(src.id) as maplibregl.GeoJSONSource;
+        if (existingSource) {
+          existingSource.setData(src.data);
+        }
+      } catch (e) {
+        // Silencioso si no está listo
       }
     }
   }
@@ -287,7 +324,7 @@ export class MapViewController {
     const curvModel = generateCurvilinearProfile(state.alignment, state.lrsResults, {
       offsetDistanceMeters: state.config.curvilinearOffsetMeters,
       side: state.config.curvilinearSide,
-      heightScaleMetersPerUnit: state.config.curvilinearHeightScale,
+      heightScaleMetersPerUnit: this.getEffectiveCurvilinearScale(),
       metricMode: state.config.metricMode
     });
     const curvBundle = buildCurvilinearMapLibreLayers(curvModel, activeBinIndex);
@@ -438,6 +475,21 @@ export class MapViewController {
       const feature = e.features[0];
       const props = feature.properties as any;
       this.store.selectCrash(props.id);
+    });
+
+    // 3. Auto-escalado dinámico del perfil curvilíneo al alejar el zoom (SPEC-09)
+    let lastZoom = this.map.getZoom();
+    this.map.on('zoom', () => {
+      const z = this.map.getZoom();
+      if (Math.abs(z - lastZoom) >= 0.15) {
+        lastZoom = z;
+        this.updateCurvilinearOnly();
+      }
+    });
+
+    this.map.on('zoomend', () => {
+      lastZoom = this.map.getZoom();
+      this.updateCurvilinearOnly();
     });
   }
 

@@ -16,6 +16,7 @@ Este documento gestiona la ejecución técnica del proyecto bajo **Spec-Driven D
 | **Fase 5: Perfil Curvilíneo en Mapa** | [`specs/06-curvilinear-profile-along-line.md`](file:///d:/Projects/RoadSafetyScan/specs/06-curvilinear-profile-along-line.md) | `COMPLETADO (IMPLEMENTED)` | 100% (Profiles along a line - VisQuill A1) |
 | **Fase 6: Diagnóstico & Render Cartográfico** | [`specs/07-map-layer-rendering-diagnostics.md`](file:///d:/Projects/RoadSafetyScan/specs/07-map-layer-rendering-diagnostics.md) | `COMPLETADO (IMPLEMENTED)` | 100% (Renderizado de trazo, puntos y perfil) |
 | **Fase 7: Puntos según Zoom (SPEC-08)** | [`specs/08-crash-points-zoom-visibility.md`](file:///d:/Projects/RoadSafetyScan/specs/08-crash-points-zoom-visibility.md) | `COMPLETADO (IMPLEMENTED)` | 100% (minzoom 13.5 en puntos de accidentes) |
+| **Fase 8: Auto-Escalado y Límites de Zoom (SPEC-09)** | [`specs/09-zoom-limits-and-autoscale.md`](file:///d:/Projects/RoadSafetyScan/specs/09-zoom-limits-and-autoscale.md) | `COMPLETADO (IMPLEMENTED)` | 100% (minZoom 10.5 y escala adaptativa) |
 
 ---
 
@@ -117,3 +118,12 @@ Este documento gestiona la ejecución técnica del proyecto bajo **Spec-Driven D
 - [x] **TASK-8.1.3:** Actualizar indicador de visibilidad de puntos en la leyenda en `index.html`.
 - [x] **TASK-8.2.1:** Extender tests unitarios en `tests/unit/viz/maplibre-render.test.ts`.
 - [x] **TASK-8.2.2:** Validar con `npm test` y compilación de producción con Vite.
+
+---
+
+## Fase 8: SPEC-09 — Límite de Zoom y Auto-Escalado Dinámico del Perfil (`pkg/curvilinear` & `ui/map-view`) [COMPLETADO]
+- [x] **TASK-9.1.1:** Configurar `minZoom: 10.5` en MapLibre en `src/ui/map-view.ts`.
+- [x] **TASK-9.1.2:** Implementar función `computeZoomScaleFactor` en `src/pkg/curvilinear/generator.ts`.
+- [x] **TASK-9.1.3:** Conectar reactividad por evento de zoom en `MapViewController`.
+- [x] **TASK-9.2.1:** Extender tests unitarios en `tests/unit/curvilinear/curvilinear.test.ts`.
+- [x] **TASK-9.2.2:** Validar con `npm test` y compilación con Vite.

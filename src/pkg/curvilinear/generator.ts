@@ -26,6 +26,29 @@ export const DEFAULT_CURVILINEAR_OPTIONS: CurvilinearProfileOptions = {
 };
 
 /**
+ * Calcula un factor multiplicador de escala adaptativo cuando el usuario aleja el zoom
+ * Conforme a SPEC-09
+ *
+ * @param zoom Nivel de zoom actual del mapa
+ * @param refZoom Zoom de referencia donde el factor es 1.0 (default: 13.0)
+ * @param gamma Exponente de atenuación (default: 0.70)
+ * @param maxFactor Límite superior de seguridad (default: 4.5)
+ */
+export function computeZoomScaleFactor(
+  zoom: number,
+  refZoom: number = 13.0,
+  gamma: number = 0.70,
+  maxFactor: number = 4.5
+): number {
+  if (zoom >= refZoom) {
+    return 1.0;
+  }
+  const delta = refZoom - zoom;
+  const factor = Math.pow(2, delta * gamma);
+  return Math.min(maxFactor, Math.max(1.0, factor));
+}
+
+/**
  * Interpola una coordenada geográfica y su vector normal para una progresiva métrica s
  */
 function interpolateAtStation(

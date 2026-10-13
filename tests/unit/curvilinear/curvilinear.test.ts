@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { createAlignment } from '../../../src/pkg/tracer/alignment.js';
 import { analyzeLrs } from '../../../src/pkg/lrs/aggregator.js';
-import { generateCurvilinearProfile } from '../../../src/pkg/curvilinear/generator.js';
+import { generateCurvilinearProfile, computeZoomScaleFactor } from '../../../src/pkg/curvilinear/generator.js';
 import { haversineDistance } from '../../../src/pkg/tracer/geodesy.js';
 import { CrashPoint, SeverityLevel, CrashType } from '../../../src/pkg/lrs/types.js';
 
@@ -84,5 +84,24 @@ describe('Curvilinear Profile along a Line (pkg/curvilinear) - SPEC-06 Complianc
     expect(profile.isolines[0].tickValue).toBe(25);
     expect(profile.isolines[3].tickValue).toBe(100);
     expect(profile.isolines[0].lineCoordinates.length).toBeGreaterThan(1);
+  });
+
+  it('debe cumplir con SPEC-09: Auto-escalado de barras al alejar el zoom (computeZoomScaleFactor)', () => {
+    // Zoom de referencia o mayor: factor debe ser 1.0
+    expect(computeZoomScaleFactor(13.0)).toBe(1.0);
+    expect(computeZoomScaleFactor(14.5)).toBe(1.0);
+
+    // Zoom alejado (z < 13.0): factor monótono creciente
+    const factorAt12 = computeZoomScaleFactor(12.0);
+    const factorAt11 = computeZoomScaleFactor(11.0);
+    const factorAt10_5 = computeZoomScaleFactor(10.5);
+
+    expect(factorAt12).toBeGreaterThan(1.0);
+    expect(factorAt11).toBeGreaterThan(factorAt12);
+    expect(factorAt10_5).toBeGreaterThan(factorAt11);
+
+    // Límite de seguridad
+    expect(factorAt10_5).toBeLessThanOrEqual(4.5);
+    expect(computeZoomScaleFactor(5.0)).toBe(4.5); // acotado a maxFactor
   });
 });
