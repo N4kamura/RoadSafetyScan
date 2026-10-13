@@ -1,11 +1,16 @@
 /**
- * Motor Geométrico del Puntero Semicircular y Línea Conectora (SPEC-11)
- * y Soporte para Handle de Escala Transversal (SPEC-12)
+ * Motor Geométrico del Puntero Semicircular y Línea Conectora (SPEC-11, SPEC-24)
+ * y Soporte para Handle de Escala Transversal (SPEC-12, SPEC-24)
  */
 
 import { Alignment, GeoCoordinate } from '../tracer/types.js';
 import { UnitVector2D, offsetCoordinate, computeSmoothedVertexNormals } from './normals.js';
-import { interpolateAtStation } from './generator.js';
+import {
+  interpolateAtStation,
+  BaselineArcLengthProfile,
+  buildBaselineArcLengthProfile,
+  sampleBaselineAtArcLength
+} from './generator.js';
 import { formatStation, toRadians, EARTH_RADIUS_METERS } from '../tracer/geodesy.js';
 import { projectPointOnSegment } from '../lrs/projection.js';
 
@@ -25,7 +30,8 @@ export function computePointerGeometry(
   s: number,
   offsetDistanceMeters: number,
   side: 'LEFT' | 'RIGHT' = 'RIGHT',
-  smoothingWindowSize: number = 3
+  smoothingWindowSize: number = 3,
+  baselineOrCoords?: BaselineArcLengthProfile | [number, number][]
 ): PointerGeometryResult {
   const vertexNormals = computeSmoothedVertexNormals(
     alignment.vertices,
@@ -44,23 +50,46 @@ export function computePointerGeometry(
     Number(coord.latitude.toFixed(6))
   ];
 
-  const baselineCoord = offsetCoordinate(coord, normal, totalOffsetMeters);
+  let baselineCoord: [number, number];
+  let normalVector: UnitVector2D;
+  let angleDeg: number;
+  let pointerRotationDegrees: number;
 
-  // Ángulo cartesiano de orientación de la normal
-  const angleRad = Math.atan2(normal.y * sideSign, normal.x * sideSign);
-  const angleDeg = (angleRad * 180) / Math.PI;
+  if (baselineOrCoords) {
+    const profile: BaselineArcLengthProfile = Array.isArray(baselineOrCoords)
+      ? buildBaselineArcLengthProfile(baselineOrCoords, side)
+      : baselineOrCoords;
 
-  // Rotación exacta (bearing horario en grados desde el Norte) para MapLibre GL JS:
-  // Hace que el diámetro plano del semicírculo sea estrictamente paralelo al trazo de la carretera
-  // y que el domo redondeado apunte orgánicamente hacia la carretera/línea conectora
-  const pointerRotationDegrees = (Math.atan2(sideSign * normal.x, sideSign * normal.y) * 180) / Math.PI;
+    if (profile.coordinates.length >= 2 && profile.totalLength > 0) {
+      const tau = alignment.totalLength > 0 ? clampedS / alignment.totalLength : 0;
+      const u = tau * profile.totalLength;
+      const sampled = sampleBaselineAtArcLength(profile, u);
+      baselineCoord = sampled.coord;
+      normalVector = sampled.normal;
+      const angleRad = Math.atan2(normalVector.y, normalVector.x);
+      angleDeg = (angleRad * 180) / Math.PI;
+      pointerRotationDegrees = (Math.atan2(normalVector.x, normalVector.y) * 180) / Math.PI;
+    } else {
+      baselineCoord = offsetCoordinate(coord, normal, totalOffsetMeters);
+      normalVector = { x: sideSign * normal.x, y: sideSign * normal.y };
+      const angleRad = Math.atan2(normal.y * sideSign, normal.x * sideSign);
+      angleDeg = (angleRad * 180) / Math.PI;
+      pointerRotationDegrees = (Math.atan2(sideSign * normal.x, sideSign * normal.y) * 180) / Math.PI;
+    }
+  } else {
+    baselineCoord = offsetCoordinate(coord, normal, totalOffsetMeters);
+    normalVector = { x: sideSign * normal.x, y: sideSign * normal.y };
+    const angleRad = Math.atan2(normal.y * sideSign, normal.x * sideSign);
+    angleDeg = (angleRad * 180) / Math.PI;
+    pointerRotationDegrees = (Math.atan2(sideSign * normal.x, sideSign * normal.y) * 180) / Math.PI;
+  }
 
   return {
     chainageMeters: clampedS,
     stationFormatted: formatStation(clampedS),
     roadCoord,
     baselineCoord,
-    normalVector: normal,
+    normalVector,
     normalAngleDegrees: angleDeg,
     pointerRotationDegrees,
     connectorLineCoordinates: [roadCoord, baselineCoord]
@@ -96,7 +125,7 @@ export const MAX_HEIGHT_SCALE = 120;
 export const SCALE_REFERENCE_VALUE = 4.0; // Factor métrico para situar el handle exactamente sobre la grilla visual de las barras
 
 /**
- * Calcula la coordenada geográfica del botón rectangular de escala (SPEC-12)
+ * Calcula la coordenada geográfica del botón rectangular de escala (SPEC-12, SPEC-24)
  * ubicado en la grilla transversal a la misma progresiva s que el puntero.
  */
 export function computeScaleHandleCoordinate(
@@ -105,30 +134,31 @@ export function computeScaleHandleCoordinate(
   offsetDistanceMeters: number,
   heightScaleMetersPerUnit: number,
   side: 'LEFT' | 'RIGHT' = 'RIGHT',
-  smoothingWindowSize: number = 3
+  smoothingWindowSize: number = 3,
+  baselineOrCoords?: BaselineArcLengthProfile | [number, number][]
 ): {
   handleCoord: [number, number];
   rotationDegrees: number;
 } {
-  const vertexNormals = computeSmoothedVertexNormals(
-    alignment.vertices,
-    alignment.segments,
-    smoothingWindowSize
+  const pointerGeom = computePointerGeometry(
+    alignment,
+    s,
+    offsetDistanceMeters,
+    side,
+    smoothingWindowSize,
+    baselineOrCoords
   );
 
-  const clampedS = Math.max(0, Math.min(alignment.totalLength, s));
-  const { coord, normal } = interpolateAtStation(alignment, vertexNormals, clampedS);
-
-  const sideSign = side === 'RIGHT' ? 1 : -1;
   const clampedScale = Math.max(MIN_HEIGHT_SCALE, Math.min(MAX_HEIGHT_SCALE, heightScaleMetersPerUnit));
   const handleDistanceAlongNormal = clampedScale * SCALE_REFERENCE_VALUE;
-  const totalOffset = (offsetDistanceMeters + handleDistanceAlongNormal) * sideSign;
 
-  const handleCoord = offsetCoordinate(coord, normal, totalOffset);
-  
-  // Rotación exacta para alinear el lado largo del rectángulo paralelamente a las isolíneas del perfil
-  // y las tres ranuras verticales en la dirección del rayo de extrusión transversal
-  const rotationDegrees = (Math.atan2(-sideSign * normal.x, -sideSign * normal.y) * 180) / Math.PI;
+  const handleCoord = offsetCoordinate(
+    { longitude: pointerGeom.baselineCoord[0], latitude: pointerGeom.baselineCoord[1] },
+    pointerGeom.normalVector,
+    handleDistanceAlongNormal
+  );
+
+  const rotationDegrees = (Math.atan2(-pointerGeom.normalVector.x, -pointerGeom.normalVector.y) * 180) / Math.PI;
 
   return {
     handleCoord,
@@ -151,9 +181,10 @@ export function convertDragToHeightScale(
   const dy = toRadians(cursorCoord[1] - baselineCoord[1]) * EARTH_RADIUS_METERS;
 
   // Proyección escalar sobre la normal de extrusión
-  const normalX = normalVector.x * sideSign;
-  const normalY = normalVector.y * sideSign;
-  const projDist = dx * normalX + dy * normalY;
+  // Si normalVector ya incluye la orientación sideSign, comprobamos su producto escalar
+  const projDist1 = dx * normalVector.x + dy * normalVector.y;
+  const projDist2 = dx * (normalVector.x * sideSign) + dy * (normalVector.y * sideSign);
+  const projDist = projDist1 > 0 ? projDist1 : (projDist2 > 0 ? projDist2 : Math.hypot(dx, dy));
 
   // Convertir a escala métrica acotada
   const scale = projDist / SCALE_REFERENCE_VALUE;

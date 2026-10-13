@@ -1,6 +1,7 @@
 /**
  * Generador Geométrico del Perfil Curvilíneo ("Profiles along a line")
- * Conforme a SPEC-06 (pkg/curvilinear) - Paradigma VisQuill GDK A1 Collision Density
+ * Conforme a SPEC-06, SPEC-20, SPEC-23 y SPEC-24
+ * Paradigma VisQuill GDK A1 Collision Density
  */
 
 import { Alignment, GeoCoordinate } from '../tracer/types.js';
@@ -20,6 +21,11 @@ import {
   CurvilinearIsolineFeature,
   CurvilinearProfileModel
 } from './types.js';
+import {
+  haversineDistance,
+  toRadians,
+  EARTH_RADIUS_METERS
+} from '../tracer/geodesy.js';
 
 export const DEFAULT_CURVILINEAR_OPTIONS: CurvilinearProfileOptions = {
   offsetDistanceMeters: 1200, // 1.2 km de separación lateral por defecto
@@ -28,6 +34,157 @@ export const DEFAULT_CURVILINEAR_OPTIONS: CurvilinearProfileOptions = {
   scaleTicks: [10, 20, 30, 40],
   smoothingWindowSize: 5
 };
+
+/**
+ * Representación parametrizada por longitud de arco de la línea base regularizada (SPEC-24)
+ */
+export interface BaselineArcLengthProfile {
+  coordinates: [number, number][];
+  cumulativeDistances: number[]; // metros acumulados desde 0 hasta totalLength
+  totalLength: number;
+  normals: UnitVector2D[];       // Vectores normales unitarios orientados hacia el exterior
+}
+
+/**
+ * Construye el perfil de longitud de arco y normales continuas de la línea base (SPEC-24)
+ * a partir de las coordenadas desplazadas brutas.
+ *
+ * @param rawCoordinates Polilínea de offset bruta
+ * @param side Lado del perfil ('RIGHT' o 'LEFT')
+ */
+export function buildBaselineArcLengthProfile(
+  rawCoordinates: [number, number][],
+  side: 'LEFT' | 'RIGHT' = 'RIGHT'
+): BaselineArcLengthProfile {
+  // 1. Desenredo de lazos y suavizado gaussiano (SPEC-20)
+  const untangled = untanglePolyline(rawCoordinates);
+  const smoothed = smoothCoordinates(untangled, 5, 2);
+
+  if (smoothed.length === 0) {
+    return {
+      coordinates: [],
+      cumulativeDistances: [],
+      totalLength: 0,
+      normals: []
+    };
+  }
+
+  if (smoothed.length === 1) {
+    return {
+      coordinates: smoothed,
+      cumulativeDistances: [0],
+      totalLength: 0,
+      normals: [{ x: 1, y: 0 }]
+    };
+  }
+
+  // 2. Cálculo de distancias geodésicas acumuladas a lo largo de la polilínea base
+  const cumulativeDistances: number[] = [0];
+  let totalLength = 0;
+  for (let i = 1; i < smoothed.length; i++) {
+    const dist = haversineDistance(
+      { longitude: smoothed[i - 1][0], latitude: smoothed[i - 1][1] },
+      { longitude: smoothed[i][0], latitude: smoothed[i][1] }
+    );
+    totalLength += dist;
+    cumulativeDistances.push(totalLength);
+  }
+
+  // 3. Normales de los segmentos de la línea base orientadas hacia el exterior
+  const sideSign = side === 'RIGHT' ? 1 : -1;
+  const segmentNormals: UnitVector2D[] = [];
+
+  for (let i = 0; i < smoothed.length - 1; i++) {
+    const p1 = smoothed[i];
+    const p2 = smoothed[i + 1];
+    const meanLat = toRadians((p1[1] + p2[1]) / 2);
+    const dx = toRadians(p2[0] - p1[0]) * EARTH_RADIUS_METERS * Math.cos(meanLat);
+    const dy = toRadians(p2[1] - p1[1]) * EARTH_RADIUS_METERS;
+    const len = Math.hypot(dx, dy) || 1;
+
+    // Tangente unitaria: (dx/len, dy/len)
+    // Para RIGHT: normal exterior hacia la derecha (dy/len, -dx/len)
+    // Para LEFT: normal exterior hacia la izquierda (-dy/len, dx/len)
+    segmentNormals.push({
+      x: sideSign * (dy / len),
+      y: sideSign * (-dx / len)
+    });
+  }
+
+  // 4. Normales por vértice promediando segmentos adyacentes
+  const normals: UnitVector2D[] = [];
+  for (let i = 0; i < smoothed.length; i++) {
+    if (i === 0) {
+      normals.push(segmentNormals[0] || { x: 1, y: 0 });
+    } else if (i === smoothed.length - 1) {
+      normals.push(segmentNormals[segmentNormals.length - 1] || { x: 1, y: 0 });
+    } else {
+      const n1 = segmentNormals[i - 1];
+      const n2 = segmentNormals[i];
+      const nx = n1.x + n2.x;
+      const ny = n1.y + n2.y;
+      const len = Math.hypot(nx, ny) || 1;
+      normals.push({ x: nx / len, y: ny / len });
+    }
+  }
+
+  return {
+    coordinates: smoothed,
+    cumulativeDistances,
+    totalLength,
+    normals
+  };
+}
+
+/**
+ * Muestrea una posición exacta y vector normal a lo largo de la línea base por longitud de arco u (SPEC-24)
+ */
+export function sampleBaselineAtArcLength(
+  baseline: BaselineArcLengthProfile,
+  u: number
+): { coord: [number, number]; normal: UnitVector2D } {
+  const { coordinates, cumulativeDistances, totalLength, normals } = baseline;
+  if (coordinates.length === 0) {
+    return { coord: [0, 0], normal: { x: 1, y: 0 } };
+  }
+  if (coordinates.length === 1 || totalLength <= 0) {
+    return { coord: coordinates[0], normal: normals[0] || { x: 1, y: 0 } };
+  }
+
+  const clampedU = Math.max(0, Math.min(totalLength, u));
+
+  // Localizar el segmento correspondiente
+  for (let i = 0; i < cumulativeDistances.length - 1; i++) {
+    const uStart = cumulativeDistances[i];
+    const uEnd = cumulativeDistances[i + 1];
+
+    if (clampedU >= uStart && (clampedU <= uEnd || i === cumulativeDistances.length - 2)) {
+      const segLen = uEnd - uStart;
+      const t = segLen > 0 ? (clampedU - uStart) / segLen : 0;
+      const p1 = coordinates[i];
+      const p2 = coordinates[i + 1];
+
+      const lon = Number((p1[0] + t * (p2[0] - p1[0])).toFixed(6));
+      const lat = Number((p1[1] + t * (p2[1] - p1[1])).toFixed(6));
+
+      const n1 = normals[i];
+      const n2 = normals[i + 1] || n1;
+      const nx = n1.x + t * (n2.x - n1.x);
+      const ny = n1.y + t * (n2.y - n1.y);
+      const len = Math.hypot(nx, ny) || 1;
+
+      return {
+        coord: [lon, lat],
+        normal: { x: nx / len, y: ny / len }
+      };
+    }
+  }
+
+  return {
+    coord: coordinates[coordinates.length - 1],
+    normal: normals[normals.length - 1]
+  };
+}
 
 /**
  * Calcula un factor multiplicador de escala adaptativo cuando el usuario aleja el zoom
@@ -101,7 +258,8 @@ export function interpolateAtStation(
 }
 
 /**
- * Genera el modelo geométrico completo del perfil curvilíneo paralelo al trazo
+ * Genera el modelo geométrico completo del perfil curvilíneo paralelo al trazo (SPEC-06, SPEC-23, SPEC-24)
+ * utilizando mapeo por desplazamiento relativo a la línea base y anclaje estricto sin deformaciones.
  *
  * @param alignment Eje vial de referencia
  * @param results Resultados del análisis LRS con bins
@@ -124,15 +282,15 @@ export function generateCurvilinearProfile(
     opts.smoothingWindowSize
   );
 
-  // Multiplicador de signo según lado: +1 si RIGHT, -1 si LEFT
   const sideSign = opts.side === 'RIGHT' ? 1 : -1;
   const baseOffsetMeters = opts.offsetDistanceMeters * sideSign;
 
   // 1. Determinar intervalo longitudinal de muestreo y recorte al viewport (SPEC-23)
   const rangeStart = opts.visibleRange ? Math.max(0, opts.visibleRange[0]) : 0;
   const rangeEnd = opts.visibleRange ? Math.min(alignment.totalLength, opts.visibleRange[1]) : alignment.totalLength;
+  const rangeLength = rangeEnd - rangeStart;
 
-  if (rangeStart >= rangeEnd) {
+  if (rangeLength <= 0) {
     return {
       alignmentId: alignment.id,
       baselineCoordinates: [],
@@ -142,25 +300,54 @@ export function generateCurvilinearProfile(
     };
   }
 
-  // 1. Generar la Línea Base Desplazada B(s)
-  // Muestrear a lo largo del eje cada bin boundary y vértice dentro del rango visible
+  // 2. Muestrear la carretera a intervalos finos para generar la Línea Base Desplazada B(s)
   const sampleStations: number[] = [];
-  const binStep = results.bins.length > 0 ? (results.bins[0].endChainageMeters - results.bins[0].startChainageMeters) : 100;
+  const sampleStep = Math.min(50, Math.max(10, rangeLength / 100));
 
-  for (let s = rangeStart; s <= rangeEnd; s += binStep) {
+  for (let s = rangeStart; s <= rangeEnd; s += sampleStep) {
     sampleStations.push(s);
   }
   if (sampleStations.length === 0 || sampleStations[sampleStations.length - 1] < rangeEnd) {
     sampleStations.push(rangeEnd);
   }
 
-  const rawBaselineCoordinates: [number, number][] = sampleStations.map((s) => {
+  // Incluir vértices del eje vial que se encuentren en el rango
+  for (const v of alignment.vertices) {
+    if (v.cumulativeDistance > rangeStart && v.cumulativeDistance < rangeEnd) {
+      sampleStations.push(v.cumulativeDistance);
+    }
+  }
+
+  // Ordenar y deduplicar progresivas
+  sampleStations.sort((a, b) => a - b);
+  const uniqueStations: number[] = [];
+  for (let i = 0; i < sampleStations.length; i++) {
+    if (i === 0 || sampleStations[i] - uniqueStations[uniqueStations.length - 1] > 1.0) {
+      uniqueStations.push(sampleStations[i]);
+    }
+  }
+
+  const rawBaselineCoordinates: [number, number][] = uniqueStations.map((s) => {
     const { coord, normal } = interpolateAtStation(alignment, vertexNormals, s);
     return offsetCoordinate(coord, normal, baseOffsetMeters);
   });
-  const baselineCoordinates = smoothCoordinates(untanglePolyline(rawBaselineCoordinates), 5, 2);
 
-  // 2. Generar Barras Poligonales Extruidas Ortogonalmente
+  // Construir el perfil parametrizado por longitud de arco de la línea base (SPEC-24)
+  const baselineProfile = buildBaselineArcLengthProfile(rawBaselineCoordinates, opts.side);
+  const baselineCoordinates = baselineProfile.coordinates;
+  const LB = baselineProfile.totalLength;
+
+  if (baselineCoordinates.length < 2 || LB <= 0) {
+    return {
+      alignmentId: alignment.id,
+      baselineCoordinates,
+      bars: [],
+      isolines: [],
+      connectorLines: []
+    };
+  }
+
+  // 3. Generar Barras Poligonales Extruidas Ortogonalmente a la Línea Base (SPEC-24)
   const bars: CurvilinearBarFeature[] = [];
 
   for (const bin of results.bins) {
@@ -174,12 +361,21 @@ export function generateCurvilinearProfile(
       }
     }
 
-    const startInterp = interpolateAtStation(alignment, vertexNormals, sStart);
-    const endInterp = interpolateAtStation(alignment, vertexNormals, sEnd);
+    const clampedStart = Math.max(rangeStart, sStart);
+    const clampedEnd = Math.min(rangeEnd, sEnd);
+    if (clampedEnd <= clampedStart) continue;
 
-    // Puntos de anclaje sobre la baseline B(s)
-    const pStart = offsetCoordinate(startInterp.coord, startInterp.normal, baseOffsetMeters);
-    const pEnd = offsetCoordinate(endInterp.coord, endInterp.normal, baseOffsetMeters);
+    // Mapeo por longitud de arco: u(s) = ((s - rangeStart) / rangeLength) * LB (SPEC-24)
+    const uStart = ((clampedStart - rangeStart) / rangeLength) * LB;
+    const uEnd = ((clampedEnd - rangeStart) / rangeLength) * LB;
+
+    const baseStart = sampleBaselineAtArcLength(baselineProfile, uStart);
+    const baseEnd = sampleBaselineAtArcLength(baselineProfile, uEnd);
+
+    const pStart = baseStart.coord;
+    const pEnd = baseEnd.coord;
+    const nStart = baseStart.normal;
+    const nEnd = baseEnd.normal;
 
     if (opts.metricMode === 'PERSONS') {
       const fallecido = bin.personsBreakdown?.fallecido ?? 0;
@@ -187,6 +383,11 @@ export function generateCurvilinearProfile(
       const noSeConoce = bin.personsBreakdown?.noSeConoce ?? 0;
       const ileso = bin.personsBreakdown?.ileso ?? 0;
       const totalPersons = bin.totalPersons ?? (fallecido + lesionado + noSeConoce + ileso);
+
+      // SPEC-24: Supresión de bins con valor 0 para no saturar zonas limpias de la carretera
+      if (totalPersons <= 0) {
+        continue;
+      }
 
       const slices = [
         { key: 'FALLECIDO' as const, count: fallecido, color: '#DC2626' },
@@ -196,64 +397,39 @@ export function generateCurvilinearProfile(
       ].filter((s) => s.count > 0);
 
       if (slices.length === 0) {
-        if (totalPersons > 0) {
-          const barHeightMeters = totalPersons * opts.heightScaleMetersPerUnit;
-          const totalExtrusionMeters = baseOffsetMeters + (barHeightMeters * sideSign);
-          const qStart = offsetCoordinate(startInterp.coord, startInterp.normal, totalExtrusionMeters);
-          const qEnd = offsetCoordinate(endInterp.coord, endInterp.normal, totalExtrusionMeters);
-          bars.push({
-            binIndex: bin.binIndex,
-            startChainageMeters: sStart,
-            endChainageMeters: sEnd,
-            startStationFormatted: bin.startStationFormatted,
-            endStationFormatted: bin.endStationFormatted,
-            value: totalPersons,
-            heightMeters: barHeightMeters,
-            polygonCoordinates: [pStart, qStart, qEnd, pEnd, pStart],
-            severityBreakdown: {
-              fatal: bin.severityCounts[SeverityLevel.FATAL] || 0,
-              grave: bin.severityCounts[SeverityLevel.LESIONES_GRAVES] || 0,
-              leve: bin.severityCounts[SeverityLevel.LESIONES_LEVES] || 0,
-              danos: bin.severityCounts[SeverityLevel.SOLO_DANOS] || 0
-            },
-            totalVehicles: bin.totalVehicles,
-            totalPersons,
-            personsBreakdown: { ...bin.personsBreakdown },
-            fillColor: '#7C3AED'
-          });
-        } else {
-          bars.push({
-            binIndex: bin.binIndex,
-            startChainageMeters: sStart,
-            endChainageMeters: sEnd,
-            startStationFormatted: bin.startStationFormatted,
-            endStationFormatted: bin.endStationFormatted,
-            value: 0,
-            heightMeters: 0,
-            polygonCoordinates: [pStart, pStart, pEnd, pEnd, pStart],
-            severityBreakdown: {
-              fatal: bin.severityCounts[SeverityLevel.FATAL] || 0,
-              grave: bin.severityCounts[SeverityLevel.LESIONES_GRAVES] || 0,
-              leve: bin.severityCounts[SeverityLevel.LESIONES_LEVES] || 0,
-              danos: bin.severityCounts[SeverityLevel.SOLO_DANOS] || 0
-            },
-            totalVehicles: bin.totalVehicles,
-            totalPersons: 0,
-            personsBreakdown: { ...bin.personsBreakdown },
-            fillColor: 'rgba(124, 58, 237, 0.15)'
-          });
-        }
+        const barHeightMeters = totalPersons * opts.heightScaleMetersPerUnit;
+        const qStart = offsetCoordinate({ longitude: pStart[0], latitude: pStart[1] }, nStart, barHeightMeters);
+        const qEnd = offsetCoordinate({ longitude: pEnd[0], latitude: pEnd[1] }, nEnd, barHeightMeters);
+        bars.push({
+          binIndex: bin.binIndex,
+          startChainageMeters: sStart,
+          endChainageMeters: sEnd,
+          startStationFormatted: bin.startStationFormatted,
+          endStationFormatted: bin.endStationFormatted,
+          value: totalPersons,
+          heightMeters: barHeightMeters,
+          polygonCoordinates: [pStart, qStart, qEnd, pEnd, pStart],
+          severityBreakdown: {
+            fatal: bin.severityCounts[SeverityLevel.FATAL] || 0,
+            grave: bin.severityCounts[SeverityLevel.LESIONES_GRAVES] || 0,
+            leve: bin.severityCounts[SeverityLevel.LESIONES_LEVES] || 0,
+            danos: bin.severityCounts[SeverityLevel.SOLO_DANOS] || 0
+          },
+          totalVehicles: bin.totalVehicles,
+          totalPersons,
+          personsBreakdown: { ...bin.personsBreakdown },
+          fillColor: '#7C3AED'
+        });
       } else {
-        // Extruir capas apiladas consecutivas sobre la normal
-        let currentOffsetMeters = baseOffsetMeters;
+        let currentHeight = 0;
         for (const slice of slices) {
           const sliceHeightMeters = slice.count * opts.heightScaleMetersPerUnit;
-          const nextOffsetMeters = currentOffsetMeters + (sliceHeightMeters * sideSign);
+          const nextHeight = currentHeight + sliceHeightMeters;
 
-          const pSliceStart = offsetCoordinate(startInterp.coord, startInterp.normal, currentOffsetMeters);
-          const pSliceEnd = offsetCoordinate(endInterp.coord, endInterp.normal, currentOffsetMeters);
-          const qSliceStart = offsetCoordinate(startInterp.coord, startInterp.normal, nextOffsetMeters);
-          const qSliceEnd = offsetCoordinate(endInterp.coord, endInterp.normal, nextOffsetMeters);
+          const pSliceStart = offsetCoordinate({ longitude: pStart[0], latitude: pStart[1] }, nStart, currentHeight);
+          const pSliceEnd = offsetCoordinate({ longitude: pEnd[0], latitude: pEnd[1] }, nEnd, currentHeight);
+          const qSliceStart = offsetCoordinate({ longitude: pStart[0], latitude: pStart[1] }, nStart, nextHeight);
+          const qSliceEnd = offsetCoordinate({ longitude: pEnd[0], latitude: pEnd[1] }, nEnd, nextHeight);
 
           bars.push({
             binIndex: bin.binIndex,
@@ -278,25 +454,24 @@ export function generateCurvilinearProfile(
             fillColor: slice.color
           });
 
-          currentOffsetMeters = nextOffsetMeters;
+          currentHeight = nextHeight;
         }
       }
     } else {
       // Modos de extrusión simple (COUNT, VEHICLES, EPDO, DENSITY_KM)
       let value = bin.totalCount;
-      let defaultColor: string | undefined = undefined;
+      let defaultColor = '#7C3AED';
 
       if (opts.metricMode === 'VEHICLES') {
         value = bin.totalVehicles;
-        defaultColor = value > 0 ? '#0284C7' : 'rgba(2, 132, 199, 0.15)';
+        defaultColor = '#0284C7';
       } else if (opts.metricMode === 'EPDO') {
         value = bin.epdoScore;
-        defaultColor = value > 0 ? '#DC2626' : 'rgba(220, 38, 38, 0.15)';
+        defaultColor = '#DC2626';
       } else if (opts.metricMode === 'DENSITY_KM') {
         value = bin.densityPerKm;
-        defaultColor = value > 0 ? '#7C3AED' : 'rgba(124, 58, 237, 0.15)';
+        defaultColor = '#7C3AED';
       } else {
-        // COUNT: Dominante por severidad del siniestro
         const fatal = bin.severityCounts[SeverityLevel.FATAL] || 0;
         const grave = bin.severityCounts[SeverityLevel.LESIONES_GRAVES] || 0;
         const leve = bin.severityCounts[SeverityLevel.LESIONES_LEVES] || 0;
@@ -309,16 +484,17 @@ export function generateCurvilinearProfile(
           ? '#FACC15'
           : danos > 0
           ? '#2563EB'
-          : value > 0
-          ? '#7C3AED'
-          : 'rgba(124, 58, 237, 0.15)';
+          : '#7C3AED';
+      }
+
+      // SPEC-24: Supresión de bins con valor 0
+      if (value <= 0) {
+        continue;
       }
 
       const barHeightMeters = value * opts.heightScaleMetersPerUnit;
-      const totalExtrusionMeters = baseOffsetMeters + (barHeightMeters * sideSign);
-
-      const qStart = offsetCoordinate(startInterp.coord, startInterp.normal, totalExtrusionMeters);
-      const qEnd = offsetCoordinate(endInterp.coord, endInterp.normal, totalExtrusionMeters);
+      const qStart = offsetCoordinate({ longitude: pStart[0], latitude: pStart[1] }, nStart, barHeightMeters);
+      const qEnd = offsetCoordinate({ longitude: pEnd[0], latitude: pEnd[1] }, nEnd, barHeightMeters);
 
       bars.push({
         binIndex: bin.binIndex,
@@ -343,7 +519,7 @@ export function generateCurvilinearProfile(
     }
   }
 
-  // 3. Generar Isolíneas Concéntricas de Escala Curvilíneas
+  // 4. Generar Isolíneas Concéntricas de Escala Curvilíneas sobre la Línea Base (SPEC-24)
   let activeTicks = opts.scaleTicks;
   if (!options?.scaleTicks && results.bins.length > 0) {
     const maxVal = results.bins.reduce((max, b) => {
@@ -372,15 +548,12 @@ export function generateCurvilinearProfile(
 
   for (const tickVal of activeTicks) {
     const tickHeightMeters = tickVal * opts.heightScaleMetersPerUnit;
-    const tickTotalOffset = baseOffsetMeters + (tickHeightMeters * sideSign);
 
-    const rawLineCoordinates: [number, number][] = sampleStations.map((s) => {
-      const { coord, normal } = interpolateAtStation(alignment, vertexNormals, s);
-      return offsetCoordinate(coord, normal, tickTotalOffset);
+    const lineCoordinates: [number, number][] = baselineCoordinates.map((coord, idx) => {
+      const normal = baselineProfile.normals[idx];
+      return offsetCoordinate({ longitude: coord[0], latitude: coord[1] }, normal, tickHeightMeters);
     });
-    const lineCoordinates = smoothCoordinates(untanglePolyline(rawLineCoordinates), 5, 2);
 
-    // Posición de la etiqueta: en el punto medio de la isolínea
     const midIdx = Math.floor(lineCoordinates.length / 2);
     const labelPos = lineCoordinates[midIdx] || lineCoordinates[0];
 
@@ -393,30 +566,46 @@ export function generateCurvilinearProfile(
     });
   }
 
-  // 4. Rayos conectores transversales en los extremos del rango visible (SPEC-23)
+  // 5. Rayos conectores transversales y grilla radial (SPEC-24)
   const connectorLines: [number, number][][] = [];
   const maxTick = activeTicks.length > 0 ? Math.max(...activeTicks, 10) : 10;
-  const maxExtrusionMeters = baseOffsetMeters + (maxTick * opts.heightScaleMetersPerUnit * sideSign);
+  const maxExtrusionMeters = maxTick * opts.heightScaleMetersPerUnit;
 
-  // Conector inicial (en rangeStart)
-  const startAtZero = interpolateAtStation(alignment, vertexNormals, rangeStart);
-  connectorLines.push([
-    offsetCoordinate(startAtZero.coord, startAtZero.normal, baseOffsetMeters),
-    offsetCoordinate(startAtZero.coord, startAtZero.normal, maxExtrusionMeters)
-  ]);
+  if (baselineCoordinates.length >= 2) {
+    // Conector inicial (en el primer vértice de la baseline)
+    const firstCoord = baselineCoordinates[0];
+    const firstNormal = baselineProfile.normals[0];
+    connectorLines.push([
+      firstCoord,
+      offsetCoordinate({ longitude: firstCoord[0], latitude: firstCoord[1] }, firstNormal, maxExtrusionMeters)
+    ]);
 
-  // Conector final (en rangeEnd)
-  const endAtTotal = interpolateAtStation(alignment, vertexNormals, rangeEnd);
-  connectorLines.push([
-    offsetCoordinate(endAtTotal.coord, endAtTotal.normal, baseOffsetMeters),
-    offsetCoordinate(endAtTotal.coord, endAtTotal.normal, maxExtrusionMeters)
-  ]);
+    // Conectores transversales intermedios de la grilla (VisQuill radial grid)
+    const gridTicks = [0.25, 0.5, 0.75];
+    for (const frac of gridTicks) {
+      const uGrid = frac * LB;
+      const sampled = sampleBaselineAtArcLength(baselineProfile, uGrid);
+      connectorLines.push([
+        sampled.coord,
+        offsetCoordinate({ longitude: sampled.coord[0], latitude: sampled.coord[1] }, sampled.normal, maxExtrusionMeters)
+      ]);
+    }
+
+    // Conector final (en el último vértice de la baseline)
+    const lastCoord = baselineCoordinates[baselineCoordinates.length - 1];
+    const lastNormal = baselineProfile.normals[baselineProfile.normals.length - 1];
+    connectorLines.push([
+      lastCoord,
+      offsetCoordinate({ longitude: lastCoord[0], latitude: lastCoord[1] }, lastNormal, maxExtrusionMeters)
+    ]);
+  }
 
   return {
     alignmentId: alignment.id,
     baselineCoordinates,
     bars,
     isolines,
-    connectorLines
+    connectorLines,
+    baselineProfile
   };
 }

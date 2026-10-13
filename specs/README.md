@@ -39,6 +39,7 @@ Bajo este marco metodológico:
 | **SPEC-21** | Edición Interactiva & Bloqueo de Trazos | [`specs/21-trace-locking-and-interactive-editing.md`](file:///d:/Projects/RoadSafetyScan/specs/21-trace-locking-and-interactive-editing.md) | `pkg/tracer` / `ui` | Bloqueo 🔒, Aviso Modal de Seguridad, Arrastre de Vértices | `IMPLEMENTED` (100% Tests Pass) |
 | **SPEC-22** | Visualización de Faja de Influencia (Buffer) | [`specs/22-interactive-buffer-corridor-visualization.md`](file:///d:/Projects/RoadSafetyScan/specs/22-interactive-buffer-corridor-visualization.md) | `pkg/tracer` / `ui/map-view` | Polígono Tenue de Buffer, Reactividad al Slider | `IMPLEMENTED` (100% Tests Pass) |
 | **SPEC-23** | Recorte al Viewport & Segmentación Dinámica por Zoom | [`specs/23-dynamic-viewport-clipping-and-zoom-adaptive-segmentation.md`](file:///d:/Projects/RoadSafetyScan/specs/23-dynamic-viewport-clipping-and-zoom-adaptive-segmentation.md) | `pkg/curvilinear` / `ui/map-view` | Recorte a Pantalla, Mínimo 100m, Segmentación Dinámica | `IMPLEMENTED` (100% Tests Pass) |
+| **SPEC-24** | Mapeo por Longitud de Arco & Barras Inalteradas | [`specs/24-visquill-arc-length-baseline-mapping-and-distortionless-bars.md`](file:///d:/Projects/RoadSafetyScan/specs/24-visquill-arc-length-baseline-mapping-and-distortionless-bars.md) | `pkg/curvilinear` / `ui/map-view` | Mapeo por Desplazamiento VisQuill, Anclaje en Baseline, Supresión de Cero | `IMPLEMENTED` (100% Tests Pass) |
 
 ---
 

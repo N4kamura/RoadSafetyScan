@@ -49,6 +49,7 @@ export class MapViewController {
   private scaleHandleMarker: maplibregl.Marker | null = null;
   private scaleHandleElement: HTMLElement | null = null;
   private isDraggingScaleHandle: boolean = false;
+  private cachedBaselineProfile: any = null;
 
   public getPointerMarker(): maplibregl.Marker | null {
     return this.pointerMarker;
@@ -504,6 +505,7 @@ export class MapViewController {
       metricMode: state.config.metricMode,
       visibleRange: this.getVisibleStationRange()
     });
+    this.cachedBaselineProfile = curvModel.baselineProfile;
     const curvBundle = buildCurvilinearMapLibreLayers(curvModel, activeBinIndex);
 
     for (const src of curvBundle.sources) {
@@ -545,7 +547,9 @@ export class MapViewController {
       state.alignment,
       this.currentPointerChainage,
       state.config.curvilinearOffsetMeters,
-      state.config.curvilinearSide
+      state.config.curvilinearSide,
+      3,
+      this.cachedBaselineProfile
     );
 
     const scaleGeom = computeScaleHandleCoordinate(
@@ -553,7 +557,9 @@ export class MapViewController {
       this.currentPointerChainage,
       state.config.curvilinearOffsetMeters,
       this.getEffectiveCurvilinearScale(),
-      state.config.curvilinearSide
+      state.config.curvilinearSide,
+      3,
+      this.cachedBaselineProfile
     );
 
     // 1. Botón Semicircular sobre la Baseline del Perfil (SPEC-11)
@@ -704,7 +710,9 @@ export class MapViewController {
       state.alignment,
       this.currentPointerChainage,
       state.config.curvilinearOffsetMeters,
-      state.config.curvilinearSide
+      state.config.curvilinearSide,
+      3,
+      this.cachedBaselineProfile
     );
 
     // Mover marcador a la posición exacta sobre la baseline B(s) si no está en pleno arrastre
@@ -722,7 +730,9 @@ export class MapViewController {
         this.currentPointerChainage,
         state.config.curvilinearOffsetMeters,
         this.getEffectiveCurvilinearScale(),
-        state.config.curvilinearSide
+        state.config.curvilinearSide,
+        3,
+        this.cachedBaselineProfile
       );
       if (!this.isDraggingScaleHandle) {
         this.scaleHandleMarker.setLngLat(scaleGeom.handleCoord);
@@ -775,6 +785,7 @@ export class MapViewController {
       metricMode: state.config.metricMode,
       visibleRange: this.getVisibleStationRange()
     });
+    this.cachedBaselineProfile = curvModel.baselineProfile;
     const curvBundle = buildCurvilinearMapLibreLayers(curvModel, activeBinIndex);
 
     for (const src of curvBundle.sources) {
@@ -822,6 +833,7 @@ export class MapViewController {
       metricMode: state.config.metricMode,
       visibleRange: this.getVisibleStationRange()
     });
+    this.cachedBaselineProfile = curvModel.baselineProfile;
     const curvBundle = buildCurvilinearMapLibreLayers(curvModel, activeBinIndex);
     const barsSrcDef = curvBundle.sources.find((s) => s.id === 'source-curvilinear-bars');
     if (barsSrcDef) {

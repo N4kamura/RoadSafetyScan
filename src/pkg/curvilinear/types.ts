@@ -77,4 +77,6 @@ export interface CurvilinearProfileModel {
   isolines: CurvilinearIsolineFeature[];
   /** Líneas transversales conectoras de extremos */
   connectorLines: [number, number][][];
+  /** Perfil de longitud de arco y normales de la línea base (SPEC-24) */
+  baselineProfile?: any;
 }
