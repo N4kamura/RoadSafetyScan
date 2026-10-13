@@ -15,7 +15,8 @@ export interface PointerGeometryResult {
   roadCoord: [number, number];       // P(s) sobre el eje vial
   baselineCoord: [number, number];   // B(s) sobre la baseline
   normalVector: UnitVector2D;
-  normalAngleDegrees: number;        // Ángulo de orientación de la normal
+  normalAngleDegrees: number;        // Ángulo de orientación de la normal (cartesian)
+  pointerRotationDegrees: number;    // Rotación exacta para MapLibre para mantener el lado plano estrictamente paralelo al trazo
   connectorLineCoordinates: [number, number][]; // [P(s), B(s)]
 }
 
@@ -45,9 +46,14 @@ export function computePointerGeometry(
 
   const baselineCoord = offsetCoordinate(coord, normal, totalOffsetMeters);
 
-  // Ángulo de orientación de la normal en grados
+  // Ángulo cartesiano de orientación de la normal
   const angleRad = Math.atan2(normal.y * sideSign, normal.x * sideSign);
   const angleDeg = (angleRad * 180) / Math.PI;
+
+  // Rotación exacta (bearing horario en grados desde el Norte) para MapLibre GL JS:
+  // Hace que el diámetro plano del semicírculo sea estrictamente paralelo al trazo de la carretera
+  // y que el domo redondeado apunte orgánicamente hacia la carretera/línea conectora
+  const pointerRotationDegrees = (Math.atan2(sideSign * normal.x, sideSign * normal.y) * 180) / Math.PI;
 
   return {
     chainageMeters: clampedS,
@@ -56,6 +62,7 @@ export function computePointerGeometry(
     baselineCoord,
     normalVector: normal,
     normalAngleDegrees: angleDeg,
+    pointerRotationDegrees,
     connectorLineCoordinates: [roadCoord, baselineCoord]
   };
 }
@@ -86,7 +93,7 @@ export function projectPointToAlignmentChainage(
 
 export const MIN_HEIGHT_SCALE = 10;
 export const MAX_HEIGHT_SCALE = 120;
-export const SCALE_REFERENCE_VALUE = 15; // Unidades de referencia para distancia visual del handle
+export const SCALE_REFERENCE_VALUE = 4.0; // Factor métrico para situar el handle exactamente sobre la grilla visual de las barras
 
 /**
  * Calcula la coordenada geográfica del botón rectangular de escala (SPEC-12)
@@ -118,8 +125,10 @@ export function computeScaleHandleCoordinate(
   const totalOffset = (offsetDistanceMeters + handleDistanceAlongNormal) * sideSign;
 
   const handleCoord = offsetCoordinate(coord, normal, totalOffset);
-  const angleRad = Math.atan2(normal.y * sideSign, normal.x * sideSign);
-  const rotationDegrees = (angleRad * 180) / Math.PI + 90;
+  
+  // Rotación exacta para alinear el lado largo del rectángulo paralelamente a las isolíneas del perfil
+  // y las tres ranuras verticales en la dirección del rayo de extrusión transversal
+  const rotationDegrees = (Math.atan2(-sideSign * normal.x, -sideSign * normal.y) * 180) / Math.PI;
 
   return {
     handleCoord,
@@ -146,7 +155,7 @@ export function convertDragToHeightScale(
   const normalY = normalVector.y * sideSign;
   const projDist = dx * normalX + dy * normalY;
 
-  // Convertir a escala
+  // Convertir a escala métrica acotada
   const scale = projDist / SCALE_REFERENCE_VALUE;
   return Math.round(Math.max(MIN_HEIGHT_SCALE, Math.min(MAX_HEIGHT_SCALE, scale)));
 }

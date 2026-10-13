@@ -244,7 +244,7 @@ export class MapViewController {
     }
 
     if (this.currentPointerChainage === 0 && state.alignment) {
-      this.currentPointerChainage = state.alignment.totalLength * 0.45;
+      this.currentPointerChainage = state.alignment.totalLength * 0.35;
     }
     this.initPointerMarker();
     this.updatePointerVisuals();
@@ -322,6 +322,7 @@ export class MapViewController {
 
   private initPointerMarker(): void {
     if (this.pointerMarker && this.scaleHandleMarker) return;
+    const state = this.store.getState();
 
     // 1. Botón Semicircular sobre la Baseline del Perfil (SPEC-11)
     if (!this.pointerMarker) {
@@ -370,14 +371,15 @@ export class MapViewController {
     if (!this.scaleHandleMarker) {
       const scaleEl = document.createElement('div');
       scaleEl.className = 'curvilinear-scale-handle-btn';
-      scaleEl.title = 'Arrastre perpendicularmente a las barras para modificar la escala vertical (SPEC-12)';
+      scaleEl.title = 'Escala de Altura (arrastre perpendicularmente para agrandar o achicar las barras)';
       scaleEl.innerHTML = `
-        <svg width="28" height="18" viewBox="0 0 28 18" style="display: block; overflow: visible;">
-          <rect x="1" y="1" width="26" height="16" rx="3.5" fill="#0F172A" stroke="#FFFFFF" stroke-width="1.8" />
-          <line x1="8" y1="4.5" x2="8" y2="13.5" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round" />
-          <line x1="13" y1="4.5" x2="13" y2="13.5" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round" />
-          <line x1="18" y1="4.5" x2="18" y2="13.5" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round" />
+        <svg width="34" height="20" viewBox="0 0 34 20" style="display: block; overflow: visible;">
+          <rect x="1" y="1" width="32" height="18" rx="4" fill="#0F172A" stroke="#FFFFFF" stroke-width="2" />
+          <line x1="9" y1="5" x2="9" y2="15" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" />
+          <line x1="17" y1="5" x2="17" y2="15" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" />
+          <line x1="25" y1="5" x2="25" y2="15" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" />
         </svg>
+        <div class="scale-handle-badge">${state.config.curvilinearHeightScale} m/u</div>
       `;
 
       this.scaleHandleElement = scaleEl;
@@ -407,6 +409,11 @@ export class MapViewController {
           state.config.curvilinearSide
         );
 
+        const badge = scaleEl.querySelector('.scale-handle-badge');
+        if (badge) {
+          badge.textContent = `${newScale} m/u`;
+        }
+
         if (newScale !== state.config.curvilinearHeightScale) {
           this.store.updateConfig({ curvilinearHeightScale: newScale });
         }
@@ -434,11 +441,10 @@ export class MapViewController {
     // Mover marcador a la posición exacta sobre la baseline B(s)
     this.pointerMarker.setLngLat(geom.baselineCoord);
 
-    // Rotar para orientar el domo semicircular hacia la carretera
-    const rotation = geom.normalAngleDegrees + 90;
-    this.pointerMarker.setRotation(rotation);
+    // Rotar para orientar el lado plano estrictamente paralelo al trazo vial
+    this.pointerMarker.setRotation(geom.pointerRotationDegrees);
 
-    // SPEC-12: Actualizar posición y rotación del botón rectangular de escala
+    // SPEC-12: Actualizar posición, rotación y badge del botón rectangular de escala
     if (this.scaleHandleMarker) {
       const scaleGeom = computeScaleHandleCoordinate(
         state.alignment,
@@ -449,6 +455,11 @@ export class MapViewController {
       );
       this.scaleHandleMarker.setLngLat(scaleGeom.handleCoord);
       this.scaleHandleMarker.setRotation(scaleGeom.rotationDegrees);
+
+      const badge = this.scaleHandleElement?.querySelector('.scale-handle-badge');
+      if (badge) {
+        badge.textContent = `${state.config.curvilinearHeightScale} m/u`;
+      }
     }
 
     // Actualizar fuente GeoJSON de la línea conectora
@@ -581,6 +592,22 @@ export class MapViewController {
           if (coord[1] > maxLat) maxLat = coord[1];
         }
       }
+    }
+
+    // Incluir coordenadas de los marcadores interactivos (SPEC-11 y SPEC-12) para garantizar visibilidad
+    if (this.pointerMarker) {
+      const p = this.pointerMarker.getLngLat();
+      if (p.lng < minLng) minLng = p.lng;
+      if (p.lng > maxLng) maxLng = p.lng;
+      if (p.lat < minLat) minLat = p.lat;
+      if (p.lat > maxLat) maxLat = p.lat;
+    }
+    if (this.scaleHandleMarker) {
+      const h = this.scaleHandleMarker.getLngLat();
+      if (h.lng < minLng) minLng = h.lng;
+      if (h.lng > maxLng) maxLng = h.lng;
+      if (h.lat < minLat) minLat = h.lat;
+      if (h.lat > maxLat) maxLat = h.lat;
     }
 
     this.map.fitBounds(

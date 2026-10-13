@@ -30,13 +30,13 @@ describe('Interactive Scale Handle & Real-time Grid Extrusion (pkg/curvilinear) 
     // El botón de escala debe encontrarse más alejado del eje vial que la baseline (hacia el Este)
     expect(scaleHandle.handleCoord[0]).toBeGreaterThan(pointerGeom.baselineCoord[0]);
 
-    // La distancia entre la baseline y el handle debe ser proporcional a scale * 15 (~600 m)
+    // La distancia entre la baseline y el handle debe ser proporcional a scale * 4.0 (~160 m)
     const distFromBaseline = haversineDistance(
       { longitude: pointerGeom.baselineCoord[0], latitude: pointerGeom.baselineCoord[1] },
       { longitude: scaleHandle.handleCoord[0], latitude: scaleHandle.handleCoord[1] }
     );
-    expect(distFromBaseline).toBeGreaterThanOrEqual(580);
-    expect(distFromBaseline).toBeLessThanOrEqual(620);
+    expect(distFromBaseline).toBeGreaterThanOrEqual(150);
+    expect(distFromBaseline).toBeLessThanOrEqual(170);
   });
 
   it('debe cumplir con Test Case 12.2: Variación monótona de la posición según escala (alejar = agranda, acercar = achica)', () => {
@@ -74,5 +74,19 @@ describe('Interactive Scale Handle & Real-time Grid Extrusion (pkg/curvilinear) 
       'RIGHT'
     );
     expect(scaleClose).toBeGreaterThanOrEqual(MIN_HEIGHT_SCALE);
+  });
+
+  it('debe calcular coordenadas en MOCK_ALIGNMENT_DATA', async () => {
+    const { MOCK_ALIGNMENT_DATA } = await import('../../../src/mock-data.js');
+    const alignmentCoords = MOCK_ALIGNMENT_DATA.coordinates.map((c: any) => ({ longitude: c[0], latitude: c[1] }));
+    const panasur = createAlignment(alignmentCoords, MOCK_ALIGNMENT_DATA.id, MOCK_ALIGNMENT_DATA.name);
+    const s = panasur.totalLength * 0.35;
+    const pointerGeom = computePointerGeometry(panasur, s, 1200, 'RIGHT');
+    const scaleGeom = computeScaleHandleCoordinate(panasur, s, 1200, 40, 'RIGHT');
+
+    expect(scaleGeom.handleCoord[0]).toBeDefined();
+    expect(scaleGeom.handleCoord[1]).toBeDefined();
+    // La rotación del handle de escala es complementaria y alineada a las isolíneas
+    expect(scaleGeom.rotationDegrees).toBeDefined();
   });
 });

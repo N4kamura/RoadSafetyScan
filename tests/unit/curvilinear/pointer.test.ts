@@ -57,4 +57,15 @@ describe('Interactive Chainage Pointer & Connector Line (pkg/curvilinear) - SPEC
     expect(sEnd).toBeGreaterThan(1500);
     expect(sEnd).toBeLessThanOrEqual(alignment.totalLength);
   });
+
+  it('debe cumplir con Test Case 11.3: Orientación del semicírculo con su lado plano paralelo al trazo vial', () => {
+    // Eje que va de Sur a Norte (rumbo 0° / 360°)
+    const geomRight = computePointerGeometry(alignment, 1000, 1200, 'RIGHT');
+    // Para eje Sur-Norte y side='RIGHT', la rotación calculada es 90°
+    expect(geomRight.pointerRotationDegrees).toBeCloseTo(90, 1);
+
+    const geomLeft = computePointerGeometry(alignment, 1000, 1200, 'LEFT');
+    // Para side='LEFT', la rotación es -90° (270°)
+    expect(geomLeft.pointerRotationDegrees).toBeCloseTo(-90, 1);
+  });
 });

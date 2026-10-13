@@ -560,13 +560,19 @@ input[type="range"] {
 /* SPEC-11: Botón Semicircular Desplazable del Puntero */
 .curvilinear-pointer-btn {
   cursor: grab;
-  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.45));
-  transition: transform 0.1s ease;
   user-select: none;
-  z-index: 10;
+  z-index: 20;
+  display: block;
 }
 
-.curvilinear-pointer-btn:hover {
+.curvilinear-pointer-btn svg {
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.55));
+  transition: transform 0.12s ease;
+  display: block;
+  transform-origin: center center;
+}
+
+.curvilinear-pointer-btn:hover svg {
   transform: scale(1.18);
 }
 
@@ -576,17 +582,41 @@ input[type="range"] {
 
 /* SPEC-12: Botón Rectangular Desplazable de Escala */
 .curvilinear-scale-handle-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   cursor: grab;
-  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.45));
-  transition: transform 0.1s ease;
   user-select: none;
-  z-index: 10;
+  z-index: 25;
 }
 
-.curvilinear-scale-handle-btn:hover {
+.curvilinear-scale-handle-btn svg {
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.55));
+  transition: transform 0.12s ease;
+  transform-origin: center center;
+  display: block;
+}
+
+.curvilinear-scale-handle-btn:hover svg {
   transform: scale(1.15);
 }
 
 .curvilinear-scale-handle-btn:active {
   cursor: grabbing;
 }
+
+.scale-handle-badge {
+  margin-top: 3px;
+  background-color: rgba(15, 23, 42, 0.95);
+  color: #FFFFFF;
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.45);
+  white-space: nowrap;
+  pointer-events: none;
+  letter-spacing: 0.2px;
+}
+
