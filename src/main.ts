@@ -41,6 +41,9 @@ function initApp() {
   const sidebarController = new SidebarController(store);
   const timeClockController = new CircularTimeClockController('time-clock-container', store);
 
+  (window as any).mapViewController = mapController;
+  (window as any).vizStore = store;
+
   const profileContainer = document.getElementById('visquill-longitudinal-profile');
   if (profileContainer) {
     new LongitudinalProfileView('visquill-longitudinal-profile', store);

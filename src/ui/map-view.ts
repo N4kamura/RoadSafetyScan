@@ -34,10 +34,20 @@ export class MapViewController {
   private isPointerLineVisible: boolean = false;
   private pointerMarker: maplibregl.Marker | null = null;
   private pointerElement: HTMLElement | null = null;
+  private isDraggingPointer: boolean = false;
 
   // SPEC-12: Botón Rectangular Desplazable de Escala
   private scaleHandleMarker: maplibregl.Marker | null = null;
   private scaleHandleElement: HTMLElement | null = null;
+  private isDraggingScaleHandle: boolean = false;
+
+  public getPointerMarker(): maplibregl.Marker | null {
+    return this.pointerMarker;
+  }
+
+  public getScaleHandleMarker(): maplibregl.Marker | null {
+    return this.scaleHandleMarker;
+  }
 
   constructor(containerId: string, store: VizStore) {
     this.store = store;
@@ -323,6 +333,26 @@ export class MapViewController {
   private initPointerMarker(): void {
     if (this.pointerMarker && this.scaleHandleMarker) return;
     const state = this.store.getState();
+    if (!state.alignment) return;
+
+    if (this.currentPointerChainage === 0) {
+      this.currentPointerChainage = state.alignment.totalLength * 0.35;
+    }
+
+    const geom = computePointerGeometry(
+      state.alignment,
+      this.currentPointerChainage,
+      state.config.curvilinearOffsetMeters,
+      state.config.curvilinearSide
+    );
+
+    const scaleGeom = computeScaleHandleCoordinate(
+      state.alignment,
+      this.currentPointerChainage,
+      state.config.curvilinearOffsetMeters,
+      this.getEffectiveCurvilinearScale(),
+      state.config.curvilinearSide
+    );
 
     // 1. Botón Semicircular sobre la Baseline del Perfil (SPEC-11)
     if (!this.pointerMarker) {
@@ -351,17 +381,30 @@ export class MapViewController {
         rotationAlignment: 'map'
       });
 
+      // Fijar posición y rotación ANTES de addTo para evitar errores en MapLibre
+      this.pointerMarker.setLngLat(geom.baselineCoord);
+      this.pointerMarker.setRotation(geom.pointerRotationDegrees);
+
+      this.pointerMarker.on('dragstart', () => {
+        this.isDraggingPointer = true;
+      });
+
       this.pointerMarker.on('drag', () => {
-        const state = this.store.getState();
-        if (!state.alignment) return;
+        const currentState = this.store.getState();
+        if (!currentState.alignment) return;
         const lngLat = this.pointerMarker!.getLngLat();
-        const s = projectPointToAlignmentChainage(state.alignment, [lngLat.lng, lngLat.lat]);
+        const s = projectPointToAlignmentChainage(currentState.alignment, [lngLat.lng, lngLat.lat]);
         this.currentPointerChainage = s;
         this.isPointerLineVisible = true;
         this.updatePointerVisuals();
 
-        const binIdx = Math.floor(s / state.config.binSizeMeters);
+        const binIdx = Math.floor(s / currentState.config.binSizeMeters);
         this.store.hoverBin(binIdx);
+      });
+
+      this.pointerMarker.on('dragend', () => {
+        this.isDraggingPointer = false;
+        this.updatePointerVisuals();
       });
 
       this.pointerMarker.addTo(this.map);
@@ -390,23 +433,31 @@ export class MapViewController {
         rotationAlignment: 'map'
       });
 
-      this.scaleHandleMarker.on('drag', () => {
-        const state = this.store.getState();
-        if (!state.alignment) return;
+      // Fijar posición y rotación ANTES de addTo para evitar errores en MapLibre
+      this.scaleHandleMarker.setLngLat(scaleGeom.handleCoord);
+      this.scaleHandleMarker.setRotation(scaleGeom.rotationDegrees);
 
-        const geom = computePointerGeometry(
-          state.alignment,
+      this.scaleHandleMarker.on('dragstart', () => {
+        this.isDraggingScaleHandle = true;
+      });
+
+      this.scaleHandleMarker.on('drag', () => {
+        const currentState = this.store.getState();
+        if (!currentState.alignment) return;
+
+        const pGeom = computePointerGeometry(
+          currentState.alignment,
           this.currentPointerChainage,
-          state.config.curvilinearOffsetMeters,
-          state.config.curvilinearSide
+          currentState.config.curvilinearOffsetMeters,
+          currentState.config.curvilinearSide
         );
 
         const markerLngLat = this.scaleHandleMarker!.getLngLat();
         const newScale = convertDragToHeightScale(
-          geom.baselineCoord,
+          pGeom.baselineCoord,
           [markerLngLat.lng, markerLngLat.lat],
-          geom.normalVector,
-          state.config.curvilinearSide
+          pGeom.normalVector,
+          currentState.config.curvilinearSide
         );
 
         const badge = scaleEl.querySelector('.scale-handle-badge');
@@ -414,12 +465,13 @@ export class MapViewController {
           badge.textContent = `${newScale} m/u`;
         }
 
-        if (newScale !== state.config.curvilinearHeightScale) {
+        if (newScale !== currentState.config.curvilinearHeightScale) {
           this.store.updateConfig({ curvilinearHeightScale: newScale });
         }
       });
 
       this.scaleHandleMarker.on('dragend', () => {
+        this.isDraggingScaleHandle = false;
         this.updatePointerVisuals();
       });
 
@@ -438,8 +490,10 @@ export class MapViewController {
       state.config.curvilinearSide
     );
 
-    // Mover marcador a la posición exacta sobre la baseline B(s)
-    this.pointerMarker.setLngLat(geom.baselineCoord);
+    // Mover marcador a la posición exacta sobre la baseline B(s) si no está en pleno arrastre
+    if (!this.isDraggingPointer) {
+      this.pointerMarker.setLngLat(geom.baselineCoord);
+    }
 
     // Rotar para orientar el lado plano estrictamente paralelo al trazo vial
     this.pointerMarker.setRotation(geom.pointerRotationDegrees);
@@ -453,8 +507,10 @@ export class MapViewController {
         this.getEffectiveCurvilinearScale(),
         state.config.curvilinearSide
       );
-      this.scaleHandleMarker.setLngLat(scaleGeom.handleCoord);
-      this.scaleHandleMarker.setRotation(scaleGeom.rotationDegrees);
+      if (!this.isDraggingScaleHandle) {
+        this.scaleHandleMarker.setLngLat(scaleGeom.handleCoord);
+        this.scaleHandleMarker.setRotation(scaleGeom.rotationDegrees);
+      }
 
       const badge = this.scaleHandleElement?.querySelector('.scale-handle-badge');
       if (badge) {
@@ -597,17 +653,21 @@ export class MapViewController {
     // Incluir coordenadas de los marcadores interactivos (SPEC-11 y SPEC-12) para garantizar visibilidad
     if (this.pointerMarker) {
       const p = this.pointerMarker.getLngLat();
-      if (p.lng < minLng) minLng = p.lng;
-      if (p.lng > maxLng) maxLng = p.lng;
-      if (p.lat < minLat) minLat = p.lat;
-      if (p.lat > maxLat) maxLat = p.lat;
+      if (p && typeof p.lng === 'number' && typeof p.lat === 'number') {
+        if (p.lng < minLng) minLng = p.lng;
+        if (p.lng > maxLng) maxLng = p.lng;
+        if (p.lat < minLat) minLat = p.lat;
+        if (p.lat > maxLat) maxLat = p.lat;
+      }
     }
     if (this.scaleHandleMarker) {
       const h = this.scaleHandleMarker.getLngLat();
-      if (h.lng < minLng) minLng = h.lng;
-      if (h.lng > maxLng) maxLng = h.lng;
-      if (h.lat < minLat) minLat = h.lat;
-      if (h.lat > maxLat) maxLat = h.lat;
+      if (h && typeof h.lng === 'number' && typeof h.lat === 'number') {
+        if (h.lng < minLng) minLng = h.lng;
+        if (h.lng > maxLng) maxLng = h.lng;
+        if (h.lat < minLat) minLat = h.lat;
+        if (h.lat > maxLat) maxLat = h.lat;
+      }
     }
 
     this.map.fitBounds(

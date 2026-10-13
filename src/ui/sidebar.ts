@@ -44,10 +44,8 @@ export class SidebarController {
       }
 
       if (event.type === 'CONFIG_UPDATED') {
-        const scaleSlider = document.getElementById('slider-curv-scale') as HTMLInputElement;
         const scaleVal = document.getElementById('val-curv-scale');
-        if (scaleSlider && scaleVal) {
-          scaleSlider.value = String(state.config.curvilinearHeightScale);
+        if (scaleVal) {
           scaleVal.textContent = `${state.config.curvilinearHeightScale} m/u`;
         }
       }
@@ -184,16 +182,6 @@ export class SidebarController {
       });
     }
 
-    // Slider Escala de Extrusión de Altura
-    const scaleSlider = document.getElementById('slider-curv-scale') as HTMLInputElement;
-    const scaleVal = document.getElementById('val-curv-scale');
-    if (scaleSlider && scaleVal) {
-      scaleSlider.addEventListener('input', () => {
-        const val = Number(scaleSlider.value);
-        scaleVal.textContent = `${val} m/u`;
-        this.store.updateConfig({ curvilinearHeightScale: val });
-      });
-    }
 
     // Botones Lado de Proyección (RIGHT / LEFT)
     const sideButtons = document.querySelectorAll<HTMLButtonElement>('.btn-curv-side');

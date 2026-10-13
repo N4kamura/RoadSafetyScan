@@ -11,11 +11,11 @@
     window.__RSS_DIAGNOSTICS__ = { errors: [], logs: [] };
     window.addEventListener('error', (e) => {
       window.__RSS_DIAGNOSTICS__.errors.push({ msg: e.message, line: e.lineno, file: e.filename });
-      document.title = 'ERR: ' + e.message;
+      console.error('RSS Diagnostic Error:', e.message, e.filename, e.lineno);
     });
     window.addEventListener('unhandledrejection', (e) => {
       window.__RSS_DIAGNOSTICS__.errors.push({ msg: String(e.reason) });
-      document.title = 'REJ: ' + e.reason;
+      console.error('RSS Diagnostic Rejection:', e.reason);
     });
   </script>
 </head>
@@ -128,17 +128,14 @@
           </div>
         </div>
 
-        <!-- Slider Factor de Escala de Extrusión -->
-        <div class="control-group">
-          <div class="control-label">
-            <span>Escala de Altura (Extrusión):</span>
-            <span class="control-value" id="val-curv-scale">40 m/u</span>
+        <!-- Indicador de Escala de Altura (Ajustable con el botón rectangular en el mapa SPEC-12) -->
+        <div class="control-group" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.55rem 0.7rem;">
+          <div style="font-size: 0.75rem; font-weight: 600; color: #1e293b; display: flex; align-items: center; justify-content: space-between;">
+            <span>Escala de Altura:</span>
+            <span class="badge" style="background: #0f172a; color: #fff; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; font-weight: 700;" id="val-curv-scale">40 m/u</span>
           </div>
-          <input type="range" id="slider-curv-scale" min="10" max="120" step="5" value="40" aria-label="Escala de altura visual en metros por unidad">
-          <div style="display: flex; justify-content: space-between; font-size: 0.65rem; color: #94a3b8; margin-top: 2px;">
-            <span>10 m/u</span>
-            <span>40 m/u</span>
-            <span>120 m/u</span>
+          <div style="font-size: 0.68rem; color: #64748b; margin-top: 4px; line-height: 1.35;">
+            Ajustable directamente en el mapa arrastrando el botón rectangular <strong style="color: #0f172a;">[ ≡ ]</strong> a lo largo de las barras.
           </div>
         </div>
 
