@@ -42,6 +42,15 @@ export class SidebarController {
       ) {
         this.updateKpis();
       }
+
+      if (event.type === 'CONFIG_UPDATED') {
+        const scaleSlider = document.getElementById('slider-curv-scale') as HTMLInputElement;
+        const scaleVal = document.getElementById('val-curv-scale');
+        if (scaleSlider && scaleVal) {
+          scaleSlider.value = String(state.config.curvilinearHeightScale);
+          scaleVal.textContent = `${state.config.curvilinearHeightScale} m/u`;
+        }
+      }
     });
 
     this.updateKpis();

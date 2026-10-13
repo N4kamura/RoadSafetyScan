@@ -19,6 +19,7 @@ Este documento gestiona la ejecución técnica del proyecto bajo **Spec-Driven D
 | **Fase 8: Auto-Escalado y Límites de Zoom (SPEC-09)** | [`specs/09-zoom-limits-and-autoscale.md`](file:///d:/Projects/RoadSafetyScan/specs/09-zoom-limits-and-autoscale.md) | `COMPLETADO (IMPLEMENTED)` | 100% (minZoom 10.5 y escala adaptativa) |
 | **Fase 9: Reloj Dinámico Circular (SPEC-10)** | [`specs/10-circular-time-range-clock.md`](file:///d:/Projects/RoadSafetyScan/specs/10-circular-time-range-clock.md) | `COMPLETADO (IMPLEMENTED)` | 100% (Reloj circular dinámico y filtro temporal) |
 | **Fase 10: Puntero y Línea Conectora (SPEC-11)** | [`specs/11-interactive-chainage-pointer.md`](file:///d:/Projects/RoadSafetyScan/specs/11-interactive-chainage-pointer.md) | `COMPLETADO (IMPLEMENTED)` | 100% (Botón semicircular y línea al trazo) |
+| **Fase 11: Handle de Escala Transversal (SPEC-12)** | [`specs/12-interactive-scale-handle.md`](file:///d:/Projects/RoadSafetyScan/specs/12-interactive-scale-handle.md) | `EN PROGRESO` | 0% |
 
 ---
 
@@ -151,3 +152,14 @@ Este documento gestiona la ejecución técnica del proyecto bajo **Spec-Driven D
 - [x] **TASK-11.2.2:** Conectar interactividad de arrastre y click toggle para la línea conectora.
 - [x] **TASK-11.3.1:** Crear tests unitarios en `tests/unit/curvilinear/pointer.test.ts`.
 - [x] **TASK-11.3.2:** Validar con `npm test` y compilación con Vite.
+
+---
+
+## Fase 11: SPEC-12 — Botón Rectangular Desplazable de Ajuste Dinámico de Escala (`pkg/curvilinear` & `ui/map-view`) [COMPLETADO]
+- [x] **TASK-12.1.1:** Implementar funciones geométricas `computeScaleHandleCoordinate` y `convertDragToHeightScale` en `src/pkg/curvilinear/pointer.ts`.
+- [x] **TASK-12.1.2:** Crear e integrar el botón rectangular desplazable en `src/ui/map-view.ts`.
+- [x] **TASK-12.1.3:** Conectar el arrastre transversal del botón rectangular con el ajuste de escala de extrusión en `VizStore`.
+- [x] **TASK-12.2.1:** Sincronizar la posición longitudinal del botón rectangular con la progresiva $s$ del botón semicircular de SPEC-11.
+- [x] **TASK-12.2.2:** Añadir estilos CSS para `.curvilinear-scale-handle-btn` en `src/ui/styles.css`.
+- [x] **TASK-12.3.1:** Crear suite de pruebas unitarias en `tests/unit/curvilinear/scale-handle.test.ts`.
+- [x] **TASK-12.3.2:** Validar con `npm test` y compilación con Vite.

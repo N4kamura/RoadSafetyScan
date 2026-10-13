@@ -573,3 +573,20 @@ input[type="range"] {
 .curvilinear-pointer-btn:active {
   cursor: grabbing;
 }
+
+/* SPEC-12: Botón Rectangular Desplazable de Escala */
+.curvilinear-scale-handle-btn {
+  cursor: grab;
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.45));
+  transition: transform 0.1s ease;
+  user-select: none;
+  z-index: 10;
+}
+
+.curvilinear-scale-handle-btn:hover {
+  transform: scale(1.15);
+}
+
+.curvilinear-scale-handle-btn:active {
+  cursor: grabbing;
+}

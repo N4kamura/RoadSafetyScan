@@ -12,7 +12,9 @@ import { generateCurvilinearProfile, computeZoomScaleFactor } from '../pkg/curvi
 import { buildCurvilinearMapLibreLayers } from '../pkg/curvilinear/maplibre-layers.js';
 import {
   computePointerGeometry,
-  projectPointToAlignmentChainage
+  projectPointToAlignmentChainage,
+  computeScaleHandleCoordinate,
+  convertDragToHeightScale
 } from '../pkg/curvilinear/pointer.js';
 import { VizStoreState, VizEvent } from '../pkg/viz/types.js';
 
@@ -32,6 +34,10 @@ export class MapViewController {
   private isPointerLineVisible: boolean = false;
   private pointerMarker: maplibregl.Marker | null = null;
   private pointerElement: HTMLElement | null = null;
+
+  // SPEC-12: Botón Rectangular Desplazable de Escala
+  private scaleHandleMarker: maplibregl.Marker | null = null;
+  private scaleHandleElement: HTMLElement | null = null;
 
   constructor(containerId: string, store: VizStore) {
     this.store = store;
@@ -315,47 +321,103 @@ export class MapViewController {
   }
 
   private initPointerMarker(): void {
-    if (this.pointerMarker) return;
+    if (this.pointerMarker && this.scaleHandleMarker) return;
 
-    const el = document.createElement('div');
-    el.className = 'curvilinear-pointer-btn';
-    el.title = 'Haga clic para mostrar/ocultar línea al trazo o arrastre a lo largo de las barras (SPEC-11)';
-    el.innerHTML = `
-      <svg width="28" height="28" viewBox="0 0 28 28" style="display: block; overflow: visible;">
-        <path d="M 2 14 A 12 12 0 0 0 26 14 Z" fill="#0F172A" stroke="#FFFFFF" stroke-width="2" />
-        <line x1="10" y1="18" x2="18" y2="18" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" />
-        <line x1="10" y1="21" x2="18" y2="21" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" />
-      </svg>
-    `;
+    // 1. Botón Semicircular sobre la Baseline del Perfil (SPEC-11)
+    if (!this.pointerMarker) {
+      const el = document.createElement('div');
+      el.className = 'curvilinear-pointer-btn';
+      el.title = 'Haga clic para mostrar/ocultar línea al trazo o arrastre a lo largo de las barras (SPEC-11)';
+      el.innerHTML = `
+        <svg width="28" height="28" viewBox="0 0 28 28" style="display: block; overflow: visible;">
+          <path d="M 2 14 A 12 12 0 0 0 26 14 Z" fill="#0F172A" stroke="#FFFFFF" stroke-width="2" />
+          <line x1="10" y1="18" x2="18" y2="18" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" />
+          <line x1="10" y1="21" x2="18" y2="21" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" />
+        </svg>
+      `;
 
-    this.pointerElement = el;
+      this.pointerElement = el;
 
-    el.addEventListener('click', (e) => {
-      e.stopPropagation();
-      this.isPointerLineVisible = !this.isPointerLineVisible;
-      this.updatePointerVisuals();
-    });
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.isPointerLineVisible = !this.isPointerLineVisible;
+        this.updatePointerVisuals();
+      });
 
-    this.pointerMarker = new maplibregl.Marker({
-      element: el,
-      draggable: true,
-      rotationAlignment: 'map'
-    });
+      this.pointerMarker = new maplibregl.Marker({
+        element: el,
+        draggable: true,
+        rotationAlignment: 'map'
+      });
 
-    this.pointerMarker.on('drag', () => {
-      const state = this.store.getState();
-      if (!state.alignment) return;
-      const lngLat = this.pointerMarker!.getLngLat();
-      const s = projectPointToAlignmentChainage(state.alignment, [lngLat.lng, lngLat.lat]);
-      this.currentPointerChainage = s;
-      this.isPointerLineVisible = true;
-      this.updatePointerVisuals();
+      this.pointerMarker.on('drag', () => {
+        const state = this.store.getState();
+        if (!state.alignment) return;
+        const lngLat = this.pointerMarker!.getLngLat();
+        const s = projectPointToAlignmentChainage(state.alignment, [lngLat.lng, lngLat.lat]);
+        this.currentPointerChainage = s;
+        this.isPointerLineVisible = true;
+        this.updatePointerVisuals();
 
-      const binIdx = Math.floor(s / state.config.binSizeMeters);
-      this.store.hoverBin(binIdx);
-    });
+        const binIdx = Math.floor(s / state.config.binSizeMeters);
+        this.store.hoverBin(binIdx);
+      });
 
-    this.pointerMarker.addTo(this.map);
+      this.pointerMarker.addTo(this.map);
+    }
+
+    // 2. Botón Rectangular Desplazable de Escala sobre la Grilla (SPEC-12)
+    if (!this.scaleHandleMarker) {
+      const scaleEl = document.createElement('div');
+      scaleEl.className = 'curvilinear-scale-handle-btn';
+      scaleEl.title = 'Arrastre perpendicularmente a las barras para modificar la escala vertical (SPEC-12)';
+      scaleEl.innerHTML = `
+        <svg width="28" height="18" viewBox="0 0 28 18" style="display: block; overflow: visible;">
+          <rect x="1" y="1" width="26" height="16" rx="3.5" fill="#0F172A" stroke="#FFFFFF" stroke-width="1.8" />
+          <line x1="8" y1="4.5" x2="8" y2="13.5" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round" />
+          <line x1="13" y1="4.5" x2="13" y2="13.5" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round" />
+          <line x1="18" y1="4.5" x2="18" y2="13.5" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round" />
+        </svg>
+      `;
+
+      this.scaleHandleElement = scaleEl;
+
+      this.scaleHandleMarker = new maplibregl.Marker({
+        element: scaleEl,
+        draggable: true,
+        rotationAlignment: 'map'
+      });
+
+      this.scaleHandleMarker.on('drag', () => {
+        const state = this.store.getState();
+        if (!state.alignment) return;
+
+        const geom = computePointerGeometry(
+          state.alignment,
+          this.currentPointerChainage,
+          state.config.curvilinearOffsetMeters,
+          state.config.curvilinearSide
+        );
+
+        const markerLngLat = this.scaleHandleMarker!.getLngLat();
+        const newScale = convertDragToHeightScale(
+          geom.baselineCoord,
+          [markerLngLat.lng, markerLngLat.lat],
+          geom.normalVector,
+          state.config.curvilinearSide
+        );
+
+        if (newScale !== state.config.curvilinearHeightScale) {
+          this.store.updateConfig({ curvilinearHeightScale: newScale });
+        }
+      });
+
+      this.scaleHandleMarker.on('dragend', () => {
+        this.updatePointerVisuals();
+      });
+
+      this.scaleHandleMarker.addTo(this.map);
+    }
   }
 
   public updatePointerVisuals(): void {
@@ -375,6 +437,19 @@ export class MapViewController {
     // Rotar para orientar el domo semicircular hacia la carretera
     const rotation = geom.normalAngleDegrees + 90;
     this.pointerMarker.setRotation(rotation);
+
+    // SPEC-12: Actualizar posición y rotación del botón rectangular de escala
+    if (this.scaleHandleMarker) {
+      const scaleGeom = computeScaleHandleCoordinate(
+        state.alignment,
+        this.currentPointerChainage,
+        state.config.curvilinearOffsetMeters,
+        this.getEffectiveCurvilinearScale(),
+        state.config.curvilinearSide
+      );
+      this.scaleHandleMarker.setLngLat(scaleGeom.handleCoord);
+      this.scaleHandleMarker.setRotation(scaleGeom.rotationDegrees);
+    }
 
     // Actualizar fuente GeoJSON de la línea conectora
     const src = this.map.getSource('source-curvilinear-pointer-line') as maplibregl.GeoJSONSource;
@@ -427,6 +502,7 @@ export class MapViewController {
         // Silencioso si no está listo
       }
     }
+    this.updatePointerVisuals();
   }
 
   private updateHighlightLayer(range: [number, number] | null, activeBinIndex: number | null = null): void {
