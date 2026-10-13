@@ -7,3 +7,4 @@ export * from './types.js';
 export * from './normals.js';
 export * from './generator.js';
 export * from './maplibre-layers.js';
+export * from './pointer.js';

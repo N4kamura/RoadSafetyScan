@@ -18,6 +18,7 @@ Este documento gestiona la ejecución técnica del proyecto bajo **Spec-Driven D
 | **Fase 7: Puntos según Zoom (SPEC-08)** | [`specs/08-crash-points-zoom-visibility.md`](file:///d:/Projects/RoadSafetyScan/specs/08-crash-points-zoom-visibility.md) | `COMPLETADO (IMPLEMENTED)` | 100% (minzoom 13.5 en puntos de accidentes) |
 | **Fase 8: Auto-Escalado y Límites de Zoom (SPEC-09)** | [`specs/09-zoom-limits-and-autoscale.md`](file:///d:/Projects/RoadSafetyScan/specs/09-zoom-limits-and-autoscale.md) | `COMPLETADO (IMPLEMENTED)` | 100% (minZoom 10.5 y escala adaptativa) |
 | **Fase 9: Reloj Dinámico Circular (SPEC-10)** | [`specs/10-circular-time-range-clock.md`](file:///d:/Projects/RoadSafetyScan/specs/10-circular-time-range-clock.md) | `COMPLETADO (IMPLEMENTED)` | 100% (Reloj circular dinámico y filtro temporal) |
+| **Fase 10: Puntero y Línea Conectora (SPEC-11)** | [`specs/11-interactive-chainage-pointer.md`](file:///d:/Projects/RoadSafetyScan/specs/11-interactive-chainage-pointer.md) | `COMPLETADO (IMPLEMENTED)` | 100% (Botón semicircular y línea al trazo) |
 
 ---
 
@@ -140,3 +141,13 @@ Este documento gestiona la ejecución técnica del proyecto bajo **Spec-Driven D
 - [x] **TASK-10.2.4:** Instanciar reloj en `src/main.ts`.
 - [x] **TASK-10.3.1:** Crear suite de pruebas unitarias en `tests/unit/viz/time-clock-filter.test.ts`.
 - [x] **TASK-10.3.2:** Validar con `npm test` y compilación con Vite.
+
+---
+
+## Fase 10: SPEC-11 — Botón Semicircular Desplazable y Línea Conectora (`pkg/curvilinear` & `ui/map-view`) [COMPLETADO]
+- [x] **TASK-11.1.1:** Implementar funciones geométricas en `src/pkg/curvilinear/pointer.ts`.
+- [x] **TASK-11.1.2:** Configurar fuentes y capas para la línea conectora en MapLibre (`source-curvilinear-pointer-line`).
+- [x] **TASK-11.2.1:** Crear e integrar el botón semicircular desplazable sobre la baseline $B(s)$.
+- [x] **TASK-11.2.2:** Conectar interactividad de arrastre y click toggle para la línea conectora.
+- [x] **TASK-11.3.1:** Crear tests unitarios en `tests/unit/curvilinear/pointer.test.ts`.
+- [x] **TASK-11.3.2:** Validar con `npm test` y compilación con Vite.

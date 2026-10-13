@@ -556,3 +556,20 @@ input[type="range"] {
   cursor: pointer;
   color: var(--text-muted);
 }
+
+/* SPEC-11: Botón Semicircular Desplazable del Puntero */
+.curvilinear-pointer-btn {
+  cursor: grab;
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.45));
+  transition: transform 0.1s ease;
+  user-select: none;
+  z-index: 10;
+}
+
+.curvilinear-pointer-btn:hover {
+  transform: scale(1.18);
+}
+
+.curvilinear-pointer-btn:active {
+  cursor: grabbing;
+}

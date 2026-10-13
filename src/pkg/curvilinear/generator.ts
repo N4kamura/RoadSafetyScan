@@ -51,7 +51,7 @@ export function computeZoomScaleFactor(
 /**
  * Interpola una coordenada geográfica y su vector normal para una progresiva métrica s
  */
-function interpolateAtStation(
+export function interpolateAtStation(
   alignment: Alignment,
   vertexNormals: UnitVector2D[],
   s: number

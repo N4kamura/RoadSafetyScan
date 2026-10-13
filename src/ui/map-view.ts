@@ -10,6 +10,10 @@ import { VizStore } from '../pkg/viz/store.js';
 import { buildMapLibreConfig } from '../pkg/viz/maplibre-adapter.js';
 import { generateCurvilinearProfile, computeZoomScaleFactor } from '../pkg/curvilinear/generator.js';
 import { buildCurvilinearMapLibreLayers } from '../pkg/curvilinear/maplibre-layers.js';
+import {
+  computePointerGeometry,
+  projectPointToAlignmentChainage
+} from '../pkg/curvilinear/pointer.js';
 import { VizStoreState, VizEvent } from '../pkg/viz/types.js';
 
 // Configurar explícitamente el worker de MapLibre GL JS para Vite (ES Module Worker)
@@ -22,6 +26,12 @@ export class MapViewController {
   private store: VizStore;
   private popup: maplibregl.Popup;
   private isLoaded: boolean = false;
+
+  // SPEC-11: Puntero Semicircular y Línea Conectora
+  private currentPointerChainage: number = 0;
+  private isPointerLineVisible: boolean = false;
+  private pointerMarker: maplibregl.Marker | null = null;
+  private pointerElement: HTMLElement | null = null;
 
   constructor(containerId: string, store: VizStore) {
     this.store = store;
@@ -199,6 +209,39 @@ export class MapViewController {
         console.warn(`Error agregando capa curvilínea ${layer.id}:`, e);
       }
     }
+
+    // 3. Capa de la Línea Conectora al Eje (SPEC-11)
+    try {
+      if (!this.map.getSource('source-curvilinear-pointer-line')) {
+        this.map.addSource('source-curvilinear-pointer-line', {
+          type: 'geojson',
+          data: {
+            type: 'FeatureCollection',
+            features: []
+          }
+        });
+      }
+      if (!this.map.getLayer('layer-curvilinear-pointer-line')) {
+        this.map.addLayer({
+          id: 'layer-curvilinear-pointer-line',
+          type: 'line',
+          source: 'source-curvilinear-pointer-line',
+          paint: {
+            'line-color': '#0F172A',
+            'line-width': 3.5,
+            'line-opacity': 0.0
+          }
+        });
+      }
+    } catch (e) {
+      console.warn('Error inicializando capa conectora pointer-line:', e);
+    }
+
+    if (this.currentPointerChainage === 0 && state.alignment) {
+      this.currentPointerChainage = state.alignment.totalLength * 0.45;
+    }
+    this.initPointerMarker();
+    this.updatePointerVisuals();
   }
 
   private updateView(): void {
@@ -265,6 +308,96 @@ export class MapViewController {
       } catch (e) {
         console.warn(`Error verificando capa curvilínea ${layer.id}:`, e);
       }
+    }
+
+    // 3. Actualizar puntero semicircular y línea conectora (SPEC-11)
+    this.updatePointerVisuals();
+  }
+
+  private initPointerMarker(): void {
+    if (this.pointerMarker) return;
+
+    const el = document.createElement('div');
+    el.className = 'curvilinear-pointer-btn';
+    el.title = 'Haga clic para mostrar/ocultar línea al trazo o arrastre a lo largo de las barras (SPEC-11)';
+    el.innerHTML = `
+      <svg width="28" height="28" viewBox="0 0 28 28" style="display: block; overflow: visible;">
+        <path d="M 2 14 A 12 12 0 0 0 26 14 Z" fill="#0F172A" stroke="#FFFFFF" stroke-width="2" />
+        <line x1="10" y1="18" x2="18" y2="18" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" />
+        <line x1="10" y1="21" x2="18" y2="21" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" />
+      </svg>
+    `;
+
+    this.pointerElement = el;
+
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.isPointerLineVisible = !this.isPointerLineVisible;
+      this.updatePointerVisuals();
+    });
+
+    this.pointerMarker = new maplibregl.Marker({
+      element: el,
+      draggable: true,
+      rotationAlignment: 'map'
+    });
+
+    this.pointerMarker.on('drag', () => {
+      const state = this.store.getState();
+      if (!state.alignment) return;
+      const lngLat = this.pointerMarker!.getLngLat();
+      const s = projectPointToAlignmentChainage(state.alignment, [lngLat.lng, lngLat.lat]);
+      this.currentPointerChainage = s;
+      this.isPointerLineVisible = true;
+      this.updatePointerVisuals();
+
+      const binIdx = Math.floor(s / state.config.binSizeMeters);
+      this.store.hoverBin(binIdx);
+    });
+
+    this.pointerMarker.addTo(this.map);
+  }
+
+  public updatePointerVisuals(): void {
+    const state = this.store.getState();
+    if (!state.alignment || !this.pointerMarker) return;
+
+    const geom = computePointerGeometry(
+      state.alignment,
+      this.currentPointerChainage,
+      state.config.curvilinearOffsetMeters,
+      state.config.curvilinearSide
+    );
+
+    // Mover marcador a la posición exacta sobre la baseline B(s)
+    this.pointerMarker.setLngLat(geom.baselineCoord);
+
+    // Rotar para orientar el domo semicircular hacia la carretera
+    const rotation = geom.normalAngleDegrees + 90;
+    this.pointerMarker.setRotation(rotation);
+
+    // Actualizar fuente GeoJSON de la línea conectora
+    const src = this.map.getSource('source-curvilinear-pointer-line') as maplibregl.GeoJSONSource;
+    if (src) {
+      src.setData({
+        type: 'Feature',
+        geometry: {
+          type: 'LineString',
+          coordinates: geom.connectorLineCoordinates
+        },
+        properties: {
+          chainage: geom.chainageMeters,
+          station: geom.stationFormatted
+        }
+      });
+    }
+
+    if (this.map.getLayer('layer-curvilinear-pointer-line')) {
+      this.map.setPaintProperty(
+        'layer-curvilinear-pointer-line',
+        'line-opacity',
+        this.isPointerLineVisible ? 1.0 : 0.0
+      );
     }
   }
 
