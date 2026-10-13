@@ -128,16 +128,30 @@ export function generateCurvilinearProfile(
   const sideSign = opts.side === 'RIGHT' ? 1 : -1;
   const baseOffsetMeters = opts.offsetDistanceMeters * sideSign;
 
+  // 1. Determinar intervalo longitudinal de muestreo y recorte al viewport (SPEC-23)
+  const rangeStart = opts.visibleRange ? Math.max(0, opts.visibleRange[0]) : 0;
+  const rangeEnd = opts.visibleRange ? Math.min(alignment.totalLength, opts.visibleRange[1]) : alignment.totalLength;
+
+  if (rangeStart >= rangeEnd) {
+    return {
+      alignmentId: alignment.id,
+      baselineCoordinates: [],
+      bars: [],
+      isolines: [],
+      connectorLines: []
+    };
+  }
+
   // 1. Generar la Línea Base Desplazada B(s)
-  // Muestrear a lo largo del eje cada bin boundary y vértice
+  // Muestrear a lo largo del eje cada bin boundary y vértice dentro del rango visible
   const sampleStations: number[] = [];
   const binStep = results.bins.length > 0 ? (results.bins[0].endChainageMeters - results.bins[0].startChainageMeters) : 100;
 
-  for (let s = 0; s <= alignment.totalLength; s += binStep) {
+  for (let s = rangeStart; s <= rangeEnd; s += binStep) {
     sampleStations.push(s);
   }
-  if (sampleStations[sampleStations.length - 1] < alignment.totalLength) {
-    sampleStations.push(alignment.totalLength);
+  if (sampleStations.length === 0 || sampleStations[sampleStations.length - 1] < rangeEnd) {
+    sampleStations.push(rangeEnd);
   }
 
   const rawBaselineCoordinates: [number, number][] = sampleStations.map((s) => {
@@ -152,6 +166,13 @@ export function generateCurvilinearProfile(
   for (const bin of results.bins) {
     const sStart = bin.startChainageMeters;
     const sEnd = bin.endChainageMeters;
+
+    // Si hay visibleRange, omitir bins completamente fuera del rango visible (SPEC-23)
+    if (opts.visibleRange) {
+      if (sEnd <= rangeStart || sStart >= rangeEnd) {
+        continue;
+      }
+    }
 
     const startInterp = interpolateAtStation(alignment, vertexNormals, sStart);
     const endInterp = interpolateAtStation(alignment, vertexNormals, sEnd);
@@ -372,20 +393,20 @@ export function generateCurvilinearProfile(
     });
   }
 
-  // 4. Rayos conectores transversales en los extremos (km 0 y final)
+  // 4. Rayos conectores transversales en los extremos del rango visible (SPEC-23)
   const connectorLines: [number, number][][] = [];
   const maxTick = activeTicks.length > 0 ? Math.max(...activeTicks, 10) : 10;
   const maxExtrusionMeters = baseOffsetMeters + (maxTick * opts.heightScaleMetersPerUnit * sideSign);
 
-  // Conector inicial (s = 0)
-  const startAtZero = interpolateAtStation(alignment, vertexNormals, 0);
+  // Conector inicial (en rangeStart)
+  const startAtZero = interpolateAtStation(alignment, vertexNormals, rangeStart);
   connectorLines.push([
     offsetCoordinate(startAtZero.coord, startAtZero.normal, baseOffsetMeters),
     offsetCoordinate(startAtZero.coord, startAtZero.normal, maxExtrusionMeters)
   ]);
 
-  // Conector final (s = totalLength)
-  const endAtTotal = interpolateAtStation(alignment, vertexNormals, alignment.totalLength);
+  // Conector final (en rangeEnd)
+  const endAtTotal = interpolateAtStation(alignment, vertexNormals, rangeEnd);
   connectorLines.push([
     offsetCoordinate(endAtTotal.coord, endAtTotal.normal, baseOffsetMeters),
     offsetCoordinate(endAtTotal.coord, endAtTotal.normal, maxExtrusionMeters)

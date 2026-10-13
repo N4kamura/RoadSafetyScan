@@ -8,7 +8,12 @@ import * as maplibregl from 'maplibre-gl';
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import { VizStore } from '../pkg/viz/store.js';
 import { buildMapLibreConfig } from '../pkg/viz/maplibre-adapter.js';
-import { generateCurvilinearProfile, computeZoomScaleFactor } from '../pkg/curvilinear/generator.js';
+import {
+  generateCurvilinearProfile,
+  computeZoomScaleFactor,
+  computeVisibleStationRange,
+  computeZoomAdaptiveBinSize
+} from '../pkg/curvilinear/index.js';
 import { buildCurvilinearMapLibreLayers } from '../pkg/curvilinear/maplibre-layers.js';
 import {
   computePointerGeometry,
@@ -201,6 +206,27 @@ export class MapViewController {
     return baseScale * factor;
   }
 
+  /**
+   * SPEC-23: Retorna el rango métrico [sMin, sMax] del eje vial visible en la pantalla actual
+   */
+  private getVisibleStationRange(): [number, number] | undefined {
+    const state = this.store.getState();
+    if (!state.alignment || !this.map) return undefined;
+    try {
+      const b = this.map.getBounds();
+      const bounds = {
+        west: b.getWest(),
+        south: b.getSouth(),
+        east: b.getEast(),
+        north: b.getNorth()
+      };
+      const vr = computeVisibleStationRange(state.alignment, bounds, state.config.binSizeMeters);
+      return vr || [0, 0];
+    } catch (e) {
+      return undefined;
+    }
+  }
+
   private initLayers(): void {
     const state = this.store.getState();
     if (!state.alignment || !state.lrsResults) return;
@@ -228,12 +254,13 @@ export class MapViewController {
       }
     }
 
-    // 2. Capas del Perfil Curvilíneo Paralelo al Trazo (VisQuill A1 Collision Density)
+    // 2. Capas del Perfil Curvilíneo Paralelo al Trazo (VisQuill A1 Collision Density & SPEC-23 Recorte Viewport)
     const curvModel = generateCurvilinearProfile(state.alignment, state.lrsResults, {
       offsetDistanceMeters: state.config.curvilinearOffsetMeters,
       side: state.config.curvilinearSide,
       heightScaleMetersPerUnit: this.getEffectiveCurvilinearScale(),
-      metricMode: state.config.metricMode
+      metricMode: state.config.metricMode,
+      visibleRange: this.getVisibleStationRange()
     });
     const curvBundle = buildCurvilinearMapLibreLayers(
       curvModel,
@@ -469,12 +496,13 @@ export class MapViewController {
       }
     }
 
-    // 2. Actualizar capas del perfil curvilíneo (SPEC-06 & SPEC-09 Auto-Escalado)
+    // 2. Actualizar capas del perfil curvilíneo (SPEC-06 & SPEC-23 Recorte Viewport)
     const curvModel = generateCurvilinearProfile(state.alignment, state.lrsResults, {
       offsetDistanceMeters: state.config.curvilinearOffsetMeters,
       side: state.config.curvilinearSide,
       heightScaleMetersPerUnit: this.getEffectiveCurvilinearScale(),
-      metricMode: state.config.metricMode
+      metricMode: state.config.metricMode,
+      visibleRange: this.getVisibleStationRange()
     });
     const curvBundle = buildCurvilinearMapLibreLayers(curvModel, activeBinIndex);
 
@@ -744,7 +772,8 @@ export class MapViewController {
       offsetDistanceMeters: state.config.curvilinearOffsetMeters,
       side: state.config.curvilinearSide,
       heightScaleMetersPerUnit: this.getEffectiveCurvilinearScale(),
-      metricMode: state.config.metricMode
+      metricMode: state.config.metricMode,
+      visibleRange: this.getVisibleStationRange()
     });
     const curvBundle = buildCurvilinearMapLibreLayers(curvModel, activeBinIndex);
 
@@ -790,7 +819,8 @@ export class MapViewController {
       offsetDistanceMeters: state.config.curvilinearOffsetMeters,
       side: state.config.curvilinearSide,
       heightScaleMetersPerUnit: this.getEffectiveCurvilinearScale(),
-      metricMode: state.config.metricMode
+      metricMode: state.config.metricMode,
+      visibleRange: this.getVisibleStationRange()
     });
     const curvBundle = buildCurvilinearMapLibreLayers(curvModel, activeBinIndex);
     const barsSrcDef = curvBundle.sources.find((s) => s.id === 'source-curvilinear-bars');
@@ -990,19 +1020,38 @@ export class MapViewController {
       this.store.selectCrash(props.id);
     });
 
-    // 3. Auto-escalado dinámico del perfil curvilíneo al alejar el zoom (SPEC-09)
-    let lastZoom = this.map.getZoom();
-    this.map.on('zoom', () => {
+    // 3. Auto-escalado dinámico, recorte al viewport y segmentación métrica por zoom (SPEC-09 & SPEC-23)
+    let animFrameId: number | null = null;
+    const handleMapMovement = () => {
+      if (animFrameId !== null) return;
+      animFrameId = requestAnimationFrame(() => {
+        animFrameId = null;
+        if (!this.map || !this.isLoaded) return;
+        const z = this.map.getZoom();
+        const adaptiveBin = computeZoomAdaptiveBinSize(z);
+        if (adaptiveBin !== this.store.getState().config.binSizeMeters) {
+          this.store.updateConfig({ binSizeMeters: adaptiveBin });
+        } else {
+          this.updateCurvilinearOnly();
+        }
+      });
+    };
+
+    this.map.on('move', handleMapMovement);
+    this.map.on('zoom', handleMapMovement);
+    this.map.on('moveend', () => {
+      if (animFrameId !== null) {
+        cancelAnimationFrame(animFrameId);
+        animFrameId = null;
+      }
+      if (!this.map || !this.isLoaded) return;
       const z = this.map.getZoom();
-      if (Math.abs(z - lastZoom) >= 0.15) {
-        lastZoom = z;
+      const adaptiveBin = computeZoomAdaptiveBinSize(z);
+      if (adaptiveBin !== this.store.getState().config.binSizeMeters) {
+        this.store.updateConfig({ binSizeMeters: adaptiveBin });
+      } else {
         this.updateCurvilinearOnly();
       }
-    });
-
-    this.map.on('zoomend', () => {
-      lastZoom = this.map.getZoom();
-      this.updateCurvilinearOnly();
     });
 
     // 4. Interacción con Rutas Activas en el Mapa (SPEC-15)

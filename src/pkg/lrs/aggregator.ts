@@ -19,6 +19,7 @@ import { projectCrashOnAlignment } from './projection.js';
 
 export const DEFAULT_BUFFER_WIDTH_METERS = 25;
 export const DEFAULT_BIN_SIZE_METERS = 100;
+export const MIN_BIN_SIZE_METERS = 100; // SPEC-23: Límite mínimo estricto de segmentación métrica
 
 export const DEFAULT_EPDO_WEIGHTS: EpdoWeights = {
   fatal: 9.5,
@@ -59,15 +60,12 @@ export function analyzeLrs(
   const startTime = performance.now();
 
   const bufferWidth = options?.bufferWidthMeters ?? DEFAULT_BUFFER_WIDTH_METERS;
-  const binSize = options?.binSizeMeters ?? DEFAULT_BIN_SIZE_METERS;
+  const rawBinSize = options?.binSizeMeters ?? DEFAULT_BIN_SIZE_METERS;
+  const binSize = Math.max(MIN_BIN_SIZE_METERS, rawBinSize);
   const epdoWeights: EpdoWeights = {
     ...DEFAULT_EPDO_WEIGHTS,
     ...options?.epdoWeights
   };
-
-  if (binSize <= 0) {
-    throw new Error(`El tamaño de bin debe ser mayor a 0 m. Recibido: ${binSize}`);
-  }
 
   // 1. Proyectar cada siniestro sobre el alineamiento
   const projectedCrashes: ProjectedCrash[] = [];

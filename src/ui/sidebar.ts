@@ -57,6 +57,14 @@ export class SidebarController {
         event.type === 'ALIGNMENT_CHANGED'
       ) {
         this.updateKpis();
+
+        // SPEC-23: Sincronizar control deslizante de tamaño de bin adaptativo por zoom
+        const binSlider = document.getElementById('slider-bin-size') as HTMLInputElement;
+        const binVal = document.getElementById('val-bin-size');
+        if (binSlider && binVal && binSlider.value !== String(state.config.binSizeMeters)) {
+          binSlider.value = String(state.config.binSizeMeters);
+          binVal.textContent = `${state.config.binSizeMeters} m`;
+        }
       }
 
       if (event.type === 'CRASHES_LOADED') {

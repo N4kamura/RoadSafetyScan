@@ -229,11 +229,12 @@
             <span>Segmentación Métrica (ΔS):</span>
             <span class="control-value" id="val-bin-size">100 m</span>
           </div>
-          <input type="range" id="slider-bin-size" min="25" max="500" step="25" value="100" aria-label="Tamaño de bin métrico en metros">
+          <input type="range" id="slider-bin-size" min="100" max="2000" step="100" value="100" aria-label="Tamaño de bin métrico en metros (mínimo 100m)">
           <div style="display: flex; gap: 0.35rem; margin-top: 0.45rem;">
-            <button class="btn btn-outline btn-preset-bin" data-bin="50" style="padding: 2px 6px; font-size: 0.65rem; color: #475569;">Urbano (50m)</button>
-            <button class="btn btn-outline btn-preset-bin" data-bin="100" style="padding: 2px 6px; font-size: 0.65rem; color: #475569;">Carretera (100m)</button>
-            <button class="btn btn-outline btn-preset-bin" data-bin="250" style="padding: 2px 6px; font-size: 0.65rem; color: #475569;">Autopista (250m)</button>
+            <button class="btn btn-outline btn-preset-bin" data-bin="100" style="padding: 2px 6px; font-size: 0.65rem; color: #475569;" title="Mínimo normativo (100m)">Detalle (100m)</button>
+            <button class="btn btn-outline btn-preset-bin" data-bin="200" style="padding: 2px 6px; font-size: 0.65rem; color: #475569;">Urbano (200m)</button>
+            <button class="btn btn-outline btn-preset-bin" data-bin="500" style="padding: 2px 6px; font-size: 0.65rem; color: #475569;">Carretera (500m)</button>
+            <button class="btn btn-outline btn-preset-bin" data-bin="1000" style="padding: 2px 6px; font-size: 0.65rem; color: #475569;">Regional (1km)</button>
           </div>
         </div>
       </section>

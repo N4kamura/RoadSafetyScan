@@ -21,6 +21,9 @@ export interface CurvilinearProfileOptions {
 
   /** Modo métrico del histograma: 'COUNT', 'VEHICLES', 'PERSONS', 'EPDO' o 'DENSITY_KM' (default: 'COUNT') */
   metricMode?: 'COUNT' | 'VEHICLES' | 'PERSONS' | 'EPDO' | 'DENSITY_KM';
+
+  /** Rango métrico de progresivas visibles [sMin, sMax] para recorte dinámico al viewport (SPEC-23) */
+  visibleRange?: [number, number];
 }
 
 export interface CurvilinearBarFeature {
