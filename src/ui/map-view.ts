@@ -17,6 +17,8 @@ import {
   convertDragToHeightScale
 } from '../pkg/curvilinear/pointer.js';
 import { VizStoreState, VizEvent } from '../pkg/viz/types.js';
+import { RouteManager } from '../pkg/tracer/route-manager.js';
+import { TraceDrawerController } from './trace-drawer.js';
 
 // Configurar explícitamente el worker de MapLibre GL JS para Vite (ES Module Worker)
 if (typeof (maplibregl as any).setWorkerUrl === 'function') {
@@ -28,6 +30,8 @@ export class MapViewController {
   private store: VizStore;
   private popup: maplibregl.Popup;
   private isLoaded: boolean = false;
+  private routeManager?: RouteManager;
+  private traceDrawer?: TraceDrawerController;
 
   // SPEC-11: Puntero Semicircular y Línea Conectora
   private currentPointerChainage: number = 0;
@@ -49,8 +53,13 @@ export class MapViewController {
     return this.scaleHandleMarker;
   }
 
-  constructor(containerId: string, store: VizStore) {
+  public getTraceDrawer(): TraceDrawerController | undefined {
+    return this.traceDrawer;
+  }
+
+  constructor(containerId: string, store: VizStore, routeManager?: RouteManager) {
     this.store = store;
+    this.routeManager = routeManager;
     this.popup = new maplibregl.Popup({
       closeButton: false,
       closeOnClick: false,
@@ -96,6 +105,21 @@ export class MapViewController {
 
     this.map.addControl(new maplibregl.NavigationControl(), 'top-left');
 
+    // Inicializar herramienta de trazo interactivo y sincronización de rutas (SPEC-15)
+    if (this.routeManager) {
+      this.traceDrawer = new TraceDrawerController(this.map, this.routeManager, (newAlignment) => {
+        this.store.setAlignment(newAlignment);
+        this.fitToAlignment();
+      });
+      this.routeManager.subscribe((_routes, primary) => {
+        if (primary && (!this.store.getState().alignment || this.store.getState().alignment?.id !== primary.id)) {
+          this.store.setAlignment(primary.alignment);
+          this.fitToAlignment();
+        }
+        this.updateVisibleRoutesLayer();
+      });
+    }
+
     // Capturar avisos internos de MapLibre sin romper la app
     this.map.on('error', (e) => {
       console.warn('Evento interno MapLibre:', e);
@@ -108,6 +132,7 @@ export class MapViewController {
 
       try {
         this.initLayers();
+        this.updateVisibleRoutesLayer();
         this.updateView();
         this.map.resize();
         this.fitToAlignment();
@@ -253,11 +278,80 @@ export class MapViewController {
       console.warn('Error inicializando capa conectora pointer-line:', e);
     }
 
+    // 4. Capas de Rutas Activas en el Mapa (SPEC-15)
+    try {
+      if (!this.map.getSource('source-visible-routes')) {
+        this.map.addSource('source-visible-routes', {
+          type: 'geojson',
+          data: { type: 'FeatureCollection', features: [] }
+        });
+      }
+      if (!this.map.getLayer('layer-visible-routes-casing')) {
+        this.map.addLayer({
+          id: 'layer-visible-routes-casing',
+          type: 'line',
+          source: 'source-visible-routes',
+          paint: {
+            'line-color': '#0f172a',
+            'line-width': 7.5,
+            'line-opacity': 0.75
+          }
+        });
+      }
+      if (!this.map.getLayer('layer-visible-routes-line')) {
+        this.map.addLayer({
+          id: 'layer-visible-routes-line',
+          type: 'line',
+          source: 'source-visible-routes',
+          paint: {
+            'line-color': ['get', 'color'],
+            'line-width': 4.5,
+            'line-opacity': 0.95
+          }
+        });
+      }
+    } catch (e) {
+      console.warn('Error inicializando capas de rutas visibles:', e);
+    }
+
     if (this.currentPointerChainage === 0 && state.alignment) {
       this.currentPointerChainage = state.alignment.totalLength * 0.35;
     }
     this.initPointerMarker();
     this.updatePointerVisuals();
+  }
+
+  public updateVisibleRoutesLayer(): void {
+    if (!this.map || !this.routeManager) return;
+    const src = this.map.getSource('source-visible-routes') as maplibregl.GeoJSONSource;
+    if (!src) return;
+
+    const visibleRoutes = this.routeManager.getVisibleRoutes();
+    const primary = this.routeManager.getPrimaryRoute();
+    const features: any[] = [];
+
+    for (const r of visibleRoutes) {
+      features.push({
+        type: 'Feature',
+        properties: {
+          id: r.id,
+          name: r.name,
+          shortName: r.shortName,
+          color: r.color,
+          isPrimary: r.id === primary?.id,
+          lengthKm: (r.totalLengthMeters / 1000).toFixed(2)
+        },
+        geometry: {
+          type: 'LineString',
+          coordinates: r.alignment.vertices.map((v) => [v.coordinates.longitude, v.coordinates.latitude])
+        }
+      });
+    }
+
+    src.setData({
+      type: 'FeatureCollection',
+      features
+    });
   }
 
   private updateView(): void {
@@ -806,6 +900,43 @@ export class MapViewController {
     this.map.on('zoomend', () => {
       lastZoom = this.map.getZoom();
       this.updateCurvilinearOnly();
+    });
+
+    // 4. Interacción con Rutas Activas en el Mapa (SPEC-15)
+    this.map.on('click', 'layer-visible-routes-line', (e) => {
+      if (this.traceDrawer?.getIsDrawing()) return;
+      if (!e.features || e.features.length === 0) return;
+      const feat = e.features[0];
+      const routeId = feat.properties?.id;
+      if (routeId && this.routeManager) {
+        this.routeManager.setPrimaryRoute(routeId);
+      }
+    });
+
+    this.map.on('mouseenter', 'layer-visible-routes-line', (e) => {
+      if (this.traceDrawer?.getIsDrawing()) return;
+      this.map.getCanvas().style.cursor = 'pointer';
+      if (!e.features || e.features.length === 0) return;
+      const p = e.features[0].properties as any;
+      if (!p) return;
+      this.popup
+        .setLngLat(e.lngLat)
+        .setHTML(`
+          <div style="font-family: inherit; font-size: 11px; padding: 4px; line-height: 1.4;">
+            <div style="font-weight: 700; color: ${p.color || '#2563eb'};">🛣️ ${p.shortName || p.id}: ${p.name}</div>
+            <div style="color: #64748b; font-size: 10px;">Longitud: ${p.lengthKm} km</div>
+            <div style="font-size: 9.5px; color: #10b981; font-weight: 600; margin-top: 2px;">
+              ${p.isPrimary ? '● Eje primario en análisis LRS' : '🎯 Clic para analizar este trazo'}
+            </div>
+          </div>
+        `)
+        .addTo(this.map);
+    });
+
+    this.map.on('mouseleave', 'layer-visible-routes-line', () => {
+      if (this.traceDrawer?.getIsDrawing()) return;
+      this.map.getCanvas().style.cursor = '';
+      this.popup.remove();
     });
   }
 

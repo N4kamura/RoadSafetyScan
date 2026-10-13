@@ -71,7 +71,8 @@ function segmentsIntersect(
 export function createAlignment(
   coordinates: GeoCoordinate[],
   id: string = `ALIGNMENT-${Date.now()}`,
-  name: string = 'Alineamiento Vial'
+  name: string = 'Alineamiento Vial',
+  metadata?: { shortName?: string; description?: string; color?: string }
 ): Alignment {
   if (!coordinates || coordinates.length < 2) {
     throw new Error('El alineamiento requiere un mínimo de 2 coordenadas geográficas.');
@@ -213,6 +214,9 @@ export function createAlignment(
   return {
     id,
     name,
+    shortName: metadata?.shortName,
+    description: metadata?.description,
+    color: metadata?.color,
     vertices,
     segments,
     totalLength: Math.round(cumulativeDistance * 100) / 100,

@@ -47,6 +47,9 @@ export interface AlignmentWarning {
 export interface Alignment {
   id: string;
   name: string;
+  shortName?: string;
+  description?: string;
+  color?: string; // Color hexadecimal, ej: '#2563EB'
   vertices: AlignmentVertex[];
   segments: AlignmentSegment[];
   totalLength: number;        // Longitud total del eje en metros

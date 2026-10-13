@@ -1,0 +1,39 @@
+MIT License
+
+Copyright (c) 2026 N4kamura & RoadSafetyScan Contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+### VisQuill GDK Attribution & License Notice
+
+This project incorporates and builds upon the visual design principles and
+algorithms of **VisQuill GDK** (*Geometric Design Kit*), specifically the
+paradigm of *Profiles along a line (A1 Collision Density)* for curvilinear road
+profiling and linear referencing systems (LRS).
+
+- Visualization of longitudinal profiles and parallel curvilinear extrusions
+  is powered by **VisQuill GDK**.
+- All rights and original methodology credits for VisQuill GDK belong to its
+  respective authors and contributors.
+- RoadSafetyScan provides this platform as free and open-source software (FOSS)
+  to support municipal governments, regional authorities (GORE), provincial
+  municipalities, transport agencies (SUTRAN, ATU, MTC), and civil engineering
+  auditors in evaluating and improving road safety infrastructure.

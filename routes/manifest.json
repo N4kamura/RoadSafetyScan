@@ -1,0 +1,54 @@
+[
+  {
+    "id": "EJEMPLO",
+    "name": "Ruta de Ejemplo - Panamericana Sur (Km 18 al 25)",
+    "shortName": "EJEMPLO",
+    "description": "Trazo de alineamiento vial de ejemplo (Km 18 al 25)",
+    "color": "#2563EB",
+    "totalLengthMeters": 7634.47,
+    "vertexCount": 10,
+    "txtFile": "ruta_ejemplo.txt",
+    "coordinates": [
+      [
+        -76.96,
+        -12.18
+      ],
+      [
+        -76.958,
+        -12.185
+      ],
+      [
+        -76.955,
+        -12.192
+      ],
+      [
+        -76.951,
+        -12.2
+      ],
+      [
+        -76.948,
+        -12.206
+      ],
+      [
+        -76.944,
+        -12.213
+      ],
+      [
+        -76.94,
+        -12.221
+      ],
+      [
+        -76.937,
+        -12.228
+      ],
+      [
+        -76.933,
+        -12.235
+      ],
+      [
+        -76.93,
+        -12.242
+      ]
+    ]
+  }
+]

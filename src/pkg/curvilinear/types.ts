@@ -47,6 +47,12 @@ export interface CurvilinearBarFeature {
     noSeConoce: number;
     ileso: number;
   };
+  /** Subcategoría de gravedad si es un sub-polígono apilado (SPEC-17) */
+  subCategory?: 'FALLECIDO' | 'LESIONADO' | 'NO_CONOCE' | 'ILESO';
+  /** Conteo específico de esta subcategoría */
+  subCount?: number;
+  /** Color de relleno explícito asignado a este sub-polígono */
+  fillColor?: string;
 }
 
 export interface CurvilinearIsolineFeature {

@@ -83,11 +83,13 @@ describe('SPEC-14: Conmutación de Modo de Métrica (COUNT, VEHICLES, PERSONS)',
       metricMode: 'PERSONS',
       heightScaleMetersPerUnit: 10
     });
-    const barPersons = profilePersons.bars.find((b) => b.value > 0);
-    expect(barPersons?.value).toBe(5);
-    expect(barPersons?.heightMeters).toBe(50); // 5 * 10
-    expect(barPersons?.totalVehicles).toBe(3);
-    expect(barPersons?.totalPersons).toBe(5);
-    expect(barPersons?.personsBreakdown?.fallecido).toBe(2);
+    const barsPersonsInBin = profilePersons.bars.filter((b) => b.binIndex === barCount?.binIndex);
+    expect(barsPersonsInBin.length).toBeGreaterThanOrEqual(1);
+    const totalHeight = barsPersonsInBin.reduce((sum, b) => sum + b.heightMeters, 0);
+    expect(totalHeight).toBe(50); // 5 * 10
+    const firstBar = barsPersonsInBin[0];
+    expect(firstBar.totalVehicles).toBe(3);
+    expect(firstBar.totalPersons).toBe(5);
+    expect(firstBar.personsBreakdown?.fallecido).toBe(2);
   });
 });

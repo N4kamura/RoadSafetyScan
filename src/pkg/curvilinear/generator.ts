@@ -155,52 +155,166 @@ export function generateCurvilinearProfile(
     const pStart = offsetCoordinate(startInterp.coord, startInterp.normal, baseOffsetMeters);
     const pEnd = offsetCoordinate(endInterp.coord, endInterp.normal, baseOffsetMeters);
 
-    // Altura proporcional a la métrica seleccionada
-    let value = bin.totalCount;
-    if (opts.metricMode === 'VEHICLES') {
-      value = bin.totalVehicles;
-    } else if (opts.metricMode === 'PERSONS') {
-      value = bin.totalPersons;
-    } else if (opts.metricMode === 'EPDO') {
-      value = bin.epdoScore;
-    } else if (opts.metricMode === 'DENSITY_KM') {
-      value = bin.densityPerKm;
+    if (opts.metricMode === 'PERSONS') {
+      const fallecido = bin.personsBreakdown?.fallecido ?? 0;
+      const lesionado = bin.personsBreakdown?.lesionado ?? 0;
+      const noSeConoce = bin.personsBreakdown?.noSeConoce ?? 0;
+      const ileso = bin.personsBreakdown?.ileso ?? 0;
+      const totalPersons = bin.totalPersons ?? (fallecido + lesionado + noSeConoce + ileso);
+
+      const slices = [
+        { key: 'FALLECIDO' as const, count: fallecido, color: '#DC2626' },
+        { key: 'LESIONADO' as const, count: lesionado, color: '#EA580C' },
+        { key: 'NO_CONOCE' as const, count: noSeConoce, color: '#94A3B8' },
+        { key: 'ILESO' as const, count: ileso, color: '#10B981' }
+      ].filter((s) => s.count > 0);
+
+      if (slices.length === 0) {
+        if (totalPersons > 0) {
+          const barHeightMeters = totalPersons * opts.heightScaleMetersPerUnit;
+          const totalExtrusionMeters = baseOffsetMeters + (barHeightMeters * sideSign);
+          const qStart = offsetCoordinate(startInterp.coord, startInterp.normal, totalExtrusionMeters);
+          const qEnd = offsetCoordinate(endInterp.coord, endInterp.normal, totalExtrusionMeters);
+          bars.push({
+            binIndex: bin.binIndex,
+            startChainageMeters: sStart,
+            endChainageMeters: sEnd,
+            startStationFormatted: bin.startStationFormatted,
+            endStationFormatted: bin.endStationFormatted,
+            value: totalPersons,
+            heightMeters: barHeightMeters,
+            polygonCoordinates: [pStart, qStart, qEnd, pEnd, pStart],
+            severityBreakdown: {
+              fatal: bin.severityCounts[SeverityLevel.FATAL] || 0,
+              grave: bin.severityCounts[SeverityLevel.LESIONES_GRAVES] || 0,
+              leve: bin.severityCounts[SeverityLevel.LESIONES_LEVES] || 0,
+              danos: bin.severityCounts[SeverityLevel.SOLO_DANOS] || 0
+            },
+            totalVehicles: bin.totalVehicles,
+            totalPersons,
+            personsBreakdown: { ...bin.personsBreakdown },
+            fillColor: '#7C3AED'
+          });
+        } else {
+          bars.push({
+            binIndex: bin.binIndex,
+            startChainageMeters: sStart,
+            endChainageMeters: sEnd,
+            startStationFormatted: bin.startStationFormatted,
+            endStationFormatted: bin.endStationFormatted,
+            value: 0,
+            heightMeters: 0,
+            polygonCoordinates: [pStart, pStart, pEnd, pEnd, pStart],
+            severityBreakdown: {
+              fatal: bin.severityCounts[SeverityLevel.FATAL] || 0,
+              grave: bin.severityCounts[SeverityLevel.LESIONES_GRAVES] || 0,
+              leve: bin.severityCounts[SeverityLevel.LESIONES_LEVES] || 0,
+              danos: bin.severityCounts[SeverityLevel.SOLO_DANOS] || 0
+            },
+            totalVehicles: bin.totalVehicles,
+            totalPersons: 0,
+            personsBreakdown: { ...bin.personsBreakdown },
+            fillColor: 'rgba(124, 58, 237, 0.15)'
+          });
+        }
+      } else {
+        // Extruir capas apiladas consecutivas sobre la normal
+        let currentOffsetMeters = baseOffsetMeters;
+        for (const slice of slices) {
+          const sliceHeightMeters = slice.count * opts.heightScaleMetersPerUnit;
+          const nextOffsetMeters = currentOffsetMeters + (sliceHeightMeters * sideSign);
+
+          const pSliceStart = offsetCoordinate(startInterp.coord, startInterp.normal, currentOffsetMeters);
+          const pSliceEnd = offsetCoordinate(endInterp.coord, endInterp.normal, currentOffsetMeters);
+          const qSliceStart = offsetCoordinate(startInterp.coord, startInterp.normal, nextOffsetMeters);
+          const qSliceEnd = offsetCoordinate(endInterp.coord, endInterp.normal, nextOffsetMeters);
+
+          bars.push({
+            binIndex: bin.binIndex,
+            startChainageMeters: sStart,
+            endChainageMeters: sEnd,
+            startStationFormatted: bin.startStationFormatted,
+            endStationFormatted: bin.endStationFormatted,
+            value: totalPersons,
+            heightMeters: sliceHeightMeters,
+            polygonCoordinates: [pSliceStart, qSliceStart, qSliceEnd, pSliceEnd, pSliceStart],
+            severityBreakdown: {
+              fatal: bin.severityCounts[SeverityLevel.FATAL] || 0,
+              grave: bin.severityCounts[SeverityLevel.LESIONES_GRAVES] || 0,
+              leve: bin.severityCounts[SeverityLevel.LESIONES_LEVES] || 0,
+              danos: bin.severityCounts[SeverityLevel.SOLO_DANOS] || 0
+            },
+            totalVehicles: bin.totalVehicles,
+            totalPersons,
+            personsBreakdown: { ...bin.personsBreakdown },
+            subCategory: slice.key,
+            subCount: slice.count,
+            fillColor: slice.color
+          });
+
+          currentOffsetMeters = nextOffsetMeters;
+        }
+      }
+    } else {
+      // Modos de extrusión simple (COUNT, VEHICLES, EPDO, DENSITY_KM)
+      let value = bin.totalCount;
+      let defaultColor: string | undefined = undefined;
+
+      if (opts.metricMode === 'VEHICLES') {
+        value = bin.totalVehicles;
+        defaultColor = value > 0 ? '#0284C7' : 'rgba(2, 132, 199, 0.15)';
+      } else if (opts.metricMode === 'EPDO') {
+        value = bin.epdoScore;
+        defaultColor = value > 0 ? '#DC2626' : 'rgba(220, 38, 38, 0.15)';
+      } else if (opts.metricMode === 'DENSITY_KM') {
+        value = bin.densityPerKm;
+        defaultColor = value > 0 ? '#7C3AED' : 'rgba(124, 58, 237, 0.15)';
+      } else {
+        // COUNT: Dominante por severidad del siniestro
+        const fatal = bin.severityCounts[SeverityLevel.FATAL] || 0;
+        const grave = bin.severityCounts[SeverityLevel.LESIONES_GRAVES] || 0;
+        const leve = bin.severityCounts[SeverityLevel.LESIONES_LEVES] || 0;
+        const danos = bin.severityCounts[SeverityLevel.SOLO_DANOS] || 0;
+        defaultColor = fatal > 0
+          ? '#DC2626'
+          : grave > 0
+          ? '#EA580C'
+          : leve > 0
+          ? '#FACC15'
+          : danos > 0
+          ? '#2563EB'
+          : value > 0
+          ? '#7C3AED'
+          : 'rgba(124, 58, 237, 0.15)';
+      }
+
+      const barHeightMeters = value * opts.heightScaleMetersPerUnit;
+      const totalExtrusionMeters = baseOffsetMeters + (barHeightMeters * sideSign);
+
+      const qStart = offsetCoordinate(startInterp.coord, startInterp.normal, totalExtrusionMeters);
+      const qEnd = offsetCoordinate(endInterp.coord, endInterp.normal, totalExtrusionMeters);
+
+      bars.push({
+        binIndex: bin.binIndex,
+        startChainageMeters: sStart,
+        endChainageMeters: sEnd,
+        startStationFormatted: bin.startStationFormatted,
+        endStationFormatted: bin.endStationFormatted,
+        value,
+        heightMeters: barHeightMeters,
+        polygonCoordinates: [pStart, qStart, qEnd, pEnd, pStart],
+        severityBreakdown: {
+          fatal: bin.severityCounts[SeverityLevel.FATAL] || 0,
+          grave: bin.severityCounts[SeverityLevel.LESIONES_GRAVES] || 0,
+          leve: bin.severityCounts[SeverityLevel.LESIONES_LEVES] || 0,
+          danos: bin.severityCounts[SeverityLevel.SOLO_DANOS] || 0
+        },
+        totalVehicles: bin.totalVehicles,
+        totalPersons: bin.totalPersons,
+        personsBreakdown: { ...bin.personsBreakdown },
+        fillColor: defaultColor
+      });
     }
-    const barHeightMeters = value * opts.heightScaleMetersPerUnit;
-    const totalExtrusionMeters = baseOffsetMeters + (barHeightMeters * sideSign);
-
-    // Puntos del borde exterior extruido
-    const qStart = offsetCoordinate(startInterp.coord, startInterp.normal, totalExtrusionMeters);
-    const qEnd = offsetCoordinate(endInterp.coord, endInterp.normal, totalExtrusionMeters);
-
-    // Polígono cerrado del cuadrilátero [P_start, Q_start, Q_end, P_end, P_start]
-    const polygonCoordinates: [number, number][] = [
-      pStart,
-      qStart,
-      qEnd,
-      pEnd,
-      pStart
-    ];
-
-    bars.push({
-      binIndex: bin.binIndex,
-      startChainageMeters: sStart,
-      endChainageMeters: sEnd,
-      startStationFormatted: bin.startStationFormatted,
-      endStationFormatted: bin.endStationFormatted,
-      value,
-      heightMeters: barHeightMeters,
-      polygonCoordinates,
-      severityBreakdown: {
-        fatal: bin.severityCounts[SeverityLevel.FATAL] || 0,
-        grave: bin.severityCounts[SeverityLevel.LESIONES_GRAVES] || 0,
-        leve: bin.severityCounts[SeverityLevel.LESIONES_LEVES] || 0,
-        danos: bin.severityCounts[SeverityLevel.SOLO_DANOS] || 0
-      },
-      totalVehicles: bin.totalVehicles,
-      totalPersons: bin.totalPersons,
-      personsBreakdown: { ...bin.personsBreakdown }
-    });
   }
 
   // 3. Generar Isolíneas Concéntricas de Escala Curvilíneas

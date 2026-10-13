@@ -11,21 +11,36 @@ import {
   generateCorridorBinsGeoJson,
   triggerBrowserDownload
 } from '../pkg/export/index.js';
+import { generateTxtAlignmentTrace } from '../pkg/export/txt.js';
+import { generateGtfsRoutesTxt, generateGtfsShapesTxt } from '../pkg/export/gtfs.js';
 import { parseGeoJsonAlignment } from '../pkg/tracer/importers/geojson.js';
+import { parseTxtAlignment } from '../pkg/tracer/importers/txt.js';
 import { createAlignment } from '../pkg/tracer/alignment.js';
+import { Alignment } from '../pkg/tracer/types.js';
+import { RouteManager, ManagedRoute } from '../pkg/tracer/route-manager.js';
+import { TraceDrawerController } from './trace-drawer.js';
 import {
   MOCK_ALIGNMENT_DATA,
-  MOCK_CRASHES_DATA,
-  MOCK_ALIGNMENT_NORTE_DATA,
-  MOCK_CRASHES_NORTE_DATA
+  MOCK_CRASHES_DATA
 } from '../mock-data.js';
 
 export class SidebarController {
   private store: VizStore;
+  private routeManager?: RouteManager;
+  private traceDrawer?: TraceDrawerController;
 
-  constructor(store: VizStore) {
+  constructor(
+    store: VizStore,
+    routeManager?: RouteManager,
+    traceDrawer?: TraceDrawerController
+  ) {
     this.store = store;
+    this.routeManager = routeManager;
+    this.traceDrawer = traceDrawer;
+
     this.initCorridorSelector();
+    this.initTraceDrawingButtons();
+    this.initRouteListManager();
     this.initControls();
     this.initCurvilinearControls();
     this.initFloatingMapControls();
@@ -61,39 +76,173 @@ export class SidebarController {
     this.updateKpis();
   }
 
+  private initTraceDrawingButtons(): void {
+    const btnHeader = document.getElementById('btn-draw-trace');
+    const btnSidebar = document.getElementById('btn-draw-trace-sidebar');
+
+    const handleStart = () => {
+      if (this.traceDrawer) {
+        this.traceDrawer.startDrawing();
+      }
+    };
+
+    btnHeader?.addEventListener('click', handleStart);
+    btnSidebar?.addEventListener('click', handleStart);
+  }
+
+  private initRouteListManager(): void {
+    if (!this.routeManager) return;
+    this.routeManager.subscribe((routes, primary) => {
+      this.renderRouteList(routes, primary);
+      this.syncCorridorSelector(routes, primary);
+    });
+  }
+
+  private renderRouteList(routes: ManagedRoute[], primary: ManagedRoute | null): void {
+    const container = document.getElementById('routes-manager-list');
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    for (const r of routes) {
+      const card = document.createElement('div');
+      card.className = `route-item-card ${r.id === primary?.id ? 'is-primary' : ''}`;
+
+      const left = document.createElement('div');
+      left.className = 'route-item-left';
+
+      // Checkbox para activar/desactivar visibilidad en el mapa
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.className = 'route-visibility-cb';
+      cb.checked = r.visibleOnMap;
+      cb.title = r.visibleOnMap ? 'Ocultar ruta del mapa' : 'Mostrar ruta en el mapa';
+      cb.addEventListener('change', (e) => {
+        e.stopPropagation();
+        this.routeManager?.toggleMapVisibility(r.id, cb.checked);
+      });
+
+      // Punto de color
+      const dot = document.createElement('span');
+      dot.className = 'route-color-pill';
+      dot.style.backgroundColor = r.color;
+
+      // Info
+      const meta = document.createElement('div');
+      meta.className = 'route-meta-info';
+      meta.title = `${r.name} (${(r.totalLengthMeters / 1000).toFixed(2)} km)`;
+
+      const title = document.createElement('span');
+      title.className = 'route-meta-title';
+      title.textContent = `[${r.shortName}] ${r.name}`;
+      title.addEventListener('click', () => {
+        this.routeManager?.setPrimaryRoute(r.id);
+      });
+
+      const len = document.createElement('span');
+      len.className = 'route-meta-length';
+      len.textContent = `${(r.totalLengthMeters / 1000).toFixed(2)} km`;
+
+      meta.appendChild(title);
+      meta.appendChild(len);
+
+      left.appendChild(cb);
+      left.appendChild(dot);
+      left.appendChild(meta);
+
+      // Acciones derecha
+      const actions = document.createElement('div');
+      actions.className = 'route-item-actions';
+
+      // Botón Analizar / Activo
+      if (r.id === primary?.id) {
+        const badge = document.createElement('span');
+        badge.style.fontSize = '0.68rem';
+        badge.style.color = '#2563eb';
+        badge.style.fontWeight = '700';
+        badge.textContent = '● Perfil';
+        actions.appendChild(badge);
+      } else {
+        const btnSelect = document.createElement('button');
+        btnSelect.className = 'btn-route-action btn-route-select';
+        btnSelect.textContent = '🎯 Analizar';
+        btnSelect.title = 'Activar como eje principal de auditoría LRS';
+        btnSelect.addEventListener('click', () => {
+          this.routeManager?.setPrimaryRoute(r.id);
+        });
+        actions.appendChild(btnSelect);
+      }
+
+      // Botón exportar .txt individual
+      const btnTxt = document.createElement('button');
+      btnTxt.className = 'btn-route-action';
+      btnTxt.textContent = '.txt';
+      btnTxt.title = 'Descargar trazo en formato .txt';
+      btnTxt.addEventListener('click', () => {
+        const txt = generateTxtAlignmentTrace(r.alignment);
+        triggerBrowserDownload(txt, `${r.id}.txt`, 'text/plain;charset=utf-8');
+      });
+      actions.appendChild(btnTxt);
+
+      // Botón borrar si es ruta personalizada
+      if (r.isCustom) {
+        const btnDel = document.createElement('button');
+        btnDel.className = 'btn-route-action';
+        btnDel.textContent = '🗑️';
+        btnDel.title = 'Eliminar trazo personalizado';
+        btnDel.addEventListener('click', () => {
+          if (confirm(`¿Deseas eliminar la ruta "${r.name}"?`)) {
+            this.routeManager?.removeRoute(r.id);
+          }
+        });
+        actions.appendChild(btnDel);
+      }
+
+      card.appendChild(left);
+      card.appendChild(actions);
+      container.appendChild(card);
+    }
+  }
+
+  private syncCorridorSelector(routes: ManagedRoute[], primary: ManagedRoute | null): void {
+    const selector = document.getElementById('select-corridor-trace') as HTMLSelectElement;
+    if (!selector) return;
+
+    selector.innerHTML = '';
+    for (const r of routes) {
+      const opt = document.createElement('option');
+      opt.value = r.id;
+      opt.textContent = `🛣️ ${r.shortName}: ${r.name}`;
+      if (r.id === primary?.id) {
+        opt.selected = true;
+      }
+      selector.appendChild(opt);
+    }
+
+    const customOpt = document.createElement('option');
+    customOpt.value = 'CUSTOM';
+    customOpt.textContent = '📂 Cargar archivo personalizado...';
+    selector.appendChild(customOpt);
+
+    const headerBadge = document.getElementById('header-corridor-badge');
+    if (headerBadge && primary) {
+      headerBadge.textContent = `${primary.shortName}: ${primary.name}`;
+    }
+  }
+
   private initCorridorSelector(): void {
     const selector = document.getElementById('select-corridor-trace') as HTMLSelectElement;
     const btnCalc = document.getElementById('btn-run-calculation');
-    const headerBadge = document.getElementById('header-corridor-badge');
 
     const loadCorridor = (code: string) => {
-      const realCrashes = (window as any).__REAL_CRASHES__;
-      if (code === 'PE-1S') {
-        const coords = MOCK_ALIGNMENT_DATA.coordinates.map((c: number[]) => ({
-          longitude: c[0],
-          latitude: c[1]
-        }));
-        const alignment = createAlignment(coords, MOCK_ALIGNMENT_DATA.id, MOCK_ALIGNMENT_DATA.name);
-        this.store.setAlignment(alignment);
-        this.store.setCrashes(realCrashes || MOCK_CRASHES_DATA);
-        if (headerBadge) headerBadge.textContent = 'PE-1S: Panamericana Sur (Km 18 al 25)';
-      } else if (code === 'PE-1N') {
-        const coords = MOCK_ALIGNMENT_NORTE_DATA.coordinates.map((c: number[]) => ({
-          longitude: c[0],
-          latitude: c[1]
-        }));
-        const alignment = createAlignment(coords, MOCK_ALIGNMENT_NORTE_DATA.id, MOCK_ALIGNMENT_NORTE_DATA.name);
-        this.store.setAlignment(alignment);
-        this.store.setCrashes(realCrashes || MOCK_CRASHES_NORTE_DATA);
-        if (headerBadge) headerBadge.textContent = 'PE-1N: Panamericana Norte (Km 35 al 41)';
-      } else if (code === 'CUSTOM') {
+      if (code === 'CUSTOM') {
         const fileInput = document.getElementById('file-input-alignment') as HTMLInputElement;
         if (fileInput) fileInput.click();
+        return;
       }
 
-      if ((window as any).mapInstance && typeof (window as any).mapInstance.fitBounds === 'function') {
-        const btnFit = document.getElementById('btn-fit-map');
-        if (btnFit) btnFit.click();
+      if (this.routeManager) {
+        this.routeManager.setPrimaryRoute(code);
       }
     };
 
@@ -105,13 +254,13 @@ export class SidebarController {
 
     if (btnCalc) {
       btnCalc.addEventListener('click', () => {
-        const code = selector ? selector.value : 'PE-1S';
+        const code = selector ? selector.value : 'EJEMPLO';
         loadCorridor(code);
         const originalText = btnCalc.textContent;
         btnCalc.textContent = '✓ ¡Auditoría Calculada!';
         btnCalc.style.backgroundColor = '#16a34a';
         setTimeout(() => {
-          btnCalc.textContent = originalText || '⚡ Calcular Auditoría Vial (LRS)';
+          btnCalc.textContent = originalText || '⚡ Calcular LRS';
           btnCalc.style.backgroundColor = '#2563eb';
         }, 1200);
       });
@@ -254,17 +403,9 @@ export class SidebarController {
     // Sincronizar clases activas en sidebar y mapa
     document.querySelectorAll('.metric-tab-btn, .map-metric-pill, .btn-metric-selector').forEach((el) => {
       const elMode = el.getAttribute('data-mode') || el.getAttribute('data-metric');
-      if (elMode === mode) {
-        el.classList.add('active');
-        el.classList.remove('btn-outline');
-        if (el.classList.contains('btn')) el.classList.add('btn-secondary');
-      } else {
-        el.classList.remove('active');
-        if (el.classList.contains('btn')) {
-          el.classList.remove('btn-secondary');
-          el.classList.add('btn-outline');
-        }
-      }
+      const isActive = elMode === mode;
+      el.classList.toggle('active', isActive);
+      el.classList.remove('btn-outline');
     });
 
     const badge = document.getElementById('badge-profile-metric');
@@ -284,15 +425,9 @@ export class SidebarController {
 
   private setCurvilinearSide(side: 'RIGHT' | 'LEFT'): void {
     document.querySelectorAll('.btn-curv-side').forEach((el) => {
-      if (el.getAttribute('data-side') === side) {
-        el.classList.add('active');
-        el.classList.remove('btn-outline');
-        el.classList.add('btn-secondary');
-      } else {
-        el.classList.remove('active');
-        el.classList.remove('btn-secondary');
-        el.classList.add('btn-outline');
-      }
+      const isActive = el.getAttribute('data-side') === side;
+      el.classList.toggle('active', isActive);
+      el.classList.remove('btn-outline');
     });
 
     const toggleSideBtn = document.getElementById('btn-map-toggle-side');
@@ -393,6 +528,35 @@ export class SidebarController {
         triggerBrowserDownload(JSON.stringify(geojson, null, 2), filename, 'application/geo+json');
       });
     }
+
+    // SPEC-15: Descargar trazo activo en formato .txt
+    const btnTxtTrace = document.getElementById('btn-export-txt-trace');
+    if (btnTxtTrace) {
+      btnTxtTrace.addEventListener('click', () => {
+        const currentAlignment = this.store.getState().alignment;
+        if (!currentAlignment) return;
+        const txt = generateTxtAlignmentTrace(currentAlignment);
+        triggerBrowserDownload(txt, `${currentAlignment.id}.txt`, 'text/plain;charset=utf-8');
+      });
+    }
+
+    // SPEC-15: Descargar paquete GTFS completo (routes.txt + shapes.txt)
+    const btnGtfsBundle = document.getElementById('btn-export-gtfs-bundle');
+    if (btnGtfsBundle) {
+      btnGtfsBundle.addEventListener('click', () => {
+        const allRoutes = this.routeManager
+          ? this.routeManager.getAllRoutes().map((r) => r.alignment)
+          : [this.store.getState().alignment].filter(Boolean) as Alignment[];
+
+        const routesTxt = generateGtfsRoutesTxt(allRoutes);
+        const shapesTxt = generateGtfsShapesTxt(allRoutes);
+
+        triggerBrowserDownload(routesTxt, 'routes.txt', 'text/plain;charset=utf-8');
+        setTimeout(() => {
+          triggerBrowserDownload(shapesTxt, 'shapes.txt', 'text/plain;charset=utf-8');
+        }, 300);
+      });
+    }
   }
 
   private initFileLoader(): void {
@@ -406,10 +570,25 @@ export class SidebarController {
         reader.onload = (event) => {
           try {
             const content = event.target?.result as string;
-            const newAlignment = parseGeoJsonAlignment(content, {
-              alignmentName: file.name.replace(/\.[^/.]+$/, '')
-            });
-            this.store.setAlignment(newAlignment);
+            let newAlignment: Alignment;
+
+            if (file.name.toLowerCase().endsWith('.txt')) {
+              newAlignment = parseTxtAlignment(content, {
+                id: file.name.replace(/\.[^/.]+$/, '').toUpperCase(),
+                name: file.name.replace(/\.[^/.]+$/, '')
+              });
+            } else {
+              newAlignment = parseGeoJsonAlignment(content, {
+                alignmentName: file.name.replace(/\.[^/.]+$/, '')
+              });
+            }
+
+            if (this.routeManager) {
+              this.routeManager.addRoute(newAlignment, true);
+            } else {
+              this.store.setAlignment(newAlignment);
+            }
+
             alert(`Alineamiento "${newAlignment.name}" cargado exitosamente (${newAlignment.vertices.length} vértices, ${(newAlignment.totalLength / 1000).toFixed(2)} km).`);
           } catch (err: any) {
             alert(`Error al cargar archivo de alineamiento: ${err.message}`);

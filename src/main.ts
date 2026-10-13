@@ -12,20 +12,24 @@ import { MapViewController } from './ui/map-view.js';
 import { LongitudinalProfileView } from './ui/profile-view.js';
 import { SidebarController } from './ui/sidebar.js';
 import { CircularTimeClockController } from './ui/time-clock.js';
+import { RouteManager } from './pkg/tracer/route-manager.js';
 import { CrashPoint } from './pkg/lrs/types.js';
+import { ThemeController } from './ui/theme.js';
 
 // Cargar datos simulados del corredor Panamericana Sur
 import { MOCK_ALIGNMENT_DATA, MOCK_CRASHES_DATA } from './mock-data.js';
 
 function initApp() {
-  // 1. Inicializar alineamiento vial base
-  const alignmentCoordinates = MOCK_ALIGNMENT_DATA.coordinates.map((coord: number[]) => ({
-    longitude: coord[0],
-    latitude: coord[1]
-  }));
+  // 1. Inicializar Gestor de Rutas Centralizado (SPEC-15)
+  const routeManager = new RouteManager();
+  (window as any).routeManager = routeManager;
 
-  const initialAlignment = createAlignment(
-    alignmentCoordinates,
+  const primaryRoute = routeManager.getPrimaryRoute();
+  const initialAlignment = primaryRoute ? primaryRoute.alignment : createAlignment(
+    MOCK_ALIGNMENT_DATA.coordinates.map((coord: number[]) => ({
+      longitude: coord[0],
+      latitude: coord[1]
+    })),
     MOCK_ALIGNMENT_DATA.id,
     MOCK_ALIGNMENT_DATA.name
   );
@@ -35,6 +39,15 @@ function initApp() {
 
   // 3. Crear Store Reactivo Central
   const store = new VizStore(initialAlignment, initialCrashes);
+
+  // Sincronizar siniestros y alineamiento cuando cambie la ruta primaria
+  routeManager.subscribe((_routes, primary) => {
+    if (primary) {
+      store.setAlignment(primary.alignment);
+      const realCrashes = (window as any).__REAL_CRASHES__;
+      store.setCrashes(realCrashes || MOCK_CRASHES_DATA);
+    }
+  });
 
   // SPEC-14: Conexión con BBDD ONSV (SQLite3 convertida a formato web)
   fetch('/data/crashes_web.json')
@@ -58,8 +71,12 @@ function initApp() {
     });
 
   // 4. Inicializar Controladores de la Interfaz
-  const mapController = new MapViewController('map-container', store);
-  const sidebarController = new SidebarController(store);
+  const themeController = new ThemeController('btn-toggle-theme');
+  themeController.init();
+  (window as any).themeController = themeController;
+
+  const mapController = new MapViewController('map-container', store, routeManager);
+  const sidebarController = new SidebarController(store, routeManager, mapController.getTraceDrawer());
   const timeClockController = new CircularTimeClockController('time-clock-container', store);
 
   (window as any).mapViewController = mapController;

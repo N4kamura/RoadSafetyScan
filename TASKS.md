@@ -21,7 +21,10 @@ Este documento gestiona la ejecución técnica del proyecto bajo **Spec-Driven D
 | **Fase 10: Puntero y Línea Conectora (SPEC-11)** | [`specs/11-interactive-chainage-pointer.md`](file:///d:/Projects/RoadSafetyScan/specs/11-interactive-chainage-pointer.md) | `COMPLETADO (IMPLEMENTED)` | 100% (Botón semicircular y línea al trazo) |
 | **Fase 11: Handle de Escala Transversal (SPEC-12)** | [`specs/12-interactive-scale-handle.md`](file:///d:/Projects/RoadSafetyScan/specs/12-interactive-scale-handle.md) | `COMPLETADO (IMPLEMENTED)` | 100% |
 | **Fase 12: Filtro Temporal por Años (SPEC-13)** | [`specs/13-annual-temporal-filter.md`](file:///d:/Projects/RoadSafetyScan/specs/13-annual-temporal-filter.md) | `COMPLETADO (IMPLEMENTED)` | 100% |
-| **Fase 13: BBDD ONSV, Vehículos y Personas (SPEC-14)** | [`specs/14-database-integration-and-severity-profiling.md`](file:///d:/Projects/RoadSafetyScan/specs/14-database-integration-and-severity-profiling.md) | `COMPLETADO (IMPLEMENTED)` | 100% |
+| **Fase 14: Herramienta de Trazo & GTFS (SPEC-15)** | [`specs/15-interactive-trace-drawing-and-gtfs-storage.md`](file:///d:/Projects/RoadSafetyScan/specs/15-interactive-trace-drawing-and-gtfs-storage.md) | `COMPLETADO (IMPLEMENTED)` | 100% (Herramienta de trazo, GTFS y gestor de rutas) |
+| **Fase 15: Limpieza de UI & Accesibilidad (SPEC-16)** | [`specs/16-ui-polishing-accessibility-and-theme-harmonization.md`](file:///d:/Projects/RoadSafetyScan/specs/16-ui-polishing-accessibility-and-theme-harmonization.md) | `COMPLETADO (IMPLEMENTED)` | 100% (Modo Claro/Oscuro, WCAG AA+, UI Clean) |
+| **Fase 16: Barras Curvilíneas Apiladas (SPEC-17)** | [`specs/17-map-curvilinear-stacked-persons-by-severity.md`](file:///d:/Projects/RoadSafetyScan/specs/17-map-curvilinear-stacked-persons-by-severity.md) | `COMPLETADO (IMPLEMENTED)` | 100% (Sub-polígonos extruidos apilados por gravedad) |
+| **Fase 17: Guía y Despliegue README (SPEC-18)** | [`specs/18-project-documentation-and-deployment-guide.md`](file:///d:/Projects/RoadSafetyScan/specs/18-project-documentation-and-deployment-guide.md) | `COMPLETADO (IMPLEMENTED)` | 100% (Guía paso a paso, BBDD ONSV, comandos) |
 
 ---
 
@@ -165,3 +168,57 @@ Este documento gestiona la ejecución técnica del proyecto bajo **Spec-Driven D
 - [x] **TASK-12.2.2:** Añadir estilos CSS para `.curvilinear-scale-handle-btn` en `src/ui/styles.css`.
 - [x] **TASK-12.3.1:** Crear suite de pruebas unitarias en `tests/unit/curvilinear/scale-handle.test.ts`.
 - [x] **TASK-12.3.2:** Validar con `npm test` y compilación con Vite.
+
+---
+
+## Fase 12: SPEC-13 — Filtro Temporal por Años (`pkg/viz` & `ui/sidebar`) [COMPLETADO]
+- [x] **TASK-13.1.1:** Añadir `selectedYears` a `FilterState` y lógica de filtrado anual en `VizStore`.
+- [x] **TASK-13.1.2:** Implementar chips de años en `SidebarController`.
+- [x] **TASK-13.1.3:** Crear tests unitarios en `tests/unit/viz/year-filter.test.ts`.
+
+---
+
+## Fase 13: SPEC-14 — BBDD ONSV, Vehículos y Personas (`pkg/data`, `pkg/lrs`, `pkg/curvilinear`) [COMPLETADO]
+- [x] **TASK-14.1.1:** Script `scripts/build_database.py` para consolidar Excel en SQLite3 y `public/data/crashes_web.json`.
+- [x] **TASK-14.1.2:** Extender `CrashPoint` y `LrsBinAggregate` con conteo de vehículos y personas por gravedad.
+- [x] **TASK-14.1.3:** Selector de métrica en UI (`COUNT`, `VEHICLES`, `PERSONS`, `EPDO`) y barras apiladas.
+- [x] **TASK-14.1.4:** Tests unitarios en `tests/unit/lrs/database-aggregates.test.ts` y `tests/unit/viz/metric-mode.test.ts`.
+
+---
+
+## Fase 14: SPEC-15 — Herramienta de Trazo, Almacenamiento GTFS/.txt y Rutas Activas (`pkg/tracer`, `pkg/export`, `ui`) [COMPLETADO]
+- [x] **TASK-15.1.1:** Generar archivos GTFS (`routes.txt`, `shapes.txt`, `trips.txt`, `agency.txt`) y `.txt` (`PE-1S.txt`, `PE-1N.txt`) en `routes/` y `public/routes/`.
+- [x] **TASK-15.2.1:** Implementar importadores GTFS y `.txt` en `src/pkg/tracer/importers/`.
+- [x] **TASK-15.2.2:** Implementar exportadores GTFS y `.txt` en `src/pkg/export/`.
+- [x] **TASK-15.2.3:** Crear pruebas unitarias para importación y exportación de GTFS y `.txt`.
+- [x] **TASK-15.3.1:** Implementar herramienta interactiva de digitalización de trazo (`src/ui/trace-drawer.ts`).
+- [x] **TASK-15.4.1:** Implementar gestor de rutas activas en mapa y selección de ruta para análisis LRS.
+- [x] **TASK-15.5.1:** Validar con `npm test` y compilación de producción con Vite.
+
+---
+
+## Fase 15: SPEC-16 — Limpieza de UI, Accesibilidad y Armonización Visual (`ui` & `pkg/viz`) [COMPLETADO]
+- [x] **TASK-16.1.1:** Retirar el badge `SPEC-15` y artefactos de desarrollo del header en `index.html`.
+- [x] **TASK-16.2.1:** Desacoplar estilos de botones de cabecera y contenido en `src/ui/styles.css`.
+- [x] **TASK-16.2.2:** Corregir contraste de botones de 'Dimensión a Graficar en Barras', botón 'Minimizar' y botones de 'Años de Siniestros'.
+- [x] **TASK-16.3.1:** Implementar variables semánticas completas para Modo Claro y Modo Oscuro con soporte WCAG AA/AAA.
+- [x] **TASK-16.3.2:** Integrar botón de alternancia de tema (`🌓`) en la cabecera con persistencia en `localStorage`.
+- [x] **TASK-16.4.1:** Pulir toda la interfaz (layout, tarjetas, bordes, modales y panel longitudinal).
+- [x] **TASK-16.5.1:** Validar con `npm test` (87 tests pasando) y compilación con Vite (`npm run build`).
+
+---
+
+## Fase 16: SPEC-17 — Barras Curvilíneas Apiladas por Gravedad de Personas (`pkg/curvilinear`, `ui`) [COMPLETADO]
+- [x] **TASK-17.1.1:** Extender `CurvilinearBarFeature` con propiedades para barras apiladas (`fillColor`, `subCategory`, `subCount`).
+- [x] **TASK-17.1.2:** Extruir sub-polígonos consecutivos por gravedad en `generateCurvilinearProfile` para el modo `PERSONS`.
+- [x] **TASK-17.1.3:** Conectar `barColor` en `maplibre-layers.ts` y validar el tooltip interactivo en `map-view.ts`.
+- [x] **TASK-17.2.1:** Crear pruebas unitarias en `tests/unit/curvilinear/stacked-bars.test.ts`.
+
+---
+
+## Fase 17: SPEC-18 — Guía y Despliegue README.md (`docs`) [COMPLETADO]
+- [x] **TASK-18.1.1:** Redactar guía paso a paso, descripción de BBDD ONSV y scripts en `README.md`.
+- [x] **TASK-18.1.2:** Validar comandos y documentación en el repositorio.
+
+
+

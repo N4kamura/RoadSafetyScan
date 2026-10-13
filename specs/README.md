@@ -21,7 +21,10 @@ Bajo este marco metodológico:
 | **SPEC-04** | Perfilador Cartesiano Separado (Legacy) | [`specs/04-reactive-visualization-profiler.md`](file:///d:/Projects/RoadSafetyScan/specs/04-reactive-visualization-profiler.md) | `pkg/viz` | `SUPERSEDED` por SPEC-06 |
 | **SPEC-05** | Exportación & Interoperabilidad | [`specs/05-export-interoperability.md`](file:///d:/Projects/RoadSafetyScan/specs/05-export-interoperability.md) | `pkg/export` | `IMPLEMENTED` (100% Tests Pass) |
 | **SPEC-06** | Perfil Curvilíneo Paralelo ("Profiles along a line") | [`specs/06-curvilinear-profile-along-line.md`](file:///d:/Projects/RoadSafetyScan/specs/06-curvilinear-profile-along-line.md) | `pkg/viz` / `pkg/curvilinear` | `IMPLEMENTED` (100% Tests Pass) |
-| **SPEC-07** | Diagnóstico & Renderizado Cartográfico del Corredor y Perfil | [`specs/07-map-layer-rendering-diagnostics.md`](file:///d:/Projects/RoadSafetyScan/specs/07-map-layer-rendering-diagnostics.md) | `pkg/viz` / `ui/map-view` | `IMPLEMENTED` (100% Tests Pass) |
+| **SPEC-15** | Herramienta de Trazo, Almacenamiento GTFS/.txt y Rutas Activas | [`specs/15-interactive-trace-drawing-and-gtfs-storage.md`](file:///d:/Projects/RoadSafetyScan/specs/15-interactive-trace-drawing-and-gtfs-storage.md) | `pkg/tracer` / `pkg/export` / `ui` | `COMPLETADO (IMPLEMENTED)` |
+| **SPEC-16** | Pulido Visual, Contraste Accesible y Modos Claro / Oscuro | [`specs/16-ui-polishing-accessibility-and-theme-harmonization.md`](file:///d:/Projects/RoadSafetyScan/specs/16-ui-polishing-accessibility-and-theme-harmonization.md) | `ui` / `styles` / `theme` | `COMPLETADO (IMPLEMENTED)` |
+| **SPEC-17** | Barras Curvilíneas Apiladas por Gravedad de Personas | [`specs/17-map-curvilinear-stacked-persons-by-severity.md`](file:///d:/Projects/RoadSafetyScan/specs/17-map-curvilinear-stacked-persons-by-severity.md) | `pkg/curvilinear` / `ui` | `COMPLETADO (IMPLEMENTED)` |
+| **SPEC-18** | Guía de Inicio Rápido y Documentación del Proyecto (README.md) | [`specs/18-project-documentation-and-deployment-guide.md`](file:///d:/Projects/RoadSafetyScan/specs/18-project-documentation-and-deployment-guide.md) | `docs` / `README.md` | `COMPLETADO (IMPLEMENTED)` |
 
 ---
 

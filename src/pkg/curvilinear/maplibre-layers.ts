@@ -49,17 +49,20 @@ export function buildCurvilinearMapLibreLayers(
       fallecido: bar.personsBreakdown?.fallecido ?? bar.severityBreakdown.fatal,
       lesionado: bar.personsBreakdown?.lesionado ?? (bar.severityBreakdown.grave + bar.severityBreakdown.leve),
       noSeConoce: bar.personsBreakdown?.noSeConoce ?? 0,
-      ileso: bar.personsBreakdown?.ileso ?? bar.severityBreakdown.danos,
-      // Color según severidad dominante o púrpura VisQuill por defecto
-      barColor: bar.severityBreakdown.fatal > 0
-        ? '#DC2626'
-        : bar.severityBreakdown.grave > 0
-        ? '#EA580C'
-        : bar.severityBreakdown.leve > 0
-        ? '#FACC15'
-        : bar.value > 0
-        ? '#7C3AED' // Púrpura VisQuill de referencia
-        : 'rgba(124, 58, 237, 0.15)' // Tenue si no hay incidentes
+      subCategory: bar.subCategory,
+      subCount: bar.subCount,
+      // Color según severidad apilada (SPEC-17) o color temático por defecto
+      barColor: bar.fillColor ?? (
+        bar.severityBreakdown.fatal > 0
+          ? '#DC2626'
+          : bar.severityBreakdown.grave > 0
+          ? '#EA580C'
+          : bar.severityBreakdown.leve > 0
+          ? '#FACC15'
+          : bar.value > 0
+          ? '#7C3AED' // Púrpura VisQuill de referencia
+          : 'rgba(124, 58, 237, 0.15)' // Tenue si no hay incidentes
+      )
     }
   }));
 

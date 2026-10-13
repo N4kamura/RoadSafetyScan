@@ -1457,27 +1457,3 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": -10.35
   }
 ] as unknown as CrashPoint[];
-
-export const MOCK_ALIGNMENT_NORTE_DATA = {
-  id: "AL-PE-PANANORTE-02",
-  name: "Corredor Panamericana Norte (Km 35 al 41)",
-  coordinates: [
-    [-77.1750, -11.7800],
-    [-77.1690, -11.7650],
-    [-77.1620, -11.7510],
-    [-77.1560, -11.7380],
-    [-77.1510, -11.7250]
-  ]
-};
-
-export const MOCK_CRASHES_NORTE_DATA: CrashPoint[] = [
-  { id: "CRASH-N-01", coordinates: [-77.1742, -11.7785], year: 2021, timestamp: "2021-03-15T08:30:00Z", severity: SeverityLevel.FATAL, type: CrashType.CHOQUE },
-  { id: "CRASH-N-02", coordinates: [-77.1738, -11.7760], year: 2021, timestamp: "2021-08-20T14:10:00Z", severity: SeverityLevel.LESIONES_GRAVES, type: CrashType.DESPISTE },
-  { id: "CRASH-N-03", coordinates: [-77.1685, -11.7640], year: 2022, timestamp: "2022-01-10T19:45:00Z", severity: SeverityLevel.FATAL, type: CrashType.ATROPELLO },
-  { id: "CRASH-N-04", coordinates: [-77.1678, -11.7620], year: 2022, timestamp: "2022-06-25T11:20:00Z", severity: SeverityLevel.LESIONES_LEVES, type: CrashType.CHOQUE },
-  { id: "CRASH-N-05", coordinates: [-77.1615, -11.7505], year: 2023, timestamp: "2023-04-12T16:00:00Z", severity: SeverityLevel.SOLO_DANOS, type: CrashType.VOLCADURA },
-  { id: "CRASH-N-06", coordinates: [-77.1610, -11.7490], year: 2023, timestamp: "2023-09-05T22:15:00Z", severity: SeverityLevel.FATAL, type: CrashType.CHOQUE },
-  { id: "CRASH-N-07", coordinates: [-77.1555, -11.7370], year: 2024, timestamp: "2024-02-18T07:40:00Z", severity: SeverityLevel.LESIONES_GRAVES, type: CrashType.DESPISTE },
-  { id: "CRASH-N-08", coordinates: [-77.1548, -11.7355], year: 2024, timestamp: "2024-07-30T13:50:00Z", severity: SeverityLevel.SOLO_DANOS, type: CrashType.CHOQUE },
-  { id: "CRASH-N-09", coordinates: [-77.1505, -11.7240], year: 2024, timestamp: "2024-11-11T20:05:00Z", severity: SeverityLevel.LESIONES_LEVES, type: CrashType.ATROPELLO }
-];
