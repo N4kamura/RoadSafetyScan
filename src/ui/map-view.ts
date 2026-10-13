@@ -91,12 +91,13 @@ export class MapViewController {
       ]
     };
 
+    const initAlign = this.store.getState().alignment;
     this.map = new maplibregl.Map({
       container: containerId,
       style: baseStyle,
-      center: [-76.9450, -12.2100], // Coordenadas centrales del corredor Panamericana Sur
-      zoom: 13,
-      minZoom: 10.5, // SPEC-09: Límite máximo de alejamiento
+      center: initAlign ? [-76.9450, -12.2100] : [-75.0, -9.19], // Coordenadas del corredor o centro de Perú
+      zoom: initAlign ? 13 : 5.2,
+      minZoom: initAlign ? 10.5 : 4.0, // SPEC-09 / SPEC-19: Límite de alejamiento dinámico según ruta activa
       maxZoom: 18,
       attributionControl: { compact: true }
     });
@@ -105,15 +106,19 @@ export class MapViewController {
 
     this.map.addControl(new maplibregl.NavigationControl(), 'top-left');
 
-    // Inicializar herramienta de trazo interactivo y sincronización de rutas (SPEC-15)
+    // Inicializar herramienta de trazo interactivo y sincronización de rutas (SPEC-15 & SPEC-19)
     if (this.routeManager) {
       this.traceDrawer = new TraceDrawerController(this.map, this.routeManager, (newAlignment) => {
         this.store.setAlignment(newAlignment);
         this.fitToAlignment();
       });
       this.routeManager.subscribe((_routes, primary) => {
-        if (primary && (!this.store.getState().alignment || this.store.getState().alignment?.id !== primary.id)) {
+        const currentAlign = this.store.getState().alignment;
+        if (primary && (!currentAlign || currentAlign.id !== primary.id)) {
           this.store.setAlignment(primary.alignment);
+          this.fitToAlignment();
+        } else if (!primary && currentAlign !== null) {
+          this.store.setAlignment(null);
           this.fitToAlignment();
         }
         this.updateVisibleRoutesLayer();
@@ -173,6 +178,7 @@ export class MapViewController {
         event.type === 'CONFIG_UPDATED' ||
         event.type === 'FILTERS_UPDATED'
       ) {
+        this.updateZoomLimits();
         this.updateView();
       } else if (
         event.type === 'BIN_HOVER' ||
@@ -354,9 +360,80 @@ export class MapViewController {
     });
   }
 
+  /**
+   * SPEC-19: Actualiza dinámicamente los límites de zoom según la existencia de una ruta activa.
+   * Con ruta activa: minZoom 10.5 (SPEC-09) para preservar escala geométrica del perfil.
+   * Sin ruta activa: minZoom 4.0 (SPEC-19) para permitir exploración libre por todo el territorio de Perú.
+   */
+  public updateZoomLimits(): void {
+    if (!this.map) return;
+    const state = this.store.getState();
+    if (state.alignment) {
+      this.map.setMinZoom(10.5);
+    } else {
+      this.map.setMinZoom(4.0);
+    }
+  }
+
+  /**
+   * SPEC-19: Vacía de forma segura e idempotente las capas del corredor y perfil curvilíneo
+   * cuando no hay una ruta seleccionada.
+   */
+  public clearAlignmentLayers(): void {
+    if (!this.map) return;
+    const emptyCollection: GeoJSON.FeatureCollection = {
+      type: 'FeatureCollection',
+      features: []
+    };
+
+    const sourceIds = [
+      'source-alignment',
+      'source-buffer',
+      'source-highlight',
+      'source-curvilinear-bars',
+      'source-curvilinear-isolines',
+      'source-curvilinear-connectors',
+      'source-curvilinear-labels'
+    ];
+
+    for (const id of sourceIds) {
+      try {
+        const src = this.map.getSource(id) as maplibregl.GeoJSONSource;
+        if (src) {
+          src.setData(emptyCollection);
+        }
+      } catch (e) {
+        // Silencioso
+      }
+    }
+
+    // Ocultar marcadores interactivos (puntero y escala)
+    if (this.pointerMarker) {
+      const el = this.pointerMarker.getElement();
+      if (el) el.style.display = 'none';
+    }
+    if (this.scaleHandleMarker) {
+      const el = this.scaleHandleMarker.getElement();
+      if (el) el.style.display = 'none';
+    }
+
+    // Ocultar línea ortogonal conectora
+    try {
+      const pointerLineLayer = this.map.getLayer('layer-curvilinear-pointer-line');
+      if (pointerLineLayer) {
+        this.map.setPaintProperty('layer-curvilinear-pointer-line', 'line-opacity', 0.0);
+      }
+    } catch (e) {
+      // Silencioso
+    }
+  }
+
   private updateView(): void {
     const state = this.store.getState();
-    if (!state.alignment || !state.lrsResults) return;
+    if (!state.alignment || !state.lrsResults) {
+      this.clearAlignmentLayers();
+      return;
+    }
 
     const activeBinIndex = state.selection.hoveredBinIndex ?? state.selection.selectedBinIndex;
 
@@ -575,7 +652,22 @@ export class MapViewController {
 
   public updatePointerVisuals(): void {
     const state = this.store.getState();
-    if (!state.alignment || !this.pointerMarker) return;
+    if (!state.alignment) return;
+
+    if (!this.pointerMarker || !this.scaleHandleMarker) {
+      this.initPointerMarker();
+    }
+
+    if (this.pointerMarker) {
+      const el = this.pointerMarker.getElement();
+      if (el) el.style.display = 'flex';
+    }
+    if (this.scaleHandleMarker) {
+      const el = this.scaleHandleMarker.getElement();
+      if (el) el.style.display = 'flex';
+    }
+
+    if (!this.pointerMarker) return;
 
     const geom = computePointerGeometry(
       state.alignment,
@@ -709,7 +801,15 @@ export class MapViewController {
 
   public fitToAlignment(): void {
     const state = this.store.getState();
-    if (!state.alignment) return;
+    if (!state.alignment) {
+      // SPEC-19: Si no hay ruta activa, encuadrar suavemente a la vista panorámica de todo el Perú
+      this.map.easeTo({
+        center: [-75.0, -9.19],
+        zoom: 5.2,
+        duration: 800
+      });
+      return;
+    }
 
     this.map.resize();
 

@@ -30,7 +30,7 @@ const STORAGE_KEY = 'roadSafety_custom_routes_v1';
 
 export class RouteManager {
   private routes: Map<string, ManagedRoute> = new Map();
-  private primaryRouteId: string = 'EJEMPLO';
+  private primaryRouteId: string | null = 'EJEMPLO';
   private listeners: Set<RouteManagerListener> = new Set();
 
   constructor() {
@@ -73,10 +73,20 @@ export class RouteManager {
   }
 
   public getPrimaryRoute(): ManagedRoute | null {
-    return this.routes.get(this.primaryRouteId) || this.getAllRoutes()[0] || null;
+    if (!this.primaryRouteId) return null;
+    return this.routes.get(this.primaryRouteId) || null;
   }
 
-  public setPrimaryRoute(id: string): void {
+  public setPrimaryRoute(id: string | null): void {
+    if (id === null || id === 'NONE') {
+      this.primaryRouteId = null;
+      for (const r of this.routes.values()) {
+        r.isPrimary = false;
+      }
+      this.notify();
+      return;
+    }
+
     if (!this.routes.has(id)) return;
 
     this.primaryRouteId = id;

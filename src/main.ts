@@ -46,6 +46,8 @@ function initApp() {
       store.setAlignment(primary.alignment);
       const realCrashes = (window as any).__REAL_CRASHES__;
       store.setCrashes(realCrashes || MOCK_CRASHES_DATA);
+    } else {
+      store.setAlignment(null);
     }
   });
 

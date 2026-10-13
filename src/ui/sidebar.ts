@@ -154,14 +154,18 @@ export class SidebarController {
       const actions = document.createElement('div');
       actions.className = 'route-item-actions';
 
-      // Botón Analizar / Activo
+      // Botón Analizar / Activo (Desmarcar)
       if (r.id === primary?.id) {
-        const badge = document.createElement('span');
-        badge.style.fontSize = '0.68rem';
-        badge.style.color = '#2563eb';
-        badge.style.fontWeight = '700';
-        badge.textContent = '● Perfil';
-        actions.appendChild(badge);
+        const btnDeselect = document.createElement('button');
+        btnDeselect.className = 'btn-route-action';
+        btnDeselect.style.color = '#2563eb';
+        btnDeselect.style.fontWeight = '700';
+        btnDeselect.textContent = '● Activo (Desmarcar)';
+        btnDeselect.title = 'Hacer clic para desmarcar y navegar libremente por el Perú';
+        btnDeselect.addEventListener('click', () => {
+          this.routeManager?.setPrimaryRoute(null);
+        });
+        actions.appendChild(btnDeselect);
       } else {
         const btnSelect = document.createElement('button');
         btnSelect.className = 'btn-route-action btn-route-select';
@@ -209,11 +213,21 @@ export class SidebarController {
     if (!selector) return;
 
     selector.innerHTML = '';
+
+    // Opción para navegación libre sin ruta fija (SPEC-19)
+    const noneOpt = document.createElement('option');
+    noneOpt.value = 'NONE';
+    noneOpt.textContent = '🗺️ Ninguna ruta (Exploración libre por el Perú)';
+    if (!primary) {
+      noneOpt.selected = true;
+    }
+    selector.appendChild(noneOpt);
+
     for (const r of routes) {
       const opt = document.createElement('option');
       opt.value = r.id;
       opt.textContent = `🛣️ ${r.shortName}: ${r.name}`;
-      if (r.id === primary?.id) {
+      if (primary && r.id === primary.id) {
         opt.selected = true;
       }
       selector.appendChild(opt);
@@ -225,8 +239,10 @@ export class SidebarController {
     selector.appendChild(customOpt);
 
     const headerBadge = document.getElementById('header-corridor-badge');
-    if (headerBadge && primary) {
-      headerBadge.textContent = `${primary.shortName}: ${primary.name}`;
+    if (headerBadge) {
+      headerBadge.textContent = primary
+        ? `${primary.shortName}: ${primary.name}`
+        : '🗺️ Exploración Libre (Perú)';
     }
   }
 
@@ -242,7 +258,7 @@ export class SidebarController {
       }
 
       if (this.routeManager) {
-        this.routeManager.setPrimaryRoute(code);
+        this.routeManager.setPrimaryRoute(code === 'NONE' ? null : code);
       }
     };
 

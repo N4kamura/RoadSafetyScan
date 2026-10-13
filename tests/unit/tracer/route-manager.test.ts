@@ -114,4 +114,16 @@ describe('RouteManager (pkg/tracer) - SPEC-15 Compliance', () => {
     manager.setPrimaryRoute('EJEMPLO');
     expect(callCount).toBe(2);
   });
+
+  it('debe permitir deseleccionar la ruta primaria (SPEC-19 Navegación Libre)', () => {
+    manager.setPrimaryRoute(null);
+    expect(manager.getPrimaryRoute()).toBeNull();
+    expect(manager.getAllRoutes().every(r => !r.isPrimary)).toBe(true);
+
+    manager.setPrimaryRoute('NONE');
+    expect(manager.getPrimaryRoute()).toBeNull();
+
+    manager.setPrimaryRoute('EJEMPLO');
+    expect(manager.getPrimaryRoute()?.id).toBe('EJEMPLO');
+  });
 });

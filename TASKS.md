@@ -25,6 +25,7 @@ Este documento gestiona la ejecución técnica del proyecto bajo **Spec-Driven D
 | **Fase 15: Limpieza de UI & Accesibilidad (SPEC-16)** | [`specs/16-ui-polishing-accessibility-and-theme-harmonization.md`](file:///d:/Projects/RoadSafetyScan/specs/16-ui-polishing-accessibility-and-theme-harmonization.md) | `COMPLETADO (IMPLEMENTED)` | 100% (Modo Claro/Oscuro, WCAG AA+, UI Clean) |
 | **Fase 16: Barras Curvilíneas Apiladas (SPEC-17)** | [`specs/17-map-curvilinear-stacked-persons-by-severity.md`](file:///d:/Projects/RoadSafetyScan/specs/17-map-curvilinear-stacked-persons-by-severity.md) | `COMPLETADO (IMPLEMENTED)` | 100% (Sub-polígonos extruidos apilados por gravedad) |
 | **Fase 17: Guía y Despliegue README (SPEC-18)** | [`specs/18-project-documentation-and-deployment-guide.md`](file:///d:/Projects/RoadSafetyScan/specs/18-project-documentation-and-deployment-guide.md) | `COMPLETADO (IMPLEMENTED)` | 100% (Guía paso a paso, BBDD ONSV, comandos) |
+| **Fase 18: Límites de Zoom y Navegación Libre (SPEC-19)** | [`specs/19-dynamic-zoom-limits-and-free-peru-navigation.md`](file:///d:/Projects/RoadSafetyScan/specs/19-dynamic-zoom-limits-and-free-peru-navigation.md) | `COMPLETADO (IMPLEMENTED)` | 100% (Zoom dinámico 10.5/4.0, exploración libre) |
 
 ---
 
@@ -219,6 +220,17 @@ Este documento gestiona la ejecución técnica del proyecto bajo **Spec-Driven D
 ## Fase 17: SPEC-18 — Guía y Despliegue README.md (`docs`) [COMPLETADO]
 - [x] **TASK-18.1.1:** Redactar guía paso a paso, descripción de BBDD ONSV y scripts en `README.md`.
 - [x] **TASK-18.1.2:** Validar comandos y documentación en el repositorio.
+
+---
+
+## Fase 18: SPEC-19 — Límites Dinámicos de Zoom y Navegación Libre por el Perú (`ui`, `pkg/tracer`, `pkg/viz`) [COMPLETADO]
+- [x] **TASK-19.1.1:** Habilitar deselección de ruta (`primaryRouteId: null`) en `RouteManager` y `VizStore.setAlignment(null)`.
+- [x] **TASK-19.2.1:** Integrar opción `NONE` ("🗺️ Ninguna ruta (Exploración libre por el Perú)") en selector y badge de cabecera.
+- [x] **TASK-19.3.1:** Implementar límites dinámicos de zoom (`minZoom: 10.5` con ruta, `minZoom: 4.0` sin ruta) en `MapViewController`.
+- [x] **TASK-19.3.2:** Vaciar capas de corredor/perfil curvilíneo y ocultar puntero/escala cuando no haya ruta activa.
+- [x] **TASK-19.3.3:** Encuadrar vista nacional de Perú en `fitToAlignment()` cuando no haya ruta activa.
+- [x] **TASK-19.4.1:** Crear tests unitarios en `tests/unit/viz/dynamic-zoom-limits.test.ts`.
+- [x] **TASK-19.4.2:** Validar con `npm test` y compilación de producción con Vite.
 
 
 

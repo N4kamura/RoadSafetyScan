@@ -128,6 +128,7 @@ Si descargas nuevas matrices en Excel desde el portal del ONSV del MTC o deseas 
   - Archivos de eje en formato `.txt`.
   - Paquete de rutas estándar GTFS (`routes.txt`, `shapes.txt`).
 - **Diseño Armonizado con Modos Claro y Oscuro (SPEC-16):** Cumplimiento estricto de accesibilidad tipográfica **WCAG AA+** con botón `🌙 / ☀️` en cabecera y persistencia automática.
+- **Límites Dinámicos de Zoom y Navegación Libre por el Perú (SPEC-19):** Al seleccionar *"🗺️ Ninguna ruta (Exploración libre)"*, el mapa relaja el límite de alejamiento (`minZoom: 4.0`), permitiendo visualizar el territorio nacional completo de Tumbes a Tacna y navegar libremente hacia cualquier punto del país para auditar siniestros o digitalizar nuevos tramos. Al re-seleccionar una ruta, el mapa vuelve a acotar el zoom (`minZoom: 10.5`) para preservar la nitidez del perfil curvilíneo.
 
 ---
 

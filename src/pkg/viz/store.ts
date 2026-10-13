@@ -99,7 +99,7 @@ export class VizStore {
     }
   }
 
-  public setAlignment(alignment: Alignment): void {
+  public setAlignment(alignment: Alignment | null): void {
     this.state.alignment = alignment;
     this.recalculateLrs();
     this.emit({ type: 'ALIGNMENT_CHANGED', payload: alignment, timestamp: performance.now() });

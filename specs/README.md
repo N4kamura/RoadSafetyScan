@@ -25,6 +25,7 @@ Bajo este marco metodológico:
 | **SPEC-16** | Pulido Visual, Contraste Accesible y Modos Claro / Oscuro | [`specs/16-ui-polishing-accessibility-and-theme-harmonization.md`](file:///d:/Projects/RoadSafetyScan/specs/16-ui-polishing-accessibility-and-theme-harmonization.md) | `ui` / `styles` / `theme` | `COMPLETADO (IMPLEMENTED)` |
 | **SPEC-17** | Barras Curvilíneas Apiladas por Gravedad de Personas | [`specs/17-map-curvilinear-stacked-persons-by-severity.md`](file:///d:/Projects/RoadSafetyScan/specs/17-map-curvilinear-stacked-persons-by-severity.md) | `pkg/curvilinear` / `ui` | `COMPLETADO (IMPLEMENTED)` |
 | **SPEC-18** | Guía de Inicio Rápido y Documentación del Proyecto (README.md) | [`specs/18-project-documentation-and-deployment-guide.md`](file:///d:/Projects/RoadSafetyScan/specs/18-project-documentation-and-deployment-guide.md) | `docs` / `README.md` | `COMPLETADO (IMPLEMENTED)` |
+| **SPEC-19** | Límites Dinámicos de Zoom y Navegación Libre por el Perú | [`specs/19-dynamic-zoom-limits-and-free-peru-navigation.md`](file:///d:/Projects/RoadSafetyScan/specs/19-dynamic-zoom-limits-and-free-peru-navigation.md) | `ui/map-view` / `pkg/tracer` | `COMPLETADO (IMPLEMENTED)` |
 
 ---
 
