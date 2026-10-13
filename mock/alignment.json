@@ -1,0 +1,139 @@
+{
+  "id": "AL-PE-PANASUR-01",
+  "name": "Corredor Panamericana Sur (Km 18 al 25)",
+  "totalLength": 7634.47,
+  "vertices": [
+    {
+      "index": 0,
+      "coordinates": {
+        "longitude": -76.96,
+        "latitude": -12.18
+      },
+      "cumulativeDistance": 0,
+      "stationFormatted": "km 0+000.00"
+    },
+    {
+      "index": 1,
+      "coordinates": {
+        "longitude": -76.958,
+        "latitude": -12.185
+      },
+      "cumulativeDistance": 596.96,
+      "stationFormatted": "km 0+596.96"
+    },
+    {
+      "index": 2,
+      "coordinates": {
+        "longitude": -76.955,
+        "latitude": -12.192
+      },
+      "cumulativeDistance": 1440.86,
+      "stationFormatted": "km 1+440.86"
+    },
+    {
+      "index": 3,
+      "coordinates": {
+        "longitude": -76.951,
+        "latitude": -12.2
+      },
+      "cumulativeDistance": 2430.98,
+      "stationFormatted": "km 2+430.98"
+    },
+    {
+      "index": 4,
+      "coordinates": {
+        "longitude": -76.948,
+        "latitude": -12.206
+      },
+      "cumulativeDistance": 3173.55,
+      "stationFormatted": "km 3+173.55"
+    },
+    {
+      "index": 5,
+      "coordinates": {
+        "longitude": -76.944,
+        "latitude": -12.213
+      },
+      "cumulativeDistance": 4065.09,
+      "stationFormatted": "km 4+065.09"
+    },
+    {
+      "index": 6,
+      "coordinates": {
+        "longitude": -76.94,
+        "latitude": -12.221
+      },
+      "cumulativeDistance": 5055.18,
+      "stationFormatted": "km 5+055.18"
+    },
+    {
+      "index": 7,
+      "coordinates": {
+        "longitude": -76.937,
+        "latitude": -12.228
+      },
+      "cumulativeDistance": 5899.07,
+      "stationFormatted": "km 5+899.07"
+    },
+    {
+      "index": 8,
+      "coordinates": {
+        "longitude": -76.933,
+        "latitude": -12.235
+      },
+      "cumulativeDistance": 6790.59,
+      "stationFormatted": "km 6+790.59"
+    },
+    {
+      "index": 9,
+      "coordinates": {
+        "longitude": -76.93,
+        "latitude": -12.242
+      },
+      "cumulativeDistance": 7634.47,
+      "stationFormatted": "km 7+634.47"
+    }
+  ],
+  "coordinates": [
+    [
+      -76.96,
+      -12.18
+    ],
+    [
+      -76.958,
+      -12.185
+    ],
+    [
+      -76.955,
+      -12.192
+    ],
+    [
+      -76.951,
+      -12.2
+    ],
+    [
+      -76.948,
+      -12.206
+    ],
+    [
+      -76.944,
+      -12.213
+    ],
+    [
+      -76.94,
+      -12.221
+    ],
+    [
+      -76.937,
+      -12.228
+    ],
+    [
+      -76.933,
+      -12.235
+    ],
+    [
+      -76.93,
+      -12.242
+    ]
+  ]
+}

@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RoadSafetyScan - Perfil Curvilíneo de Seguridad Vial (VisQuill Profiles along a line)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <script>
+    window.__RSS_DIAGNOSTICS__ = { errors: [], logs: [] };
+    window.addEventListener('error', (e) => {
+      window.__RSS_DIAGNOSTICS__.errors.push({ msg: e.message, line: e.lineno, file: e.filename });
+      document.title = 'ERR: ' + e.message;
+    });
+    window.addEventListener('unhandledrejection', (e) => {
+      window.__RSS_DIAGNOSTICS__.errors.push({ msg: String(e.reason) });
+      document.title = 'REJ: ' + e.reason;
+    });
+  </script>
+</head>
+<body>
+  <!-- Header Principal -->
+  <header class="app-header">
+    <div class="brand-section">
+      <div class="brand-icon">🛣️</div>
+      <div>
+        <span class="brand-title">RoadSafetyScan</span>
+        <span class="brand-subtitle">Perfil Curvilíneo LRS & VisQuill GDK</span>
+      </div>
+    </div>
+
+    <div class="header-badges">
+      <span class="badge-corridor" id="header-corridor-badge">PE-1S: Panamericana Sur (Km 18 al 25)</span>
+      <span class="badge-spec">SPEC-06: Profiles along a line</span>
+    </div>
+
+    <div class="header-actions">
+      <!-- Cargar Archivo de Eje -->
+      <label class="btn btn-secondary" style="cursor: pointer;">
+        📂 Importar Eje GeoJSON
+        <input type="file" id="file-input-alignment" accept=".geojson,.json" style="display: none;">
+      </label>
+
+      <button id="btn-fit-map" class="btn btn-secondary" title="Recentrar vista del mapa en el corredor">
+        🎯 Recentrar
+      </button>
+
+      <button id="btn-open-about" class="btn btn-outline" title="Información y Licencia">
+        ℹ️ Acerca de
+      </button>
+    </div>
+  </header>
+
+  <!-- Espacio de Trabajo Principal -->
+  <div class="app-workspace">
+    <!-- Panel Lateral Izquierdo: Parámetros y Filtros -->
+    <aside class="app-sidebar">
+      <!-- Sección 1: Selección de Trazado Vial y Diagnóstico LRS -->
+      <section class="sidebar-section">
+        <div class="sidebar-title">
+          <span>Selección de Trazado</span>
+          <span style="font-size: 0.65rem; color: #10b981;">● Activo</span>
+        </div>
+
+        <div class="control-group" style="margin-bottom: 0.65rem;">
+          <label for="select-corridor-trace" class="control-label" style="margin-bottom: 0.25rem;">
+            <span>Trazado Vial en Análisis:</span>
+          </label>
+          <select id="select-corridor-trace" style="width: 100%; padding: 0.45rem 0.6rem; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.78rem; background: #ffffff; color: #0f172a; font-weight: 600;">
+            <option value="PE-1S" selected>🛣️ PE-1S: Panamericana Sur (Km 18-25)</option>
+            <option value="PE-1N">🛣️ PE-1N: Panamericana Norte (Km 35-41)</option>
+            <option value="CUSTOM">📂 Cargar archivo personalizado...</option>
+          </select>
+        </div>
+
+        <button id="btn-run-calculation" class="btn" style="width: 100%; justify-content: center; background-color: #2563eb; color: #ffffff; border: none; padding: 0.45rem 0.75rem; font-weight: 600; font-size: 0.78rem; border-radius: 6px; box-shadow: 0 1px 3px rgba(37, 99, 235, 0.3); cursor: pointer; transition: background 0.15s ease;">
+          ⚡ Calcular Auditoría Vial (LRS)
+        </button>
+
+        <div class="sidebar-title" style="margin-top: 1rem;">
+          <span>Diagnóstico del Corredor</span>
+        </div>
+
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-value" id="kpi-total-km">7.63 km</div>
+            <div class="kpi-label">Longitud de Eje</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-value" id="kpi-inside-buffer">--</div>
+            <div class="kpi-label">Siniestros en Faja</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-value" id="kpi-outside-buffer">--</div>
+            <div class="kpi-label">Fuera de Buffer</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-value" id="kpi-total-epdo" style="color: #dc2626;">--</div>
+            <div class="kpi-label">EPDO Acumulado</div>
+          </div>
+        </div>
+
+        <div style="margin-top: 0.75rem; background: #f1f5f9; padding: 0.5rem 0.65rem; border-radius: 6px; font-size: 0.75rem;">
+          <div style="color: #64748b; font-size: 0.65rem; font-weight: 700; text-transform: uppercase;">Tramo Crítico (Hotspot Máximo):</div>
+          <div id="kpi-hotspot-station" style="font-weight: 600; color: #0f172a; margin-top: 2px;">Calculando...</div>
+        </div>
+      </section>
+
+      <!-- Sección 2: Parámetros del Perfil Curvilíneo ("Profiles along a line") -->
+      <section class="sidebar-section">
+        <div class="sidebar-title">
+          <span>Perfil Curvilíneo Paralelo</span>
+          <span style="font-size: 0.65rem; color: #7c3aed; font-weight: 700;">VisQuill A1</span>
+        </div>
+
+        <!-- Slider Desplazamiento Lateral D_offset -->
+        <div class="control-group">
+          <div class="control-label">
+            <span>Separación Lateral (D<sub>offset</sub>):</span>
+            <span class="control-value" id="val-curv-offset">1200 m</span>
+          </div>
+          <input type="range" id="slider-curv-offset" min="400" max="2500" step="100" value="1200" aria-label="Separación lateral del perfil en metros">
+          <div style="display: flex; justify-content: space-between; font-size: 0.65rem; color: #94a3b8; margin-top: 2px;">
+            <span>400 m</span>
+            <span>1200 m</span>
+            <span>2500 m</span>
+          </div>
+        </div>
+
+        <!-- Slider Factor de Escala de Extrusión -->
+        <div class="control-group">
+          <div class="control-label">
+            <span>Escala de Altura (Extrusión):</span>
+            <span class="control-value" id="val-curv-scale">40 m/u</span>
+          </div>
+          <input type="range" id="slider-curv-scale" min="10" max="100" step="5" value="40" aria-label="Escala de altura visual en metros por unidad">
+          <div style="display: flex; justify-content: space-between; font-size: 0.65rem; color: #94a3b8; margin-top: 2px;">
+            <span>10 m/u</span>
+            <span>40 m/u</span>
+            <span>100 m/u</span>
+          </div>
+        </div>
+
+        <!-- Lado de Proyección -->
+        <div class="control-group">
+          <div class="control-label">
+            <span>Lado del Gráfico:</span>
+          </div>
+          <div style="display: flex; gap: 0.5rem;">
+            <button class="btn btn-secondary btn-curv-side active" data-side="RIGHT" style="flex: 1; justify-content: center;">
+              ➡️ Derecha (Este)
+            </button>
+            <button class="btn btn-outline btn-curv-side" data-side="LEFT" style="flex: 1; justify-content: center;">
+              ⬅️ Izquierda (Oeste)
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Sección 3: Parámetros de Referenciación Lineal (LRS) -->
+      <section class="sidebar-section">
+        <div class="sidebar-title">Parámetros LRS</div>
+        
+        <!-- Slider Ancho de Buffer -->
+        <div class="control-group">
+          <div class="control-label">
+            <span>Ancho de Faja (Buffer):</span>
+            <span class="control-value" id="val-buffer-width">25 m</span>
+          </div>
+          <input type="range" id="slider-buffer-width" min="5" max="100" step="5" value="25" aria-label="Ancho de Buffer en metros">
+          <div style="display: flex; justify-content: space-between; font-size: 0.65rem; color: #94a3b8; margin-top: 2px;">
+            <span>5 m (Calzada)</span>
+            <span>50 m</span>
+            <span>100 m (Entorno)</span>
+          </div>
+        </div>
+
+        <!-- Slider Tamaño de Bin Métrico -->
+        <div class="control-group">
+          <div class="control-label">
+            <span>Segmentación Métrica (ΔS):</span>
+            <span class="control-value" id="val-bin-size">100 m</span>
+          </div>
+          <input type="range" id="slider-bin-size" min="25" max="500" step="25" value="100" aria-label="Tamaño de bin métrico en metros">
+          <div style="display: flex; gap: 0.35rem; margin-top: 0.45rem;">
+            <button class="btn btn-outline btn-preset-bin" data-bin="50" style="padding: 2px 6px; font-size: 0.65rem; color: #475569;">Urbano (50m)</button>
+            <button class="btn btn-outline btn-preset-bin" data-bin="100" style="padding: 2px 6px; font-size: 0.65rem; color: #475569;">Carretera (100m)</button>
+            <button class="btn btn-outline btn-preset-bin" data-bin="250" style="padding: 2px 6px; font-size: 0.65rem; color: #475569;">Autopista (250m)</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Sección 4: Filtros de Siniestralidad Vial -->
+      <section class="sidebar-section">
+        <div class="sidebar-title">Severidad Vial (MTC Perú)</div>
+        <div class="checkbox-group">
+          <label class="checkbox-item">
+            <input type="checkbox" class="filter-severity-cb" value="FATAL" checked>
+            <span class="color-dot" style="background-color: var(--color-fatal);"></span>
+            <span>Fatal (Fallecido) [x9.5]</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" class="filter-severity-cb" value="LESIONES_GRAVES" checked>
+            <span class="color-dot" style="background-color: var(--color-grave);"></span>
+            <span>Lesiones Graves [x3.5]</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" class="filter-severity-cb" value="LESIONES_LEVES" checked>
+            <span class="color-dot" style="background-color: var(--color-leve);"></span>
+            <span>Lesiones Leves [x1.0]</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" class="filter-severity-cb" value="SOLO_DANOS" checked>
+            <span class="color-dot" style="background-color: var(--color-danos);"></span>
+            <span>Solo Daños Materiales [x1.0]</span>
+          </label>
+        </div>
+      </section>
+
+      <!-- Sección 5: Exportación de Datos Interoperables -->
+      <section class="sidebar-section" style="margin-top: auto;">
+        <div class="sidebar-title">Exportación de Resultados</div>
+        <div style="display: flex; flex-direction: column; gap: 0.45rem;">
+          <button id="btn-export-csv" class="btn btn-secondary" style="width: 100%; justify-content: center;">
+            📊 Descargar Reporte CSV (Excel UTF-8)
+          </button>
+          <button id="btn-export-geojson-crashes" class="btn btn-secondary" style="width: 100%; justify-content: center;">
+            📍 Descargar Siniestros GeoJSON LRS
+          </button>
+          <button id="btn-export-geojson-corridor" class="btn btn-secondary" style="width: 100%; justify-content: center;">
+            🗺️ Descargar Tramos del Corredor (SIG)
+          </button>
+        </div>
+      </section>
+    </aside>
+
+    <!-- Área de Contenido Principal: Mapa Cartográfico Integrado con Perfil Curvilíneo -->
+    <main class="app-content">
+      <div class="map-pane">
+        <div id="map-container"></div>
+
+        <!-- Pastillas Flotantes de Control Rápido sobre el Mapa -->
+        <div class="map-floating-controls">
+          <div class="map-pill-group">
+            <button class="map-pill-btn map-metric-pill active" data-mode="COUNT" title="Mostrar conteo total de incidentes">
+              📊 Conteo Total
+            </button>
+            <button class="map-pill-btn map-metric-pill" data-mode="EPDO" title="Mostrar índice de severidad EPDO ponderado según MTC">
+              ⚖️ Índice EPDO
+            </button>
+            <button class="map-pill-btn map-metric-pill" data-mode="DENSITY_KM" title="Mostrar densidad de accidentes por kilómetro">
+              📈 Densidad (/km)
+            </button>
+          </div>
+
+          <div class="map-pill-group">
+            <button class="map-pill-btn" id="btn-map-toggle-side" title="Alternar lado del perfil">
+              ➡️ Lado: Derecha (Este)
+            </button>
+          </div>
+
+          <div class="map-pill-group" title="Separación lateral rápida">
+            <span class="map-pill-label">Offset:</span>
+            <button class="map-pill-btn map-offset-pill" data-offset="800">800m</button>
+            <button class="map-pill-btn map-offset-pill active" data-offset="1200">1200m</button>
+            <button class="map-pill-btn map-offset-pill" data-offset="1800">1800m</button>
+          </div>
+        </div>
+
+        <!-- Leyenda Cartográfica Flotante -->
+        <div class="map-floating-overlay">
+          <div style="font-weight: 700; color: #0f172a; margin-bottom: 3px; font-size: 0.78rem;">
+            🗺️ Leyenda del Perfilador
+          </div>
+          <span><span class="color-dot" style="background-color: #1e293b;"></span> <strong>Eje Vial:</strong> Panamericana Sur (PE-1S)</span>
+          <span><span class="color-line" style="background-color: #1e293b;"></span> <strong>Línea Base B(s):</strong> Desplazada en paralelo</span>
+          <span><span class="color-rect" style="background-color: #7c3aed;"></span> <strong>Perfil Curvilíneo:</strong> VisQuill A1 Density</span>
+          <span><span class="color-dot" style="background-color: #10b981;"></span> <strong>Tramo Resaltado:</strong> Enlace interactivo</span>
+          <div style="border-top: 1px solid #e2e8f0; margin-top: 4px; padding-top: 4px; display: flex; flex-direction: column; gap: 2px;">
+            <span><span class="color-dot" style="background-color: #dc2626;"></span> Fatal (Fallecido)</span>
+            <span><span class="color-dot" style="background-color: #ea580c;"></span> Lesiones Graves</span>
+            <span><span class="color-dot" style="background-color: #facc15;"></span> Lesiones Leves</span>
+            <span><span class="color-dot" style="background-color: #2563eb;"></span> Solo Daños Materiales</span>
+          </div>
+        </div>
+
+        <!-- Atribución Legal Obligatoria de VisQuill GDK -->
+        <div class="map-attribution-badge">
+          <div>💡 <em>Pase el cursor sobre las barras curvilíneas para inspeccionar tramos y siniestros en tiempo real.</em></div>
+          <div style="font-weight: 600; color: #1e293b; margin-top: 2px;">Visualización de perfil longitudinal impulsada por VisQuill GDK.</div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal Acerca de / Licencia -->
+  <div id="modal-about" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">Acerca de RoadSafetyScan</div>
+        <button id="btn-close-about" class="modal-close">&times;</button>
+      </div>
+      <div style="font-size: 0.85rem; line-height: 1.6; color: #334155;">
+        <p><strong>RoadSafetyScan</strong> es una plataforma de código abierto diseñada para transformar la auditoría y gestión de la seguridad vial en el Perú.</p>
+        <p style="margin-top: 0.5rem;">Ejecuta algoritmos de <strong>Referenciación Lineal (LRS)</strong> y proyección ortogonal en el navegador del cliente (Local-First) con tolerancias métricas geodésicas (WGS84) y estándares de diseño vial del <strong>MTC DG-2018</strong>.</p>
+        
+        <div style="margin-top: 1rem; padding: 0.75rem; background-color: #f8fafc; border-radius: 6px; border: 1px solid #e2e8f0;">
+          <strong>Atribución de Licencia de Terceros:</strong>
+          <p style="margin-top: 0.25rem;">Visualización de perfil longitudinal impulsada por <strong>VisQuill GDK</strong> (Paradigma <em>Profiles along a line / A1 Collision Density</em>).</p>
+        </div>
+
+        <p style="margin-top: 1rem; font-size: 0.75rem; color: #64748b;">
+          Desarrollado bajo la metodología <strong>Spec-Driven Development (SDD)</strong> con especificaciones formales congeladas y 100% de pruebas unitarias verificadas.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

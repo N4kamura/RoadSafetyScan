@@ -1,0 +1,463 @@
+/* ==========================================================================
+   RoadSafetyScan - Modern UI Styles
+   Conforme a SPEC-04, SPEC-05 y SPEC-06 (Profiles along a line / VisQuill GDK)
+   ========================================================================== */
+
+:root {
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --primary-light: #eff6ff;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --border-color: #e2e8f0;
+  --bg-app: #f8fafc;
+  --bg-panel: #ffffff;
+  
+  /* Paleta de Severidad Vial MTC */
+  --color-fatal: #dc2626;
+  --color-grave: #ea580c;
+  --color-leve: #facc15;
+  --color-danos: #2563eb;
+  --color-highlight: #10b981;
+  --color-visquill: #7c3aed;
+
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', Menlo, Monaco, Consolas, monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.app-header {
+  height: 56px;
+  background-color: #0f172a;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.25rem;
+  border-bottom: 1px solid #1e293b;
+  z-index: 1000;
+  flex-shrink: 0;
+}
+
+.brand-section {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.brand-icon {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+
+.brand-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.brand-subtitle {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  margin-left: 0.5rem;
+  padding-left: 0.5rem;
+  border-left: 1px solid #334155;
+}
+
+.header-badges {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.badge-corridor {
+  background-color: #1e293b;
+  color: #38bdf8;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  border: 1px solid #334155;
+}
+
+.badge-spec {
+  background-color: #3b0764;
+  color: #c084fc;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.72rem;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  border: 1px solid #581c87;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s ease-in-out;
+}
+
+.btn-primary {
+  background-color: var(--primary);
+  color: #ffffff;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-hover);
+}
+
+.btn-secondary {
+  background-color: #1e293b;
+  color: #e2e8f0;
+  border-color: #334155;
+}
+
+.btn-secondary:hover {
+  background-color: #334155;
+  color: #ffffff;
+}
+
+.btn-outline {
+  background-color: transparent;
+  color: #e2e8f0;
+  border-color: #475569;
+}
+
+.btn-outline:hover {
+  background-color: #1e293b;
+  border-color: #64748b;
+}
+
+/* App Main Layout */
+.app-workspace {
+  display: flex;
+  flex: 1;
+  height: calc(100vh - 56px);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Sidebar */
+.app-sidebar {
+  width: 350px;
+  background-color: var(--bg-panel);
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow-y: auto;
+  z-index: 500;
+}
+
+.sidebar-section {
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.sidebar-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.kpi-card {
+  background-color: var(--bg-app);
+  padding: 0.6rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.kpi-value {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-main);
+  font-family: var(--font-mono);
+}
+
+.kpi-label {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 0.15rem;
+}
+
+/* Sliders */
+.control-group {
+  margin-bottom: 0.85rem;
+}
+
+.control-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  font-weight: 500;
+  margin-bottom: 0.35rem;
+}
+
+.control-value {
+  font-family: var(--font-mono);
+  color: var(--primary);
+  font-weight: 600;
+}
+
+input[type="range"] {
+  width: 100%;
+  accent-color: var(--primary);
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+/* Checkbox group */
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.color-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.color-line {
+  width: 14px;
+  height: 3px;
+  display: inline-block;
+  border-radius: 1px;
+}
+
+.color-rect {
+  width: 12px;
+  height: 8px;
+  display: inline-block;
+  border-radius: 2px;
+}
+
+/* Content Area: Full Screen Map with Curvilinear Profile */
+.app-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Map Container */
+.map-pane {
+  flex: 1;
+  height: 100%;
+  width: 100%;
+  position: relative;
+  background-color: #e5e7eb;
+}
+
+#map-container {
+  width: 100%;
+  height: 100%;
+}
+
+/* Floating Fast-Access Controls on Map */
+.map-floating-controls {
+  position: absolute;
+  top: 1rem;
+  left: 4rem;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  background: rgba(15, 23, 42, 0.90);
+  backdrop-filter: blur(8px);
+  padding: 0.35rem 0.65rem;
+  border-radius: 8px;
+  border: 1px solid #334155;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+}
+
+.map-pill-group {
+  display: flex;
+  align-items: center;
+  background: #1e293b;
+  border-radius: 6px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.map-pill-label {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  padding: 0 0.4rem;
+  font-weight: 500;
+}
+
+.map-pill-btn {
+  padding: 0.25rem 0.55rem;
+  font-size: 0.75rem;
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.15s ease-in-out;
+  white-space: nowrap;
+}
+
+.map-pill-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.map-pill-btn.active {
+  background-color: #2563eb;
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Map Floating Legend - Bottom Left */
+.map-floating-overlay {
+  position: absolute;
+  bottom: 1.25rem;
+  left: 1rem;
+  background-color: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(8px);
+  padding: 0.6rem 0.85rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  font-size: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  z-index: 10;
+  max-width: 270px;
+}
+
+.map-floating-overlay span {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+/* Map Attribution & Advice Badge */
+.map-attribution-badge {
+  position: absolute;
+  bottom: 1.25rem;
+  right: 1rem;
+  z-index: 10;
+  background-color: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(8px);
+  padding: 0.5rem 0.85rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  font-size: 0.75rem;
+  max-width: 440px;
+  line-height: 1.45;
+}
+
+/* Modal Dialog */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.modal-content {
+  background-color: #ffffff;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 520px;
+  padding: 1.5rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.modal-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.modal-close {
+  background: transparent;
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+  color: var(--text-muted);
+}
