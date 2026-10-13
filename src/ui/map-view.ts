@@ -19,7 +19,8 @@ import {
   computePointerGeometry,
   projectPointToAlignmentChainage,
   computeScaleHandleCoordinate,
-  convertDragToHeightScale
+  convertDragToHeightScale,
+  projectPointToBaselineArcLength
 } from '../pkg/curvilinear/pointer.js';
 import { VizStoreState, VizEvent } from '../pkg/viz/types.js';
 import { RouteManager } from '../pkg/tracer/route-manager.js';
@@ -601,12 +602,22 @@ export class MapViewController {
         const currentState = this.store.getState();
         if (!currentState.alignment) return;
         const lngLat = this.pointerMarker!.getLngLat();
-        const s = projectPointToAlignmentChainage(currentState.alignment, [lngLat.lng, lngLat.lat]);
-        this.currentPointerChainage = s;
+
+        let s: number;
+        if (this.cachedBaselineProfile && this.cachedBaselineProfile.totalLength > 0) {
+          // SPEC-26: Proyectar cursor sobre la línea base para constreñimiento 1D estricto
+          const proj = projectPointToBaselineArcLength(this.cachedBaselineProfile, [lngLat.lng, lngLat.lat]);
+          const tau = proj.arcLengthMeters / this.cachedBaselineProfile.totalLength;
+          s = tau * currentState.alignment.totalLength;
+        } else {
+          s = projectPointToAlignmentChainage(currentState.alignment, [lngLat.lng, lngLat.lat]);
+        }
+
+        this.currentPointerChainage = Math.max(0, Math.min(currentState.alignment.totalLength, s));
         this.isPointerLineVisible = true;
         this.updatePointerVisuals();
 
-        const binIdx = Math.floor(s / currentState.config.binSizeMeters);
+        const binIdx = Math.floor(this.currentPointerChainage / currentState.config.binSizeMeters);
         this.store.hoverBin(binIdx);
       });
 
@@ -715,12 +726,8 @@ export class MapViewController {
       this.cachedBaselineProfile
     );
 
-    // Mover marcador a la posición exacta sobre la baseline B(s) si no está en pleno arrastre
-    if (!this.isDraggingPointer) {
-      this.pointerMarker.setLngLat(geom.baselineCoord);
-    }
-
-    // Rotar para orientar el lado plano estrictamente paralelo al trazo vial
+    // SPEC-26: El marcador siempre está pegado al trazo offset negro, incluso durante arrastre
+    this.pointerMarker.setLngLat(geom.baselineCoord);
     this.pointerMarker.setRotation(geom.pointerRotationDegrees);
 
     // SPEC-12: Actualizar posición, rotación y badge del botón rectangular de escala
@@ -1032,20 +1039,14 @@ export class MapViewController {
       this.store.selectCrash(props.id);
     });
 
-    // 3. Auto-escalado dinámico, recorte al viewport y segmentación métrica por zoom (SPEC-09 & SPEC-23)
+    // 3. Recorte al viewport con segmentación métrica fija a 100m (SPEC-23 & SPEC-25)
     let animFrameId: number | null = null;
     const handleMapMovement = () => {
       if (animFrameId !== null) return;
       animFrameId = requestAnimationFrame(() => {
         animFrameId = null;
         if (!this.map || !this.isLoaded) return;
-        const z = this.map.getZoom();
-        const adaptiveBin = computeZoomAdaptiveBinSize(z);
-        if (adaptiveBin !== this.store.getState().config.binSizeMeters) {
-          this.store.updateConfig({ binSizeMeters: adaptiveBin });
-        } else {
-          this.updateCurvilinearOnly();
-        }
+        this.updateCurvilinearOnly();
       });
     };
 
@@ -1057,13 +1058,26 @@ export class MapViewController {
         animFrameId = null;
       }
       if (!this.map || !this.isLoaded) return;
-      const z = this.map.getZoom();
-      const adaptiveBin = computeZoomAdaptiveBinSize(z);
-      if (adaptiveBin !== this.store.getState().config.binSizeMeters) {
-        this.store.updateConfig({ binSizeMeters: adaptiveBin });
-      } else {
-        this.updateCurvilinearOnly();
-      }
+      this.updateCurvilinearOnly();
+    });
+
+    // SPEC-26: Interacción al hacer clic en el trazo offset negro para mover el puntero
+    this.map.on('click', 'layer-curvilinear-baseline-line', (e) => {
+      const currentState = this.store.getState();
+      if (!currentState.alignment || !this.cachedBaselineProfile) return;
+      const proj = projectPointToBaselineArcLength(this.cachedBaselineProfile, [e.lngLat.lng, e.lngLat.lat]);
+      const tau = proj.arcLengthMeters / (this.cachedBaselineProfile.totalLength || 1);
+      this.currentPointerChainage = Math.max(0, Math.min(currentState.alignment.totalLength, tau * currentState.alignment.totalLength));
+      this.isPointerLineVisible = true;
+      this.updatePointerVisuals();
+    });
+
+    this.map.on('mouseenter', 'layer-curvilinear-baseline-line', () => {
+      this.map.getCanvas().style.cursor = 'pointer';
+    });
+
+    this.map.on('mouseleave', 'layer-curvilinear-baseline-line', () => {
+      this.map.getCanvas().style.cursor = '';
     });
 
     // 4. Interacción con Rutas Activas en el Mapa (SPEC-15)

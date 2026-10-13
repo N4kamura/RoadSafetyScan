@@ -13,6 +13,11 @@ export interface ViewportGeoBounds {
 }
 
 /**
+ * Tamaño fijo normativo de discretización métrica para uniformidad de barras (SPEC-25)
+ */
+export const FIXED_BIN_SIZE_METERS = 100;
+
+/**
  * Calcula la segmentación métrica (tamaño de bin) adecuada en función del nivel de zoom.
  * Regla normativa: El tamaño mínimo de bin es estrictamente 100 m.
  *

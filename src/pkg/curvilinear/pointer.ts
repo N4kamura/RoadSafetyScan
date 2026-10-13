@@ -190,3 +190,80 @@ export function convertDragToHeightScale(
   const scale = projDist / SCALE_REFERENCE_VALUE;
   return Math.round(Math.max(MIN_HEIGHT_SCALE, Math.min(MAX_HEIGHT_SCALE, scale)));
 }
+
+/**
+ * Proyecta una coordenada geográfica arbitraria (ej. del mouse arrastrado) sobre la polilínea
+ * de la línea base regularizada para obtener la progresiva de arco u in [0, totalLength] más cercana (SPEC-26).
+ *
+ * @param baseline Perfil parametrizado por longitud de arco de la línea base
+ * @param point Coordenada geográfica [lon, lat]
+ * @returns Posición de arco en metros, coordenada proyectada sobre la línea base y distancia lateral
+ */
+export function projectPointToBaselineArcLength(
+  baseline: BaselineArcLengthProfile,
+  point: [number, number]
+): {
+  arcLengthMeters: number;
+  projectedCoord: [number, number];
+  lateralDistanceMeters: number;
+} {
+  const { coordinates, cumulativeDistances, totalLength } = baseline;
+  if (!coordinates || coordinates.length < 2 || totalLength <= 0) {
+    return {
+      arcLengthMeters: 0,
+      projectedCoord: coordinates[0] || point,
+      lateralDistanceMeters: 0
+    };
+  }
+
+  let bestDist = Infinity;
+  let bestArcLength = 0;
+  let bestCoord: [number, number] = coordinates[0];
+
+  for (let i = 0; i < coordinates.length - 1; i++) {
+    const p1 = coordinates[i];
+    const p2 = coordinates[i + 1];
+    const u1 = cumulativeDistances[i];
+    const u2 = cumulativeDistances[i + 1];
+    const segLen = u2 - u1;
+
+    // Aproximación plana geodésica local para el segmento
+    const meanLat = toRadians((p1[1] + p2[1]) / 2);
+    const mPerDegLat = toRadians(1) * EARTH_RADIUS_METERS;
+    const mPerDegLon = mPerDegLat * Math.cos(meanLat);
+
+    const x1 = 0;
+    const y1 = 0;
+    const x2 = (p2[0] - p1[0]) * mPerDegLon;
+    const y2 = (p2[1] - p1[1]) * mPerDegLat;
+
+    const px = (point[0] - p1[0]) * mPerDegLon;
+    const py = (point[1] - p1[1]) * mPerDegLat;
+
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const d2 = dx * dx + dy * dy;
+
+    let t = d2 > 0 ? (px * dx + py * dy) / d2 : 0;
+    t = Math.max(0, Math.min(1, t));
+
+    const projX = x1 + t * dx;
+    const projY = y1 + t * dy;
+    const dist = Math.hypot(px - projX, py - projY);
+
+    if (dist < bestDist) {
+      bestDist = dist;
+      bestArcLength = u1 + t * segLen;
+      const projLon = Number((p1[0] + t * (p2[0] - p1[0])).toFixed(6));
+      const projLat = Number((p1[1] + t * (p2[1] - p1[1])).toFixed(6));
+      bestCoord = [projLon, projLat];
+    }
+  }
+
+  return {
+    arcLengthMeters: Math.max(0, Math.min(totalLength, bestArcLength)),
+    projectedCoord: bestCoord,
+    lateralDistanceMeters: bestDist
+  };
+}
+
