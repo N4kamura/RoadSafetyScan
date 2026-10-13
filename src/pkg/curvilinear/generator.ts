@@ -11,6 +11,10 @@ import {
   UnitVector2D
 } from './normals.js';
 import {
+  untanglePolyline,
+  smoothCoordinates
+} from './anti-knot.js';
+import {
   CurvilinearProfileOptions,
   CurvilinearBarFeature,
   CurvilinearIsolineFeature,
@@ -22,7 +26,7 @@ export const DEFAULT_CURVILINEAR_OPTIONS: CurvilinearProfileOptions = {
   side: 'RIGHT',
   heightScaleMetersPerUnit: 40, // 40 metros de altura visual por unidad de valor
   scaleTicks: [10, 20, 30, 40],
-  smoothingWindowSize: 3
+  smoothingWindowSize: 5
 };
 
 /**
@@ -136,10 +140,11 @@ export function generateCurvilinearProfile(
     sampleStations.push(alignment.totalLength);
   }
 
-  const baselineCoordinates: [number, number][] = sampleStations.map((s) => {
+  const rawBaselineCoordinates: [number, number][] = sampleStations.map((s) => {
     const { coord, normal } = interpolateAtStation(alignment, vertexNormals, s);
     return offsetCoordinate(coord, normal, baseOffsetMeters);
   });
+  const baselineCoordinates = smoothCoordinates(untanglePolyline(rawBaselineCoordinates), 5, 2);
 
   // 2. Generar Barras Poligonales Extruidas Ortogonalmente
   const bars: CurvilinearBarFeature[] = [];
@@ -348,10 +353,11 @@ export function generateCurvilinearProfile(
     const tickHeightMeters = tickVal * opts.heightScaleMetersPerUnit;
     const tickTotalOffset = baseOffsetMeters + (tickHeightMeters * sideSign);
 
-    const lineCoordinates: [number, number][] = sampleStations.map((s) => {
+    const rawLineCoordinates: [number, number][] = sampleStations.map((s) => {
       const { coord, normal } = interpolateAtStation(alignment, vertexNormals, s);
       return offsetCoordinate(coord, normal, tickTotalOffset);
     });
+    const lineCoordinates = smoothCoordinates(untanglePolyline(rawLineCoordinates), 5, 2);
 
     // Posición de la etiqueta: en el punto medio de la isolínea
     const midIdx = Math.floor(lineCoordinates.length / 2);

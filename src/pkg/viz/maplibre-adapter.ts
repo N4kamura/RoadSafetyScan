@@ -6,6 +6,7 @@
 import { Alignment } from '../tracer/types.js';
 import { LrsAnalysisResult } from '../lrs/types.js';
 import { extractSubLineString } from '../export/geojson.js';
+import { generateBufferPolygonFeature } from '../tracer/buffer.js';
 import {
   SEVERITY_COLORS,
   HIGHLIGHT_COLOR
@@ -29,6 +30,7 @@ export interface MapLibreLayerSpec {
 
 export interface MapLibreAdapterOptions {
   crashPointsMinZoom?: number;
+  bufferWidthMeters?: number;
 }
 
 /**
@@ -44,6 +46,15 @@ export function buildMapLibreConfig(
   sources: MapLibreGeoJsonSource[];
   layers: MapLibreLayerSpec[];
 } {
+  // 0. Fuente de Faja de Influencia (Buffer Vial - SPEC-22)
+  const bufferWidth = options?.bufferWidthMeters ?? 25;
+  const bufferData = generateBufferPolygonFeature(alignment, bufferWidth);
+  const bufferSource: MapLibreGeoJsonSource = {
+    id: 'source-buffer',
+    type: 'geojson',
+    data: bufferData
+  };
+
   // 1. Fuente del Eje Vial
   const alignmentCoordinates = alignment.vertices.map((v) => [
     v.coordinates.longitude,
@@ -138,6 +149,28 @@ export function buildMapLibreConfig(
 
   // Capas visuales de alto contraste
   const layers: MapLibreLayerSpec[] = [
+    // 0a. Relleno Tenue de Faja de Influencia (SPEC-22)
+    {
+      id: 'layer-buffer-fill',
+      type: 'fill',
+      source: 'source-buffer',
+      paint: {
+        'fill-color': '#0284c7',
+        'fill-opacity': 0.12
+      }
+    },
+    // 0b. Borde Tenue Discontinuo de Faja de Influencia (SPEC-22)
+    {
+      id: 'layer-buffer-line',
+      type: 'line',
+      source: 'source-buffer',
+      paint: {
+        'line-color': '#0284c7',
+        'line-width': 1.5,
+        'line-dasharray': [3, 2],
+        'line-opacity': 0.40
+      }
+    },
     // 1. Halo / Casing inferior del Eje Vial (para contraste sobre cualquier tesela OSM)
     {
       id: 'layer-alignment-casing',
@@ -193,7 +226,7 @@ export function buildMapLibreConfig(
   ];
 
   return {
-    sources: [alignmentSource, crashesSource, highlightSource],
+    sources: [bufferSource, alignmentSource, crashesSource, highlightSource],
     layers
   };
 }

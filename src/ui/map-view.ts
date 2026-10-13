@@ -205,8 +205,10 @@ export class MapViewController {
     const state = this.store.getState();
     if (!state.alignment || !state.lrsResults) return;
 
-    // 1. Capas base de alineamiento y corredor
-    const corridorConfig = buildMapLibreConfig(state.alignment, state.lrsResults);
+    // 1. Capas base de alineamiento y corredor (incluyendo faja de buffer vial - SPEC-22)
+    const corridorConfig = buildMapLibreConfig(state.alignment, state.lrsResults, null, {
+      bufferWidthMeters: state.config.bufferWidthMeters
+    });
     for (const src of corridorConfig.sources) {
       try {
         if (!this.map.getSource(src.id)) {
@@ -437,11 +439,12 @@ export class MapViewController {
 
     const activeBinIndex = state.selection.hoveredBinIndex ?? state.selection.selectedBinIndex;
 
-    // 1. Actualizar capas de alineamiento y corredor
+    // 1. Actualizar capas de alineamiento y corredor (incluyendo faja de buffer vial - SPEC-22)
     const corridorConfig = buildMapLibreConfig(
       state.alignment,
       state.lrsResults,
-      state.selection.highlightedStationRange
+      state.selection.highlightedStationRange,
+      { bufferWidthMeters: state.config.bufferWidthMeters }
     );
 
     for (const src of corridorConfig.sources) {

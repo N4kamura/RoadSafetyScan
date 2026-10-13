@@ -1,12 +1,10 @@
 /**
  * Gestor Centralizado de Rutas y Trazados Viales
- * Conforme a SPEC-15 (pkg/tracer)
+ * Conforme a SPEC-15 y SPEC-21 (pkg/tracer)
  */
 
-import { Alignment } from './types.js';
+import { Alignment, GeoCoordinate } from './types.js';
 import { createAlignment } from './alignment.js';
-import { parseGtfsAlignments } from './importers/gtfs.js';
-import { parseTxtAlignment } from './importers/txt.js';
 import {
   MOCK_ALIGNMENT_DATA
 } from '../../mock-data.js';
@@ -22,6 +20,7 @@ export interface ManagedRoute {
   visibleOnMap: boolean;
   isPrimary: boolean;
   isCustom?: boolean;
+  isLocked?: boolean; // SPEC-21: Estado de protección contra edición accidental
 }
 
 export type RouteManagerListener = (routes: ManagedRoute[], primaryRoute: ManagedRoute | null) => void;
@@ -60,12 +59,17 @@ export class RouteManager {
       alignment: al,
       visibleOnMap: true,
       isPrimary: true,
-      isCustom: false
+      isCustom: false,
+      isLocked: true // Bloqueado por defecto
     });
   }
 
   public getAllRoutes(): ManagedRoute[] {
     return Array.from(this.routes.values());
+  }
+
+  public getRoute(id: string): ManagedRoute | undefined {
+    return this.routes.get(id);
   }
 
   public getVisibleRoutes(): ManagedRoute[] {
@@ -112,6 +116,57 @@ export class RouteManager {
     this.notify();
   }
 
+  public lockRoute(id: string): void {
+    const route = this.routes.get(id);
+    if (route) {
+      route.isLocked = true;
+      this.saveCustomRoutesToStorage();
+      this.notify();
+    }
+  }
+
+  public unlockRoute(id: string): void {
+    const route = this.routes.get(id);
+    if (route) {
+      route.isLocked = false;
+      this.saveCustomRoutesToStorage();
+      this.notify();
+    }
+  }
+
+  public toggleLockRoute(id: string): boolean {
+    const route = this.routes.get(id);
+    if (!route) return false;
+    route.isLocked = route.isLocked === false ? true : false;
+    this.saveCustomRoutesToStorage();
+    this.notify();
+    return route.isLocked;
+  }
+
+  public updateRouteAlignment(id: string, coords: GeoCoordinate[]): ManagedRoute | null {
+    const route = this.routes.get(id);
+    if (!route || coords.length < 2) return null;
+
+    const updatedAlignment = createAlignment(
+      coords,
+      route.id,
+      route.name,
+      {
+        shortName: route.shortName,
+        description: route.description,
+        color: route.color
+      }
+    );
+
+    route.alignment = updatedAlignment;
+    route.totalLengthMeters = updatedAlignment.totalLength;
+    route.isLocked = true; // Se vuelve a bloquear automáticamente tras guardar cambios
+
+    this.saveCustomRoutesToStorage();
+    this.notify();
+    return route;
+  }
+
   public addRoute(alignment: Alignment, setPrimary: boolean = true): ManagedRoute {
     const managed: ManagedRoute = {
       id: alignment.id,
@@ -123,7 +178,8 @@ export class RouteManager {
       alignment,
       visibleOnMap: true,
       isPrimary: setPrimary,
-      isCustom: true
+      isCustom: true,
+      isLocked: true // Bloqueado por defecto
     };
 
     this.routes.set(alignment.id, managed);
@@ -167,6 +223,7 @@ export class RouteManager {
           shortName: r.shortName,
           description: r.description,
           color: r.color,
+          isLocked: r.isLocked !== false,
           coordinates: r.alignment.vertices.map(v => [v.coordinates.longitude, v.coordinates.latitude])
         }));
       localStorage.setItem(STORAGE_KEY, JSON.stringify(customList));
@@ -204,7 +261,8 @@ export class RouteManager {
           alignment,
           visibleOnMap: true,
           isPrimary: false,
-          isCustom: true
+          isCustom: true,
+          isLocked: item.isLocked !== undefined ? item.isLocked : true
         });
       }
     } catch (e) {

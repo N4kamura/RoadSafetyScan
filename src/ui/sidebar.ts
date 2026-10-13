@@ -188,6 +188,40 @@ export class SidebarController {
       });
       actions.appendChild(btnTxt);
 
+      // Botón de Bloqueo / Desbloqueo y Edición (SPEC-21)
+      const isLocked = r.isLocked !== false;
+      const btnLock = document.createElement('button');
+      btnLock.className = `btn-route-action ${isLocked ? 'btn-route-locked' : 'btn-route-unlocked'}`;
+      btnLock.innerHTML = isLocked ? '🔒 Editar' : '✏️ Editando...';
+      btnLock.title = isLocked
+        ? 'Trazo protegido. Haz clic para desbloquear y editar vértices en el mapa'
+        : 'Ruta en edición activa. Haz clic para bloquear y finalizar';
+      btnLock.style.fontSize = '0.72rem';
+      btnLock.style.padding = '0.2rem 0.45rem';
+
+      btnLock.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (isLocked) {
+          // Despliega advertencia de seguridad explícita (SPEC-21)
+          const proceed = confirm(
+            `⚠️ AVISO DE SEGURIDAD - MODIFICACIÓN DE TRAZO:\n\n` +
+            `¿Estás seguro de que deseas desbloquear y editar el trazado "${r.name}"?\n\n` +
+            `Al modificar los vértices se recalcularán automáticamente el cadenamiento, el motor LRS y el perfil de siniestros.\n\n` +
+            `¿Deseas continuar?`
+          );
+          if (proceed) {
+            this.routeManager?.unlockRoute(r.id);
+            this.routeManager?.setPrimaryRoute(r.id);
+            this.traceDrawer?.startEditingRoute(r);
+          }
+        } else {
+          // Bloquear de nuevo
+          this.routeManager?.lockRoute(r.id);
+          this.traceDrawer?.cancelDrawing();
+        }
+      });
+      actions.appendChild(btnLock);
+
       // Botón borrar si es ruta personalizada
       if (r.isCustom) {
         const btnDel = document.createElement('button');

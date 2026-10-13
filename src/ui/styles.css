@@ -1207,4 +1207,17 @@ input[type="range"] {
   background: var(--primary-hover);
 }
 
+.btn-route-action.btn-route-locked {
+  background: var(--btn-secondary-bg);
+  color: var(--text-secondary);
+}
+
+.btn-route-action.btn-route-unlocked {
+  background: #f59e0b;
+  color: #ffffff;
+  border-color: #d97706;
+  font-weight: 700;
+  animation: pulse 1.5s infinite;
+}
+
 
