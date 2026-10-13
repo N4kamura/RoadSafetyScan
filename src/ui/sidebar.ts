@@ -29,6 +29,7 @@ export class SidebarController {
     this.initControls();
     this.initCurvilinearControls();
     this.initFloatingMapControls();
+    this.initYearFilterControls();
     this.initExportButtons();
     this.initFileLoader();
 
@@ -41,6 +42,12 @@ export class SidebarController {
         event.type === 'ALIGNMENT_CHANGED'
       ) {
         this.updateKpis();
+      }
+
+      if (event.type === 'CRASHES_LOADED') {
+        this.renderYearChips();
+      } else if (event.type === 'FILTERS_UPDATED') {
+        this.syncYearCheckboxes(state.filters.selectedYears);
       }
 
       if (event.type === 'CONFIG_UPDATED') {
@@ -367,6 +374,158 @@ export class SidebarController {
         };
         reader.readAsText(file);
       });
+    }
+  }
+
+  // ==========================================
+  // SPEC-13: Filtro Temporal por Años
+  // ==========================================
+
+  private initYearFilterControls(): void {
+    const btnAll = document.getElementById('btn-year-all');
+    const btnLatest = document.getElementById('btn-year-latest');
+    const btnClear = document.getElementById('btn-year-clear');
+
+    if (btnAll) {
+      btnAll.addEventListener('click', () => {
+        const allYears = this.store.getAvailableYears();
+        this.store.setSelectedYears(allYears);
+        this.syncYearCheckboxes(allYears);
+      });
+    }
+
+    if (btnLatest) {
+      btnLatest.addEventListener('click', () => {
+        const available = this.store.getAvailableYears();
+        if (available.length > 0) {
+          const latestYear = [available[0]];
+          this.store.setSelectedYears(latestYear);
+          this.syncYearCheckboxes(latestYear);
+        }
+      });
+    }
+
+    if (btnClear) {
+      btnClear.addEventListener('click', () => {
+        this.store.setSelectedYears([]);
+        this.syncYearCheckboxes([]);
+      });
+    }
+
+    this.renderYearChips();
+  }
+
+  private renderYearChips(): void {
+    const container = document.getElementById('year-checkbox-container');
+    if (!container) return;
+
+    const state = this.store.getState();
+    const availableYears = this.store.getAvailableYears();
+    const selectedYears = state.filters.selectedYears;
+
+    if (availableYears.length === 0) {
+      container.innerHTML = '<div style="font-size: 0.68rem; color: #94a3b8; grid-column: span 2;">Sin datos de años disponibles</div>';
+      this.updateYearBadge();
+      return;
+    }
+
+    // Calcular distribución de frecuencias anuales
+    const countsByYear = new Map<number, number>();
+    for (const crash of state.allCrashes) {
+      const y = crash.year ?? (crash.timestamp ? new Date(crash.timestamp).getUTCFullYear() : undefined);
+      if (y !== undefined) {
+        countsByYear.set(y, (countsByYear.get(y) || 0) + 1);
+      }
+    }
+
+    container.innerHTML = '';
+    availableYears.forEach((year) => {
+      const count = countsByYear.get(year) || 0;
+      const isChecked = !selectedYears || selectedYears.includes(year);
+
+      const item = document.createElement('label');
+      item.className = `year-chip-item ${isChecked ? 'active' : ''}`;
+      item.setAttribute('data-year', String(year));
+
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.className = 'year-chip-cb';
+      cb.value = String(year);
+      cb.checked = isChecked;
+
+      cb.addEventListener('change', () => {
+        this.handleYearCheckboxChange();
+      });
+
+      const labelSpan = document.createElement('span');
+      labelSpan.className = 'year-chip-label';
+      labelSpan.appendChild(cb);
+      labelSpan.appendChild(document.createTextNode(String(year)));
+
+      const countSpan = document.createElement('span');
+      countSpan.className = 'year-chip-count';
+      countSpan.textContent = String(count);
+
+      item.appendChild(labelSpan);
+      item.appendChild(countSpan);
+      container.appendChild(item);
+    });
+
+    this.updateYearBadge();
+  }
+
+  private handleYearCheckboxChange(): void {
+    const checkboxes = document.querySelectorAll<HTMLInputElement>('.year-chip-cb');
+    const selected: number[] = [];
+    checkboxes.forEach((cb) => {
+      const year = Number(cb.value);
+      const parent = cb.closest('.year-chip-item');
+      if (cb.checked) {
+        selected.push(year);
+        parent?.classList.add('active');
+      } else {
+        parent?.classList.remove('active');
+      }
+    });
+
+    this.store.setSelectedYears(selected);
+    this.updateYearBadge();
+  }
+
+  private syncYearCheckboxes(selectedYears?: number[]): void {
+    const checkboxes = document.querySelectorAll<HTMLInputElement>('.year-chip-cb');
+    checkboxes.forEach((cb) => {
+      const year = Number(cb.value);
+      const isChecked = !selectedYears || selectedYears.includes(year);
+      cb.checked = isChecked;
+      const parent = cb.closest('.year-chip-item');
+      if (isChecked) {
+        parent?.classList.add('active');
+      } else {
+        parent?.classList.remove('active');
+      }
+    });
+
+    this.updateYearBadge();
+  }
+
+  private updateYearBadge(): void {
+    const badgeCount = document.getElementById('badge-selected-years-count');
+    if (!badgeCount) return;
+
+    const available = this.store.getAvailableYears();
+    const state = this.store.getState();
+    const selected = state.filters.selectedYears;
+
+    if (!selected || selected.length === available.length) {
+      badgeCount.textContent = 'Todos los años';
+      badgeCount.style.color = '#2563eb';
+    } else if (selected.length === 0) {
+      badgeCount.textContent = 'Ninguno (0)';
+      badgeCount.style.color = '#ef4444';
+    } else {
+      badgeCount.textContent = `${selected.length}/${available.length} años`;
+      badgeCount.style.color = '#7c3aed';
     }
   }
 }

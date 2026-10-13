@@ -215,7 +215,23 @@
         </div>
       </section>
 
-      <!-- Sección 5: Exportación de Datos Interoperables -->
+      <!-- Sección 5: Filtro Temporal por Años (SPEC-13) -->
+      <section class="sidebar-section" id="section-year-filter">
+        <div class="sidebar-title">
+          <span>Años de Siniestros</span>
+          <span id="badge-selected-years-count" style="font-size: 0.65rem; color: #2563eb; font-weight: 700;">Todos los años</span>
+        </div>
+        <div style="display: flex; gap: 0.35rem; margin-bottom: 0.5rem;">
+          <button id="btn-year-all" class="btn btn-outline" style="padding: 2px 8px; font-size: 0.68rem; font-weight: 600;" title="Seleccionar todos los años">Todos</button>
+          <button id="btn-year-latest" class="btn btn-outline" style="padding: 2px 8px; font-size: 0.68rem; font-weight: 600;" title="Filtrar únicamente el año más reciente">Último Año</button>
+          <button id="btn-year-clear" class="btn btn-outline" style="padding: 2px 8px; font-size: 0.68rem; font-weight: 600;" title="Deseleccionar todos los años">Limpiar</button>
+        </div>
+        <div id="year-checkbox-container" class="year-chips-grid">
+          <!-- Renderizado dinámico de años -->
+        </div>
+      </section>
+
+      <!-- Sección 6: Exportación de Datos Interoperables -->
       <section class="sidebar-section" style="margin-top: auto;">
         <div class="sidebar-title">Exportación de Resultados</div>
         <div style="display: flex; flex-direction: column; gap: 0.45rem;">

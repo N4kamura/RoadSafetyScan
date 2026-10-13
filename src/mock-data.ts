@@ -146,13 +146,13 @@ export const MOCK_ALIGNMENT_DATA = {
 
 export const MOCK_CRASHES_DATA: CrashPoint[] = [
   {
-    "id": "CRASH-2024-001",
+    "id": "CRASH-2021-001",
     "coordinates": [
       -76.959215,
       -12.182002
     ],
-    "year": 2024,
-    "timestamp": "2024-07-02T00:05:00Z",
+    "year": 2021,
+    "timestamp": "2021-07-02T00:05:00Z",
     "severity": "LESIONES_LEVES",
     "type": "VOLCADURA",
     "vehicles": [
@@ -163,13 +163,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": -1.56
   },
   {
-    "id": "CRASH-2024-002",
+    "id": "CRASH-2021-002",
     "coordinates": [
       -76.936639,
       -12.228897
     ],
-    "year": 2024,
-    "timestamp": "2024-10-09T00:48:00Z",
+    "year": 2021,
+    "timestamp": "2021-10-09T00:48:00Z",
     "severity": "LESIONES_LEVES",
     "type": "VOLCADURA",
     "vehicles": [
@@ -181,13 +181,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": -14.4
   },
   {
-    "id": "CRASH-2024-003",
+    "id": "CRASH-2021-003",
     "coordinates": [
       -76.939185,
       -12.223152
     ],
-    "year": 2024,
-    "timestamp": "2024-07-04T11:54:00Z",
+    "year": 2021,
+    "timestamp": "2021-07-04T11:54:00Z",
     "severity": "LESIONES_GRAVES",
     "type": "CHOQUE",
     "vehicles": [
@@ -199,13 +199,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": -10.75
   },
   {
-    "id": "CRASH-2024-004",
+    "id": "CRASH-2021-004",
     "coordinates": [
       -76.944977,
       -12.211681
     ],
-    "year": 2024,
-    "timestamp": "2024-11-20T11:36:00Z",
+    "year": 2021,
+    "timestamp": "2021-11-20T11:36:00Z",
     "severity": "LESIONES_LEVES",
     "type": "CAIDA_PASAJERO",
     "vehicles": [
@@ -217,13 +217,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": -21.2
   },
   {
-    "id": "CRASH-2024-005",
+    "id": "CRASH-2021-005",
     "coordinates": [
       -76.954724,
       -12.192494
     ],
-    "year": 2024,
-    "timestamp": "2024-07-09T14:40:00Z",
+    "year": 2021,
+    "timestamp": "2021-07-09T14:40:00Z",
     "severity": "LESIONES_GRAVES",
     "type": "CHOQUE",
     "vehicles": [
@@ -234,13 +234,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": 2.86
   },
   {
-    "id": "CRASH-2024-006",
+    "id": "CRASH-2021-006",
     "coordinates": [
       -76.955697,
       -12.190673
     ],
-    "year": 2024,
-    "timestamp": "2024-11-06T17:46:00Z",
+    "year": 2021,
+    "timestamp": "2021-11-06T17:46:00Z",
     "severity": "LESIONES_LEVES",
     "type": "VOLCADURA",
     "vehicles": [
@@ -251,13 +251,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": -12.81
   },
   {
-    "id": "CRASH-2024-007",
+    "id": "CRASH-2021-007",
     "coordinates": [
       -76.944645,
       -12.212438
     ],
-    "year": 2024,
-    "timestamp": "2024-01-26T10:25:00Z",
+    "year": 2021,
+    "timestamp": "2021-01-26T10:25:00Z",
     "severity": "LESIONES_LEVES",
     "type": "ATROPELLO",
     "vehicles": [
@@ -269,13 +269,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": -30.72
   },
   {
-    "id": "CRASH-2024-008",
+    "id": "CRASH-2021-008",
     "coordinates": [
       -76.95378,
       -12.194123
     ],
-    "year": 2024,
-    "timestamp": "2024-03-09T04:15:00Z",
+    "year": 2021,
+    "timestamp": "2021-03-09T04:15:00Z",
     "severity": "LESIONES_LEVES",
     "type": "CHOQUE",
     "vehicles": [
@@ -287,13 +287,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": 15.49
   },
   {
-    "id": "CRASH-2024-009",
+    "id": "CRASH-2021-009",
     "coordinates": [
       -76.943893,
       -12.213407
     ],
-    "year": 2024,
-    "timestamp": "2024-03-17T15:05:00Z",
+    "year": 2021,
+    "timestamp": "2021-03-17T15:05:00Z",
     "severity": "LESIONES_LEVES",
     "type": "CHOQUE",
     "vehicles": [
@@ -305,13 +305,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": -9.4
   },
   {
-    "id": "CRASH-2024-010",
+    "id": "CRASH-2021-010",
     "coordinates": [
       -76.934095,
       -12.232996
     ],
-    "year": 2024,
-    "timestamp": "2024-09-09T17:55:00Z",
+    "year": 2021,
+    "timestamp": "2021-09-09T17:55:00Z",
     "severity": "LESIONES_LEVES",
     "type": "ATROPELLO",
     "vehicles": [
@@ -323,13 +323,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": 4.74
   },
   {
-    "id": "CRASH-2024-011",
+    "id": "CRASH-2021-011",
     "coordinates": [
       -76.939515,
       -12.221975
     ],
-    "year": 2024,
-    "timestamp": "2024-05-14T05:29:00Z",
+    "year": 2021,
+    "timestamp": "2021-05-14T05:29:00Z",
     "severity": "LESIONES_GRAVES",
     "type": "DESPISTE",
     "vehicles": [
@@ -341,13 +341,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": 6.77
   },
   {
-    "id": "CRASH-2024-012",
+    "id": "CRASH-2021-012",
     "coordinates": [
       -76.936684,
       -12.228696
     ],
-    "year": 2024,
-    "timestamp": "2024-11-17T19:12:00Z",
+    "year": 2021,
+    "timestamp": "2021-11-17T19:12:00Z",
     "severity": "LESIONES_LEVES",
     "type": "CHOQUE",
     "vehicles": [
@@ -358,13 +358,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": -7.7
   },
   {
-    "id": "CRASH-2024-013",
+    "id": "CRASH-2021-013",
     "coordinates": [
       -76.956094,
       -12.189587
     ],
-    "year": 2024,
-    "timestamp": "2024-02-12T09:15:00Z",
+    "year": 2021,
+    "timestamp": "2021-02-12T09:15:00Z",
     "severity": "LESIONES_LEVES",
     "type": "CHOQUE",
     "vehicles": [
@@ -376,13 +376,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": -5.95
   },
   {
-    "id": "CRASH-2024-014",
+    "id": "CRASH-2021-014",
     "coordinates": [
       -76.936742,
       -12.228487
     ],
-    "year": 2024,
-    "timestamp": "2024-11-16T17:10:00Z",
+    "year": 2021,
+    "timestamp": "2021-11-16T17:10:00Z",
     "severity": "LESIONES_LEVES",
     "type": "CHOQUE",
     "vehicles": [
@@ -393,13 +393,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": -1.94
   },
   {
-    "id": "CRASH-2024-015",
+    "id": "CRASH-2021-015",
     "coordinates": [
       -76.937284,
       -12.227232
     ],
-    "year": 2024,
-    "timestamp": "2024-07-22T20:23:00Z",
+    "year": 2021,
+    "timestamp": "2021-07-22T20:23:00Z",
     "severity": "LESIONES_LEVES",
     "type": "VOLCADURA",
     "vehicles": [
@@ -410,13 +410,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": 4.49
   },
   {
-    "id": "CRASH-2024-016",
+    "id": "CRASH-2021-016",
     "coordinates": [
       -76.937354,
       -12.227101
     ],
-    "year": 2024,
-    "timestamp": "2024-04-01T02:45:00Z",
+    "year": 2021,
+    "timestamp": "2021-04-01T02:45:00Z",
     "severity": "FATAL",
     "type": "CHOQUE",
     "vehicles": [
@@ -427,13 +427,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": 3.17
   },
   {
-    "id": "CRASH-2024-017",
+    "id": "CRASH-2021-017",
     "coordinates": [
       -76.95346,
       -12.194609
     ],
-    "year": 2024,
-    "timestamp": "2024-12-19T18:30:00Z",
+    "year": 2021,
+    "timestamp": "2021-12-19T18:30:00Z",
     "severity": "FATAL",
     "type": "CHOQUE",
     "vehicles": [
@@ -445,13 +445,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": 22.99
   },
   {
-    "id": "CRASH-2024-018",
+    "id": "CRASH-2021-018",
     "coordinates": [
       -76.94591,
       -12.209598
     ],
-    "year": 2024,
-    "timestamp": "2024-12-02T21:41:00Z",
+    "year": 2021,
+    "timestamp": "2021-12-02T21:41:00Z",
     "severity": "FATAL",
     "type": "CHOQUE",
     "vehicles": [
@@ -463,13 +463,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": 3.22
   },
   {
-    "id": "CRASH-2024-019",
+    "id": "CRASH-2021-019",
     "coordinates": [
       -76.957381,
       -12.186643
     ],
-    "year": 2024,
-    "timestamp": "2024-04-07T17:28:00Z",
+    "year": 2021,
+    "timestamp": "2021-04-07T17:28:00Z",
     "severity": "LESIONES_LEVES",
     "type": "CHOQUE",
     "vehicles": [
@@ -480,13 +480,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": -8.51
   },
   {
-    "id": "CRASH-2024-020",
+    "id": "CRASH-2021-020",
     "coordinates": [
       -76.955129,
       -12.191456
     ],
-    "year": 2024,
-    "timestamp": "2024-11-18T00:05:00Z",
+    "year": 2021,
+    "timestamp": "2021-11-18T00:05:00Z",
     "severity": "SOLO_DANOS",
     "type": "CHOQUE",
     "vehicles": [
@@ -497,13 +497,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": 10.44
   },
   {
-    "id": "CRASH-2024-021",
+    "id": "CRASH-2021-021",
     "coordinates": [
       -76.934488,
       -12.232247
     ],
-    "year": 2024,
-    "timestamp": "2024-07-01T12:16:00Z",
+    "year": 2021,
+    "timestamp": "2021-07-01T12:16:00Z",
     "severity": "LESIONES_GRAVES",
     "type": "CHOQUE",
     "vehicles": [
@@ -514,13 +514,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": 8.1
   },
   {
-    "id": "CRASH-2024-022",
+    "id": "CRASH-2022-022",
     "coordinates": [
       -76.93659,
       -12.228461
     ],
-    "year": 2024,
-    "timestamp": "2024-05-07T01:37:00Z",
+    "year": 2022,
+    "timestamp": "2022-05-07T01:37:00Z",
     "severity": "LESIONES_GRAVES",
     "type": "VOLCADURA",
     "vehicles": [
@@ -532,13 +532,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": 13.96
   },
   {
-    "id": "CRASH-2024-023",
+    "id": "CRASH-2022-023",
     "coordinates": [
       -76.958309,
       -12.184271
     ],
-    "year": 2024,
-    "timestamp": "2024-09-03T05:04:00Z",
+    "year": 2022,
+    "timestamp": "2022-09-03T05:04:00Z",
     "severity": "LESIONES_LEVES",
     "type": "DESPISTE",
     "vehicles": [
@@ -549,13 +549,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": -1.75
   },
   {
-    "id": "CRASH-2024-024",
+    "id": "CRASH-2022-024",
     "coordinates": [
       -76.939673,
       -12.221667
     ],
-    "year": 2024,
-    "timestamp": "2024-10-02T19:05:00Z",
+    "year": 2022,
+    "timestamp": "2022-10-02T19:05:00Z",
     "severity": "LESIONES_GRAVES",
     "type": "CHOQUE",
     "vehicles": [
@@ -566,13 +566,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": 4.14
   },
   {
-    "id": "CRASH-2024-025",
+    "id": "CRASH-2022-025",
     "coordinates": [
       -76.937465,
       -12.227029
     ],
-    "year": 2024,
-    "timestamp": "2024-07-05T21:41:00Z",
+    "year": 2022,
+    "timestamp": "2022-07-05T21:41:00Z",
     "severity": "LESIONES_GRAVES",
     "type": "VOLCADURA",
     "vehicles": [
@@ -584,13 +584,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": -4.87
   },
   {
-    "id": "CRASH-2024-026",
+    "id": "CRASH-2022-026",
     "coordinates": [
       -76.943907,
       -12.213476
     ],
-    "year": 2024,
-    "timestamp": "2024-09-07T16:16:00Z",
+    "year": 2022,
+    "timestamp": "2022-09-07T16:16:00Z",
     "severity": "FATAL",
     "type": "ATROPELLO",
     "vehicles": [
@@ -601,13 +601,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": -14.15
   },
   {
-    "id": "CRASH-2024-027",
+    "id": "CRASH-2022-027",
     "coordinates": [
       -76.944333,
       -12.212779
     ],
-    "year": 2024,
-    "timestamp": "2024-11-27T17:19:00Z",
+    "year": 2022,
+    "timestamp": "2022-11-27T17:19:00Z",
     "severity": "LESIONES_LEVES",
     "type": "CHOQUE",
     "vehicles": [
@@ -619,13 +619,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": -19.59
   },
   {
-    "id": "CRASH-2024-028",
+    "id": "CRASH-2022-028",
     "coordinates": [
       -76.957103,
       -12.186909
     ],
-    "year": 2024,
-    "timestamp": "2024-05-20T06:45:00Z",
+    "year": 2022,
+    "timestamp": "2022-05-20T06:45:00Z",
     "severity": "SOLO_DANOS",
     "type": "VOLCADURA",
     "vehicles": [
@@ -636,13 +636,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": 7.91
   },
   {
-    "id": "CRASH-2024-029",
+    "id": "CRASH-2022-029",
     "coordinates": [
       -76.937348,
       -12.227357
     ],
-    "year": 2024,
-    "timestamp": "2024-11-14T08:02:00Z",
+    "year": 2022,
+    "timestamp": "2022-11-14T08:02:00Z",
     "severity": "LESIONES_LEVES",
     "type": "DESPISTE",
     "vehicles": [
@@ -653,13 +653,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": -7.29
   },
   {
-    "id": "CRASH-2024-030",
+    "id": "CRASH-2022-030",
     "coordinates": [
       -76.955517,
       -12.190958
     ],
-    "year": 2024,
-    "timestamp": "2024-02-03T22:57:00Z",
+    "year": 2022,
+    "timestamp": "2022-02-03T22:57:00Z",
     "severity": "LESIONES_LEVES",
     "type": "ATROPELLO",
     "vehicles": [
@@ -671,13 +671,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": -7.11
   },
   {
-    "id": "CRASH-2024-031",
+    "id": "CRASH-2022-031",
     "coordinates": [
       -76.955381,
       -12.190893
     ],
-    "year": 2024,
-    "timestamp": "2024-06-07T21:15:00Z",
+    "year": 2022,
+    "timestamp": "2022-06-07T21:15:00Z",
     "severity": "LESIONES_GRAVES",
     "type": "CHOQUE",
     "vehicles": [
@@ -689,13 +689,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": 9.38
   },
   {
-    "id": "CRASH-2024-032",
+    "id": "CRASH-2022-032",
     "coordinates": [
       -76.949985,
       -12.202356
     ],
-    "year": 2024,
-    "timestamp": "2024-03-26T05:56:00Z",
+    "year": 2022,
+    "timestamp": "2022-03-26T05:56:00Z",
     "severity": "LESIONES_LEVES",
     "type": "DESPISTE",
     "vehicles": [
@@ -706,13 +706,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": -15.95
   },
   {
-    "id": "CRASH-2024-033",
+    "id": "CRASH-2022-033",
     "coordinates": [
       -76.955292,
       -12.19161
     ],
-    "year": 2024,
-    "timestamp": "2024-03-26T22:06:00Z",
+    "year": 2022,
+    "timestamp": "2022-03-26T22:06:00Z",
     "severity": "SOLO_DANOS",
     "type": "DESPISTE",
     "vehicles": [
@@ -723,13 +723,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": -12.54
   },
   {
-    "id": "CRASH-2024-034",
+    "id": "CRASH-2022-034",
     "coordinates": [
       -76.954958,
       -12.192242
     ],
-    "year": 2024,
-    "timestamp": "2024-01-22T06:25:00Z",
+    "year": 2022,
+    "timestamp": "2022-01-22T06:25:00Z",
     "severity": "SOLO_DANOS",
     "type": "ATROPELLO",
     "vehicles": [
@@ -741,13 +741,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": -7.71
   },
   {
-    "id": "CRASH-2024-035",
+    "id": "CRASH-2022-035",
     "coordinates": [
       -76.954705,
       -12.192638
     ],
-    "year": 2024,
-    "timestamp": "2024-05-06T18:16:00Z",
+    "year": 2022,
+    "timestamp": "2022-05-06T18:16:00Z",
     "severity": "LESIONES_LEVES",
     "type": "CHOQUE",
     "vehicles": [
@@ -759,13 +759,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": -2.34
   },
   {
-    "id": "CRASH-2024-036",
+    "id": "CRASH-2022-036",
     "coordinates": [
       -76.937709,
       -12.226134
     ],
-    "year": 2024,
-    "timestamp": "2024-10-07T08:02:00Z",
+    "year": 2022,
+    "timestamp": "2022-10-07T08:02:00Z",
     "severity": "LESIONES_GRAVES",
     "type": "ATROPELLO",
     "vehicles": [
@@ -776,13 +776,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": 9.04
   },
   {
-    "id": "CRASH-2024-037",
+    "id": "CRASH-2022-037",
     "coordinates": [
       -76.959657,
       -12.180475
     ],
-    "year": 2024,
-    "timestamp": "2024-07-03T21:58:00Z",
+    "year": 2022,
+    "timestamp": "2022-07-03T21:58:00Z",
     "severity": "LESIONES_LEVES",
     "type": "VOLCADURA",
     "vehicles": [
@@ -793,13 +793,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": 15.54
   },
   {
-    "id": "CRASH-2024-038",
+    "id": "CRASH-2022-038",
     "coordinates": [
       -76.945597,
       -12.210275
     ],
-    "year": 2024,
-    "timestamp": "2024-12-10T17:08:00Z",
+    "year": 2022,
+    "timestamp": "2022-12-10T17:08:00Z",
     "severity": "SOLO_DANOS",
     "type": "ATROPELLO",
     "vehicles": [
@@ -811,13 +811,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": -3.74
   },
   {
-    "id": "CRASH-2024-039",
+    "id": "CRASH-2022-039",
     "coordinates": [
       -76.937066,
       -12.22739
     ],
-    "year": 2024,
-    "timestamp": "2024-05-10T06:27:00Z",
+    "year": 2022,
+    "timestamp": "2022-05-10T06:27:00Z",
     "severity": "SOLO_DANOS",
     "type": "ATROPELLO",
     "vehicles": [
@@ -829,13 +829,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": 19.6
   },
   {
-    "id": "CRASH-2024-040",
+    "id": "CRASH-2022-040",
     "coordinates": [
       -76.941818,
       -12.217521
     ],
-    "year": 2024,
-    "timestamp": "2024-08-26T23:10:00Z",
+    "year": 2022,
+    "timestamp": "2022-08-26T23:10:00Z",
     "severity": "LESIONES_GRAVES",
     "type": "CHOQUE",
     "vehicles": [
@@ -846,13 +846,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": -7.71
   },
   {
-    "id": "CRASH-2024-041",
+    "id": "CRASH-2022-041",
     "coordinates": [
       -76.952064,
       -12.198078
     ],
-    "year": 2024,
-    "timestamp": "2024-04-26T06:09:00Z",
+    "year": 2022,
+    "timestamp": "2022-04-26T06:09:00Z",
     "severity": "FATAL",
     "type": "CAIDA_PASAJERO",
     "vehicles": [
@@ -863,13 +863,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": -10.02
   },
   {
-    "id": "CRASH-2024-042",
+    "id": "CRASH-2022-042",
     "coordinates": [
       -76.955618,
       -12.190113
     ],
-    "year": 2024,
-    "timestamp": "2024-08-13T07:09:00Z",
+    "year": 2022,
+    "timestamp": "2022-08-13T07:09:00Z",
     "severity": "SOLO_DANOS",
     "type": "ATROPELLO",
     "vehicles": [
@@ -880,13 +880,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": 19.15
   },
   {
-    "id": "CRASH-2024-043",
+    "id": "CRASH-2023-043",
     "coordinates": [
       -76.959709,
       -12.180775
     ],
-    "year": 2024,
-    "timestamp": "2024-04-06T22:33:00Z",
+    "year": 2023,
+    "timestamp": "2023-04-06T22:33:00Z",
     "severity": "SOLO_DANOS",
     "type": "VOLCADURA",
     "vehicles": [
@@ -897,13 +897,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": -1.94
   },
   {
-    "id": "CRASH-2024-044",
+    "id": "CRASH-2023-044",
     "coordinates": [
       -76.936771,
       -12.2279
     ],
-    "year": 2024,
-    "timestamp": "2024-09-15T05:47:00Z",
+    "year": 2023,
+    "timestamp": "2023-09-15T05:47:00Z",
     "severity": "LESIONES_LEVES",
     "type": "DESPISTE",
     "vehicles": [
@@ -915,13 +915,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": 27.19
   },
   {
-    "id": "CRASH-2024-045",
+    "id": "CRASH-2023-045",
     "coordinates": [
       -76.946798,
       -12.208099
     ],
-    "year": 2024,
-    "timestamp": "2024-08-03T22:18:00Z",
+    "year": 2023,
+    "timestamp": "2023-08-03T22:18:00Z",
     "severity": "LESIONES_GRAVES",
     "type": "VOLCADURA",
     "vehicles": [
@@ -933,13 +933,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": 0.3
   },
   {
-    "id": "CRASH-2024-046",
+    "id": "CRASH-2023-046",
     "coordinates": [
       -76.946537,
       -12.208697
     ],
-    "year": 2024,
-    "timestamp": "2024-02-14T13:21:00Z",
+    "year": 2023,
+    "timestamp": "2023-02-14T13:21:00Z",
     "severity": "LESIONES_GRAVES",
     "type": "CHOQUE",
     "vehicles": [
@@ -950,13 +950,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": -7.4
   },
   {
-    "id": "CRASH-2024-047",
+    "id": "CRASH-2023-047",
     "coordinates": [
       -76.947832,
       -12.206002
     ],
-    "year": 2024,
-    "timestamp": "2024-07-16T00:22:00Z",
+    "year": 2023,
+    "timestamp": "2023-07-16T00:22:00Z",
     "severity": "LESIONES_GRAVES",
     "type": "CHOQUE",
     "vehicles": [
@@ -967,13 +967,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": 15.8
   },
   {
-    "id": "CRASH-2024-048",
+    "id": "CRASH-2023-048",
     "coordinates": [
       -76.944403,
       -12.212805
     ],
-    "year": 2024,
-    "timestamp": "2024-04-09T13:31:00Z",
+    "year": 2023,
+    "timestamp": "2023-04-09T13:31:00Z",
     "severity": "LESIONES_LEVES",
     "type": "VOLCADURA",
     "vehicles": [
@@ -984,13 +984,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": -27.6
   },
   {
-    "id": "CRASH-2024-049",
+    "id": "CRASH-2023-049",
     "coordinates": [
       -76.945953,
       -12.209986
     ],
-    "year": 2024,
-    "timestamp": "2024-09-01T12:37:00Z",
+    "year": 2023,
+    "timestamp": "2023-09-01T12:37:00Z",
     "severity": "LESIONES_LEVES",
     "type": "DESPISTE",
     "vehicles": [
@@ -1001,13 +1001,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": -21.86
   },
   {
-    "id": "CRASH-2024-050",
+    "id": "CRASH-2023-050",
     "coordinates": [
       -76.959189,
       -12.182145
     ],
-    "year": 2024,
-    "timestamp": "2024-08-11T10:48:00Z",
+    "year": 2023,
+    "timestamp": "2023-08-11T10:48:00Z",
     "severity": "LESIONES_LEVES",
     "type": "CHOQUE",
     "vehicles": [
@@ -1019,13 +1019,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": -4.72
   },
   {
-    "id": "CRASH-2024-051",
+    "id": "CRASH-2023-051",
     "coordinates": [
       -76.952198,
       -12.197725
     ],
-    "year": 2024,
-    "timestamp": "2024-01-24T17:03:00Z",
+    "year": 2023,
+    "timestamp": "2023-01-24T17:03:00Z",
     "severity": "SOLO_DANOS",
     "type": "CHOQUE",
     "vehicles": [
@@ -1036,13 +1036,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": -5.91
   },
   {
-    "id": "CRASH-2024-052",
+    "id": "CRASH-2023-052",
     "coordinates": [
       -76.950085,
       -12.202123
     ],
-    "year": 2024,
-    "timestamp": "2024-01-20T04:15:00Z",
+    "year": 2023,
+    "timestamp": "2023-01-20T04:15:00Z",
     "severity": "LESIONES_LEVES",
     "type": "VOLCADURA",
     "vehicles": [
@@ -1053,13 +1053,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": -14.33
   },
   {
-    "id": "CRASH-2024-053",
+    "id": "CRASH-2023-053",
     "coordinates": [
       -76.937532,
       -12.226163
     ],
-    "year": 2024,
-    "timestamp": "2024-03-10T03:37:00Z",
+    "year": 2023,
+    "timestamp": "2023-03-10T03:37:00Z",
     "severity": "LESIONES_LEVES",
     "type": "CHOQUE",
     "vehicles": [
@@ -1071,13 +1071,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": 25.6
   },
   {
-    "id": "CRASH-2024-054",
+    "id": "CRASH-2023-054",
     "coordinates": [
       -76.944331,
       -12.212922
     ],
-    "year": 2024,
-    "timestamp": "2024-10-23T20:15:00Z",
+    "year": 2023,
+    "timestamp": "2023-10-23T20:15:00Z",
     "severity": "LESIONES_LEVES",
     "type": "DESPISTE",
     "vehicles": [
@@ -1088,13 +1088,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": -27.18
   },
   {
-    "id": "CRASH-2024-055",
+    "id": "CRASH-2023-055",
     "coordinates": [
       -76.945774,
       -12.20969
     ],
-    "year": 2024,
-    "timestamp": "2024-09-14T21:23:00Z",
+    "year": 2023,
+    "timestamp": "2023-09-14T21:23:00Z",
     "severity": "LESIONES_GRAVES",
     "type": "CAIDA_PASAJERO",
     "vehicles": [
@@ -1105,13 +1105,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": 11.17
   },
   {
-    "id": "CRASH-2024-056",
+    "id": "CRASH-2023-056",
     "coordinates": [
       -76.937706,
       -12.226697
     ],
-    "year": 2024,
-    "timestamp": "2024-07-06T23:33:00Z",
+    "year": 2023,
+    "timestamp": "2023-07-06T23:33:00Z",
     "severity": "SOLO_DANOS",
     "type": "CHOQUE",
     "vehicles": [
@@ -1123,13 +1123,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": -14.78
   },
   {
-    "id": "CRASH-2024-057",
+    "id": "CRASH-2023-057",
     "coordinates": [
       -76.952209,
       -12.197114
     ],
-    "year": 2024,
-    "timestamp": "2024-12-19T08:20:00Z",
+    "year": 2023,
+    "timestamp": "2023-12-19T08:20:00Z",
     "severity": "SOLO_DANOS",
     "type": "ATROPELLO",
     "vehicles": [
@@ -1141,13 +1141,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": 22.89
   },
   {
-    "id": "CRASH-2024-058",
+    "id": "CRASH-2023-058",
     "coordinates": [
       -76.934961,
       -12.231111
     ],
-    "year": 2024,
-    "timestamp": "2024-08-28T10:11:00Z",
+    "year": 2023,
+    "timestamp": "2023-08-28T10:11:00Z",
     "severity": "LESIONES_GRAVES",
     "type": "ATROPELLO",
     "vehicles": [
@@ -1159,13 +1159,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": 24.74
   },
   {
-    "id": "CRASH-2024-059",
+    "id": "CRASH-2023-059",
     "coordinates": [
       -76.944439,
       -12.212162
     ],
-    "year": 2024,
-    "timestamp": "2024-09-07T02:15:00Z",
+    "year": 2023,
+    "timestamp": "2023-09-07T02:15:00Z",
     "severity": "SOLO_DANOS",
     "type": "VOLCADURA",
     "vehicles": [
@@ -1177,13 +1177,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": 3.78
   },
   {
-    "id": "CRASH-2024-060",
+    "id": "CRASH-2023-060",
     "coordinates": [
       -76.945596,
       -12.210432
     ],
-    "year": 2024,
-    "timestamp": "2024-02-10T07:25:00Z",
+    "year": 2023,
+    "timestamp": "2023-02-10T07:25:00Z",
     "severity": "SOLO_DANOS",
     "type": "VOLCADURA",
     "vehicles": [
@@ -1195,13 +1195,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": -12.2
   },
   {
-    "id": "CRASH-2024-061",
+    "id": "CRASH-2023-061",
     "coordinates": [
       -76.951413,
       -12.199458
     ],
-    "year": 2024,
-    "timestamp": "2024-05-10T08:14:00Z",
+    "year": 2023,
+    "timestamp": "2023-05-10T08:14:00Z",
     "severity": "LESIONES_LEVES",
     "type": "CHOQUE",
     "vehicles": [
@@ -1213,13 +1213,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": -13.82
   },
   {
-    "id": "CRASH-2024-062",
+    "id": "CRASH-2023-062",
     "coordinates": [
       -76.95552,
       -12.191002
     ],
-    "year": 2024,
-    "timestamp": "2024-12-16T08:46:00Z",
+    "year": 2023,
+    "timestamp": "2023-12-16T08:46:00Z",
     "severity": "SOLO_DANOS",
     "type": "VOLCADURA",
     "vehicles": [
@@ -1230,13 +1230,13 @@ export const MOCK_CRASHES_DATA: CrashPoint[] = [
     "approxLateralOffsetM": -9.24
   },
   {
-    "id": "CRASH-2024-063",
+    "id": "CRASH-2023-063",
     "coordinates": [
       -76.937252,
       -12.22692
     ],
-    "year": 2024,
-    "timestamp": "2024-04-12T05:19:00Z",
+    "year": 2023,
+    "timestamp": "2023-04-12T05:19:00Z",
     "severity": "LESIONES_LEVES",
     "type": "CAIDA_PASAJERO",
     "vehicles": [
@@ -1471,14 +1471,13 @@ export const MOCK_ALIGNMENT_NORTE_DATA = {
 };
 
 export const MOCK_CRASHES_NORTE_DATA: CrashPoint[] = [
-  { id: "CRASH-N-01", coordinates: [-77.1742, -11.7785], severity: SeverityLevel.FATAL, type: CrashType.CHOQUE },
-  { id: "CRASH-N-02", coordinates: [-77.1738, -11.7760], severity: SeverityLevel.LESIONES_GRAVES, type: CrashType.DESPISTE },
-  { id: "CRASH-N-03", coordinates: [-77.1685, -11.7640], severity: SeverityLevel.FATAL, type: CrashType.ATROPELLO },
-  { id: "CRASH-N-04", coordinates: [-77.1678, -11.7620], severity: SeverityLevel.LESIONES_LEVES, type: CrashType.CHOQUE },
-  { id: "CRASH-N-05", coordinates: [-77.1615, -11.7505], severity: SeverityLevel.SOLO_DANOS, type: CrashType.VOLCADURA },
-  { id: "CRASH-N-06", coordinates: [-77.1610, -11.7490], severity: SeverityLevel.FATAL, type: CrashType.CHOQUE },
-  { id: "CRASH-N-07", coordinates: [-77.1555, -11.7370], severity: SeverityLevel.LESIONES_GRAVES, type: CrashType.DESPISTE },
-  { id: "CRASH-N-08", coordinates: [-77.1548, -11.7355], severity: SeverityLevel.SOLO_DANOS, type: CrashType.CHOQUE },
-  { id: "CRASH-N-09", coordinates: [-77.1505, -11.7240], severity: SeverityLevel.LESIONES_LEVES, type: CrashType.ATROPELLO }
+  { id: "CRASH-N-01", coordinates: [-77.1742, -11.7785], year: 2021, timestamp: "2021-03-15T08:30:00Z", severity: SeverityLevel.FATAL, type: CrashType.CHOQUE },
+  { id: "CRASH-N-02", coordinates: [-77.1738, -11.7760], year: 2021, timestamp: "2021-08-20T14:10:00Z", severity: SeverityLevel.LESIONES_GRAVES, type: CrashType.DESPISTE },
+  { id: "CRASH-N-03", coordinates: [-77.1685, -11.7640], year: 2022, timestamp: "2022-01-10T19:45:00Z", severity: SeverityLevel.FATAL, type: CrashType.ATROPELLO },
+  { id: "CRASH-N-04", coordinates: [-77.1678, -11.7620], year: 2022, timestamp: "2022-06-25T11:20:00Z", severity: SeverityLevel.LESIONES_LEVES, type: CrashType.CHOQUE },
+  { id: "CRASH-N-05", coordinates: [-77.1615, -11.7505], year: 2023, timestamp: "2023-04-12T16:00:00Z", severity: SeverityLevel.SOLO_DANOS, type: CrashType.VOLCADURA },
+  { id: "CRASH-N-06", coordinates: [-77.1610, -11.7490], year: 2023, timestamp: "2023-09-05T22:15:00Z", severity: SeverityLevel.FATAL, type: CrashType.CHOQUE },
+  { id: "CRASH-N-07", coordinates: [-77.1555, -11.7370], year: 2024, timestamp: "2024-02-18T07:40:00Z", severity: SeverityLevel.LESIONES_GRAVES, type: CrashType.DESPISTE },
+  { id: "CRASH-N-08", coordinates: [-77.1548, -11.7355], year: 2024, timestamp: "2024-07-30T13:50:00Z", severity: SeverityLevel.SOLO_DANOS, type: CrashType.CHOQUE },
+  { id: "CRASH-N-09", coordinates: [-77.1505, -11.7240], year: 2024, timestamp: "2024-11-11T20:05:00Z", severity: SeverityLevel.LESIONES_LEVES, type: CrashType.ATROPELLO }
 ];
-

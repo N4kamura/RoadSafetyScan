@@ -32,6 +32,7 @@ export interface FilterState {
   types: CrashType[];
   startYear?: number;
   endYear?: number;
+  selectedYears?: number[]; // SPEC-13: Años seleccionados explícitamente para filtrado multianual
   timeRange?: TimeRange | null;
 }
 

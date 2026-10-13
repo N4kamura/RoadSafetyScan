@@ -622,3 +622,64 @@ input[type="range"] {
   letter-spacing: 0.2px;
 }
 
+/* SPEC-13: Filtro Temporal por Años */
+.year-chips-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.35rem;
+}
+
+.year-chip-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.35rem 0.5rem;
+  background-color: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 6px;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.15s ease;
+  font-size: 0.72rem;
+  color: #1E293B;
+}
+
+.year-chip-item:hover {
+  background-color: #F1F5F9;
+  border-color: #CBD5E1;
+}
+
+.year-chip-item.active {
+  background-color: #EFF6FF;
+  border-color: #3B82F6;
+  color: #1D4ED8;
+  font-weight: 600;
+}
+
+.year-chip-item input[type="checkbox"] {
+  margin-right: 0.35rem;
+  cursor: pointer;
+  accent-color: #2563EB;
+}
+
+.year-chip-label {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.year-chip-count {
+  font-size: 0.65rem;
+  color: #64748B;
+  background-color: #E2E8F0;
+  padding: 1px 5px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.year-chip-item.active .year-chip-count {
+  background-color: #DBEAFE;
+  color: #1E40AF;
+}
+
+

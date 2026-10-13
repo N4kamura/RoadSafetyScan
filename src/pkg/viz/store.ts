@@ -33,6 +33,7 @@ export const DEFAULT_FILTERS: FilterState = {
     CrashType.INCENDIO,
     CrashType.OTRO
   ],
+  selectedYears: undefined,
   timeRange: null
 };
 
@@ -128,6 +129,27 @@ export class VizStore {
     this.updateFilters({ timeRange });
   }
 
+  /**
+   * SPEC-13: Obtiene la lista de años únicos disponibles en el dataset actual, ordenados descendente.
+   */
+  public getAvailableYears(): number[] {
+    const years = new Set<number>();
+    for (const crash of this.state.allCrashes) {
+      const y = crash.year ?? (crash.timestamp ? new Date(crash.timestamp).getUTCFullYear() : undefined);
+      if (y !== undefined && !isNaN(y)) {
+        years.add(y);
+      }
+    }
+    return Array.from(years).sort((a, b) => b - a);
+  }
+
+  /**
+   * SPEC-13: Actualiza los años seleccionados en el filtro.
+   */
+  public setSelectedYears(selectedYears?: number[]): void {
+    this.updateFilters({ selectedYears });
+  }
+
   public hoverBin(binIndex: number | null): void {
     this.state.selection.hoveredBinIndex = binIndex;
 
@@ -212,17 +234,26 @@ export class VizStore {
   }
 
   private recomputeFilteredCrashes(): void {
-    const { severities, types, startYear, endYear, timeRange } = this.state.filters;
+    const { severities, types, startYear, endYear, selectedYears, timeRange } = this.state.filters;
     const sevSet = new Set(severities);
     const typeSet = new Set(types);
+    const yearSet = selectedYears !== undefined ? new Set(selectedYears) : null;
 
     this.state.filteredCrashes = this.state.allCrashes.filter((crash) => {
       if (!sevSet.has(crash.severity)) return false;
       if (!typeSet.has(crash.type)) return false;
-      if (crash.year !== undefined) {
-        if (startYear !== undefined && crash.year < startYear) return false;
-        if (endYear !== undefined && crash.year > endYear) return false;
+
+      // SPEC-13: Filtrado por Años Seleccionados
+      const crashYear = crash.year ?? (crash.timestamp ? new Date(crash.timestamp).getUTCFullYear() : undefined);
+      if (yearSet !== null) {
+        if (crashYear === undefined || !yearSet.has(crashYear)) return false;
+      } else {
+        if (crashYear !== undefined) {
+          if (startYear !== undefined && crashYear < startYear) return false;
+          if (endYear !== undefined && crashYear > endYear) return false;
+        }
       }
+
       if (timeRange && crash.timestamp) {
         const d = new Date(crash.timestamp);
         // Usar hora local o UTC de forma consistente (UTC dado formato ISO)
