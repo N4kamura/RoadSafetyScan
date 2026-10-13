@@ -26,20 +26,48 @@ export class LongitudinalProfileView {
     this.tooltipEl.className = 'chart-tooltip';
     document.body.appendChild(this.tooltipEl);
 
+    // Ocultar tooltip si el cursor sale del contenedor
+    this.container.addEventListener('mouseleave', () => {
+      this.hideTooltip();
+    });
+
+    // Ocultar tooltip si el cursor se mueve dentro del contenedor pero fuera de las barras
+    this.container.addEventListener('mousemove', (e) => {
+      const target = e.target as HTMLElement | SVGElement | null;
+      if (!target?.closest('.profile-bar-group')) {
+        this.hideTooltip();
+      }
+    });
+
+    // Guardián global: ocultar tooltip si el cursor está fuera del contenedor
+    document.addEventListener('mousemove', (e) => {
+      if (this.tooltipEl && this.tooltipEl.style.display !== 'none') {
+        const target = e.target as HTMLElement | null;
+        if (!target || !this.container.contains(target)) {
+          this.hideTooltip();
+        }
+      }
+    });
+
     this.render();
 
-    // Re-renderizar reactivamente
+    // Re-renderizar o actualizar resalte reactivamente
     this.store.subscribe((state, event) => {
       if (
         event.type === 'LRS_RECALCULATED' ||
         event.type === 'CONFIG_UPDATED' ||
         event.type === 'FILTERS_UPDATED' ||
+        event.type === 'CRASHES_LOADED' ||
+        event.type === 'ALIGNMENT_CHANGED'
+      ) {
+        this.render();
+      } else if (
         event.type === 'BIN_HOVER' ||
         event.type === 'BIN_SELECT' ||
         event.type === 'CRASH_HOVER' ||
         event.type === 'SELECTION_CLEARED'
       ) {
-        this.render();
+        this.updateHighlights();
       }
     });
 
@@ -50,6 +78,7 @@ export class LongitudinalProfileView {
   }
 
   public render(): void {
+    this.hideTooltip();
     const state = this.store.getState();
     if (!state.lrsResults || !state.alignment) {
       this.container.innerHTML = `
@@ -139,24 +168,25 @@ export class LongitudinalProfileView {
 
           if (hFatal > 0) {
             currentY -= hFatal;
-            barElementsHtml += `<rect x="${x + 0.5}" y="${currentY}" width="${Math.max(1, barWidth - 1)}" height="${Math.max(1, hFatal)}" fill="#DC2626" opacity="${isHighlighted ? 1.0 : (hoveredIdx !== null ? 0.4 : 0.9)}" />`;
+            barElementsHtml += `<rect class="data-bar" x="${x + 0.5}" y="${currentY}" width="${Math.max(1, barWidth - 1)}" height="${Math.max(1, hFatal)}" fill="#DC2626" opacity="${isHighlighted ? 1.0 : (hoveredIdx !== null ? 0.4 : 0.9)}" />`;
           }
           if (hGrave > 0) {
             currentY -= hGrave;
-            barElementsHtml += `<rect x="${x + 0.5}" y="${currentY}" width="${Math.max(1, barWidth - 1)}" height="${Math.max(1, hGrave)}" fill="#EA580C" opacity="${isHighlighted ? 1.0 : (hoveredIdx !== null ? 0.4 : 0.9)}" />`;
+            barElementsHtml += `<rect class="data-bar" x="${x + 0.5}" y="${currentY}" width="${Math.max(1, barWidth - 1)}" height="${Math.max(1, hGrave)}" fill="#EA580C" opacity="${isHighlighted ? 1.0 : (hoveredIdx !== null ? 0.4 : 0.9)}" />`;
           }
           if (hNoConoce > 0) {
             currentY -= hNoConoce;
-            barElementsHtml += `<rect x="${x + 0.5}" y="${currentY}" width="${Math.max(1, barWidth - 1)}" height="${Math.max(1, hNoConoce)}" fill="#94A3B8" opacity="${isHighlighted ? 1.0 : (hoveredIdx !== null ? 0.4 : 0.9)}" />`;
+            barElementsHtml += `<rect class="data-bar" x="${x + 0.5}" y="${currentY}" width="${Math.max(1, barWidth - 1)}" height="${Math.max(1, hNoConoce)}" fill="#94A3B8" opacity="${isHighlighted ? 1.0 : (hoveredIdx !== null ? 0.4 : 0.9)}" />`;
           }
           if (hIleso > 0) {
             currentY -= hIleso;
-            barElementsHtml += `<rect x="${x + 0.5}" y="${currentY}" width="${Math.max(1, barWidth - 1)}" height="${Math.max(1, hIleso)}" fill="#10B981" opacity="${isHighlighted ? 1.0 : (hoveredIdx !== null ? 0.4 : 0.9)}" />`;
+            barElementsHtml += `<rect class="data-bar" x="${x + 0.5}" y="${currentY}" width="${Math.max(1, barWidth - 1)}" height="${Math.max(1, hIleso)}" fill="#10B981" opacity="${isHighlighted ? 1.0 : (hoveredIdx !== null ? 0.4 : 0.9)}" />`;
           }
         }
       } else if (metricMode === 'VEHICLES') {
         barElementsHtml = `
           <rect 
+            class="data-bar"
             x="${x + 0.5}" 
             y="${y}" 
             width="${Math.max(1, barWidth - 1)}" 
@@ -177,6 +207,7 @@ export class LongitudinalProfileView {
 
         barElementsHtml = `
           <rect 
+            class="data-bar"
             x="${x + 0.5}" 
             y="${y}" 
             width="${Math.max(1, barWidth - 1)}" 
@@ -189,9 +220,9 @@ export class LongitudinalProfileView {
       }
 
       svgHtml += `
-        <g class="profile-bar-group" data-bin-index="${idx}" style="cursor: pointer;">
+        <g class="profile-bar-group" data-bin-index="${idx}" data-bar-x="${x}" data-bar-y="${y}" data-bar-w="${barWidth}" data-bar-h="${totalBarHeight}" style="cursor: pointer;">
           <!-- Barra de fondo de interacción transparente para facilitar hover -->
-          <rect x="${x}" y="0" width="${barWidth}" height="${innerHeight}" fill="transparent" />
+          <rect class="interaction-rect" x="${x}" y="0" width="${barWidth}" height="${innerHeight}" fill="transparent" />
 
           <!-- Barras de datos -->
           ${barElementsHtml}
@@ -200,6 +231,7 @@ export class LongitudinalProfileView {
           ${
             isHighlighted
               ? `<rect 
+                  class="highlight-rect"
                   x="${x - 1}" 
                   y="${Math.max(0, y - 2)}" 
                   width="${barWidth + 2}" 
@@ -298,13 +330,75 @@ export class LongitudinalProfileView {
       });
 
       group.addEventListener('mouseleave', () => {
-        this.tooltipEl.style.display = 'none';
-        this.store.hoverBin(null);
+        this.hideTooltip();
       });
 
       group.addEventListener('click', () => {
         this.store.selectBin(idx);
       });
+    });
+  }
+
+  private hideTooltip(): void {
+    if (this.tooltipEl && this.tooltipEl.style.display !== 'none') {
+      this.tooltipEl.style.display = 'none';
+    }
+    const currentHovered = this.store.getState().selection.hoveredBinIndex;
+    if (currentHovered !== null) {
+      this.store.hoverBin(null);
+    }
+  }
+
+  private updateHighlights(): void {
+    const { hoveredBinIndex, selectedBinIndex } = this.store.getState().selection;
+    const metricMode = this.store.getState().config.metricMode;
+    const barGroups = this.container.querySelectorAll<SVGGElement>('.profile-bar-group');
+
+    barGroups.forEach((group) => {
+      const idx = Number(group.getAttribute('data-bin-index'));
+      const isHovered = hoveredBinIndex === idx;
+      const isSelected = selectedBinIndex === idx;
+      const isHighlighted = isHovered || isSelected;
+
+      // Actualizar opacidades de las barras
+      const bars = group.querySelectorAll<SVGRectElement>('.data-bar');
+      const baseOpacity = metricMode === 'PERSONS' ? 0.9 : 0.85;
+      const targetOpacity = isHighlighted
+        ? 1.0
+        : hoveredBinIndex !== null
+        ? 0.4
+        : baseOpacity;
+
+      bars.forEach((b) => {
+        b.setAttribute('opacity', String(targetOpacity));
+      });
+
+      // Gestionar el rect de resalte
+      let highlightRect = group.querySelector<SVGRectElement>('.highlight-rect');
+      if (isHighlighted) {
+        if (!highlightRect) {
+          highlightRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+          highlightRect.setAttribute('class', 'highlight-rect');
+          const bx = Number(group.getAttribute('data-bar-x') || 0);
+          const by = Number(group.getAttribute('data-bar-y') || 0);
+          const bw = Number(group.getAttribute('data-bar-w') || 0);
+          const bh = Number(group.getAttribute('data-bar-h') || 0);
+          highlightRect.setAttribute('x', String(bx - 1));
+          highlightRect.setAttribute('y', String(Math.max(0, by - 2)));
+          highlightRect.setAttribute('width', String(bw + 2));
+          highlightRect.setAttribute('height', String(bh + 2));
+          highlightRect.setAttribute('fill', 'none');
+          highlightRect.setAttribute('stroke', '#10b981');
+          highlightRect.setAttribute('stroke-width', '2.5');
+          highlightRect.setAttribute('rx', '2');
+          highlightRect.setAttribute('filter', 'drop-shadow(0 0 3px rgba(16, 185, 129, 0.6))');
+          group.appendChild(highlightRect);
+        }
+      } else {
+        if (highlightRect) {
+          highlightRect.remove();
+        }
+      }
     });
   }
 
