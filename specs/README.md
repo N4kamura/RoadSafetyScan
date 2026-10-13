@@ -12,37 +12,74 @@ Bajo este marco metodológico:
 
 ---
 
-## 2. Índice de Especificaciones del Sistema
+## 2. Índice Completo de Especificaciones del Sistema
 
-| ID | Módulo | Archivo de Especificación | Componente / Paquete | Estado |
-| :--- | :--- | :--- | :--- | :--- |
-| **SPEC-01** | Ingesta & Indexación Espacial | [`specs/01-data-ingestion-indexing.md`](file:///d:/Projects/RoadSafetyScan/specs/01-data-ingestion-indexing.md) | `pkg/data` | `STANDBY` (Mocked) |
-| **SPEC-02** | Trazo Geométrico & Alineamiento | [`specs/02-geometric-trace-alignment.md`](file:///d:/Projects/RoadSafetyScan/specs/02-geometric-trace-alignment.md) | `pkg/tracer` | `IMPLEMENTED` (100% Tests Pass) |
-| **SPEC-04** | Perfilador Cartesiano Separado (Legacy) | [`specs/04-reactive-visualization-profiler.md`](file:///d:/Projects/RoadSafetyScan/specs/04-reactive-visualization-profiler.md) | `pkg/viz` | `SUPERSEDED` por SPEC-06 |
-| **SPEC-05** | Exportación & Interoperabilidad | [`specs/05-export-interoperability.md`](file:///d:/Projects/RoadSafetyScan/specs/05-export-interoperability.md) | `pkg/export` | `IMPLEMENTED` (100% Tests Pass) |
-| **SPEC-06** | Perfil Curvilíneo Paralelo ("Profiles along a line") | [`specs/06-curvilinear-profile-along-line.md`](file:///d:/Projects/RoadSafetyScan/specs/06-curvilinear-profile-along-line.md) | `pkg/viz` / `pkg/curvilinear` | `IMPLEMENTED` (100% Tests Pass) |
-| **SPEC-15** | Herramienta de Trazo, Almacenamiento GTFS/.txt y Rutas Activas | [`specs/15-interactive-trace-drawing-and-gtfs-storage.md`](file:///d:/Projects/RoadSafetyScan/specs/15-interactive-trace-drawing-and-gtfs-storage.md) | `pkg/tracer` / `pkg/export` / `ui` | `COMPLETADO (IMPLEMENTED)` |
-| **SPEC-16** | Pulido Visual, Contraste Accesible y Modos Claro / Oscuro | [`specs/16-ui-polishing-accessibility-and-theme-harmonization.md`](file:///d:/Projects/RoadSafetyScan/specs/16-ui-polishing-accessibility-and-theme-harmonization.md) | `ui` / `styles` / `theme` | `COMPLETADO (IMPLEMENTED)` |
-| **SPEC-17** | Barras Curvilíneas Apiladas por Gravedad de Personas | [`specs/17-map-curvilinear-stacked-persons-by-severity.md`](file:///d:/Projects/RoadSafetyScan/specs/17-map-curvilinear-stacked-persons-by-severity.md) | `pkg/curvilinear` / `ui` | `COMPLETADO (IMPLEMENTED)` |
-| **SPEC-18** | Guía de Inicio Rápido y Documentación del Proyecto (README.md) | [`specs/18-project-documentation-and-deployment-guide.md`](file:///d:/Projects/RoadSafetyScan/specs/18-project-documentation-and-deployment-guide.md) | `docs` / `README.md` | `COMPLETADO (IMPLEMENTED)` |
-| **SPEC-19** | Límites Dinámicos de Zoom y Navegación Libre por el Perú | [`specs/19-dynamic-zoom-limits-and-free-peru-navigation.md`](file:///d:/Projects/RoadSafetyScan/specs/19-dynamic-zoom-limits-and-free-peru-navigation.md) | `ui/map-view` / `pkg/tracer` | `COMPLETADO (IMPLEMENTED)` |
+| ID | Módulo | Archivo de Especificación | Componente / Paquete | Conceptos Clave & Métricas | Estado |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **SPEC-01** | Ingesta & Indexación Espacial | [`specs/01-data-ingestion-indexing.md`](file:///d:/Projects/RoadSafetyScan/specs/01-data-ingestion-indexing.md) | `pkg/data` | Parseo GeoJSON, Bounding Boxes, R-Tree | `STANDBY` (Mocked) |
+| **SPEC-02** | Trazo Geométrico & Alineamiento | [`specs/02-geometric-trace-alignment.md`](file:///d:/Projects/RoadSafetyScan/specs/02-geometric-trace-alignment.md) | `pkg/tracer` | Cadenamiento Geodésico, Interpolación WGS84 | `IMPLEMENTED` (100% Tests Pass) |
+| **SPEC-03** | Motor LRS, Buffer, EPDO & Densidad | [`specs/03-lrs-projection-engine.md`](file:///d:/Projects/RoadSafetyScan/specs/03-lrs-projection-engine.md) | `pkg/lrs` | **Índice EPDO (MTC)**, **Densidad por km**, Proyección Ortogonal, Buffer | `IMPLEMENTED` (100% Tests Pass) |
+| **SPEC-04** | Perfilador Cartesiano Separado (Legacy) | [`specs/04-reactive-visualization-profiler.md`](file:///d:/Projects/RoadSafetyScan/specs/04-reactive-visualization-profiler.md) | `pkg/viz` | Gráfico X-Y inferior tradicional | `SUPERSEDED` por SPEC-06 |
+| **SPEC-05** | Exportación & Interoperabilidad | [`specs/05-export-interoperability.md`](file:///d:/Projects/RoadSafetyScan/specs/05-export-interoperability.md) | `pkg/export` | CSV con **`indice_epdo`** y **`densidad_por_km`**, GeoJSON LRS | `IMPLEMENTED` (100% Tests Pass) |
+| **SPEC-06** | Perfil Curvilíneo Paralelo ("Profiles along a line") | [`specs/06-curvilinear-profile-along-line.md`](file:///d:/Projects/RoadSafetyScan/specs/06-curvilinear-profile-along-line.md) | `pkg/viz` / `pkg/curvilinear` | **VisQuill A1 Collision Density**, Extrusión Normal, Isolíneas | `IMPLEMENTED` (100% Tests Pass) |
+| **SPEC-07** | Diagnóstico de Capas Cartográficas | [`specs/07-map-layer-rendering-diagnostics.md`](file:///d:/Projects/RoadSafetyScan/specs/07-map-layer-rendering-diagnostics.md) | `pkg/viz` | Renderizado Robusto MapLibre GL | `IMPLEMENTED` |
+| **SPEC-08** | Visibilidad Dinámica de Puntos por Zoom | [`specs/08-crash-points-zoom-visibility.md`](file:///d:/Projects/RoadSafetyScan/specs/08-crash-points-zoom-visibility.md) | `pkg/viz` | Umbral de visibilidad de clusters vs puntos | `IMPLEMENTED` |
+| **SPEC-09** | Límites de Zoom & Autoescala | [`specs/09-zoom-limits-and-autoscale.md`](file:///d:/Projects/RoadSafetyScan/specs/09-zoom-limits-and-autoscale.md) | `pkg/viz` | Autoescala vertical de histogramas | `IMPLEMENTED` |
+| **SPEC-10** | Filtro Temporal Circular Horario | [`specs/10-circular-time-range-clock.md`](file:///d:/Projects/RoadSafetyScan/specs/10-circular-time-range-clock.md) | `ui` | Reloj circular 24h interactivo | `IMPLEMENTED` |
+| **SPEC-11** | Puntero Interactivo Bidireccional | [`specs/11-interactive-chainage-pointer.md`](file:///d:/Projects/RoadSafetyScan/specs/11-interactive-chainage-pointer.md) | `ui` / `pkg/curvilinear` | Cursillete Eje $\leftrightarrow$ Perfil Longitudinal | `IMPLEMENTED` |
+| **SPEC-12** | Asa Interactiva de Escala de Barras | [`specs/12-interactive-scale-handle.md`](file:///d:/Projects/RoadSafetyScan/specs/12-interactive-scale-handle.md) | `ui` / `pkg/curvilinear` | Escalado dinámico en mapa | `IMPLEMENTED` |
+| **SPEC-13** | Filtro Temporal Multianual | [`specs/13-annual-temporal-filter.md`](file:///d:/Projects/RoadSafetyScan/specs/13-annual-temporal-filter.md) | `ui` / `pkg/data` | Selección múltiple de años 2021-2025 | `IMPLEMENTED` |
+| **SPEC-14** | BBDD ONSV, Vehículos, Personas & EPDO | [`specs/14-database-integration-and-severity-profiling.md`](file:///d:/Projects/RoadSafetyScan/specs/14-database-integration-and-severity-profiling.md) | `pkg/data` / `pkg/lrs` / `ui` | SQLite3 ONSV, Dimensiones (Siniestros, Vehículos, Personas, **EPDO**), Hotspot | `IMPLEMENTED` (100% Tests Pass) |
+| **SPEC-15** | Herramienta de Trazo, GTFS & Rutas Activas | [`specs/15-interactive-trace-drawing-and-gtfs-storage.md`](file:///d:/Projects/RoadSafetyScan/specs/15-interactive-trace-drawing-and-gtfs-storage.md) | `pkg/tracer` / `pkg/export` / `ui` | Trazo en mapa, Exportación GTFS `routes.txt`/`shapes.txt`, selector de rutas | `IMPLEMENTED` (100% Tests Pass) |
+| **SPEC-16** | Pulido Visual, Contraste Accesible & Temas | [`specs/16-ui-polishing-accessibility-and-theme-harmonization.md`](file:///d:/Projects/RoadSafetyScan/specs/16-ui-polishing-accessibility-and-theme-harmonization.md) | `ui` / `styles` / `theme` | WCAG 2.1 AA, Contraste en Modo Claro / Oscuro | `IMPLEMENTED` (100% Tests Pass) |
+| **SPEC-17** | Barras Curvilíneas Apiladas por Gravedad | [`specs/17-map-curvilinear-stacked-persons-by-severity.md`](file:///d:/Projects/RoadSafetyScan/specs/17-map-curvilinear-stacked-persons-by-severity.md) | `pkg/curvilinear` / `ui` | Barras apiladas (Fallecido, Lesionado, No se conoce, Ileso) | `IMPLEMENTED` (100% Tests Pass) |
+| **SPEC-18** | Guía de Inicio Rápido & Documentación | [`specs/18-project-documentation-and-deployment-guide.md`](file:///d:/Projects/RoadSafetyScan/specs/18-project-documentation-and-deployment-guide.md) | `docs` / `README.md` | Guía de instalación, BBDD ONSV MTC, Paso a Paso | `IMPLEMENTED` (100% Tests Pass) |
+| **SPEC-19** | Límites Dinámicos de Zoom & Navegación Perú | [`specs/19-dynamic-zoom-limits-and-free-peru-navigation.md`](file:///d:/Projects/RoadSafetyScan/specs/19-dynamic-zoom-limits-and-free-peru-navigation.md) | `ui/map-view` / `pkg/tracer` | Zoom mínimo dinámico (Zoom 4 libre sin ruta activa) | `IMPLEMENTED` (100% Tests Pass) |
 
 ---
 
-## 3. Matriz de Trazabilidad (Constitución $\rightarrow$ Especificación)
+## 3. Fundamentos Matemáticos: EPDO y Densidad de Siniestros
+
+### 3.1 EPDO (Equivalent Property Damage Only - Índice de Severidad Ponderada)
+El cálculo del índice EPDO pondera la gravedad humana y material de cada tramo homogéneo ($\Delta S = 100\text{ m}$) siguiendo la metodología de Auditoría de Seguridad Vial del MTC (Perú):
+
+$$\text{EPDO}_k = w_F \cdot N_{\text{Fatal}, k} + w_G \cdot N_{\text{Grave}, k} + w_L \cdot N_{\text{Leve}, k} + w_D \cdot N_{\text{Solo Daños}, k}$$
+
+- **Pesos normativos calibrados:**
+  - $w_F = 9.5$ (Fallecido)
+  - $w_G = 3.5$ (Lesiones Graves)
+  - $w_L = 1.0$ (Lesiones Leves)
+  - $w_D = 1.0$ (Solo Daños Materiales)
+- **Especificado en:** [`specs/03-lrs-projection-engine.md`](file:///d:/Projects/RoadSafetyScan/specs/03-lrs-projection-engine.md) (Sección 6.1) y [`specs/14-database-integration-and-severity-profiling.md`](file:///d:/Projects/RoadSafetyScan/specs/14-database-integration-and-severity-profiling.md) (Dimensión analítica y Punto Crítico Hotspot).
+- **Implementado en:** [`src/pkg/lrs/aggregator.ts`](file:///d:/Projects/RoadSafetyScan/src/pkg/lrs/aggregator.ts) (`calculateEpdoScore`), [`src/ui/sidebar.ts`](file:///d:/Projects/RoadSafetyScan/src/ui/sidebar.ts) y reportes CSV/GeoJSON en [`src/pkg/export/`](file:///d:/Projects/RoadSafetyScan/src/pkg/export/).
+
+### 3.2 Densidad de Siniestros (Collision Density / Tasa Lineal por Kilómetro)
+La densidad normaliza la siniestralidad respecto a la longitud física del segmento vial, permitiendo comparar tramos de diferentes longitudes o segmentaciones:
+
+$$\text{Densidad}_k = \frac{N_{\text{Siniestros}, k}}{L_{\text{bin}} \text{ (km)}} = \frac{N_{\text{Siniestros}, k}}{\Delta S / 1000}$$
+
+- Para un intervalo estándar de discretización $\Delta S = 100\text{ m} = 0.1\text{ km}$, 3 siniestros representan una densidad de:
+  $$\text{Densidad} = \frac{3}{0.1} = 30.0\text{ siniestros/km}$$
+- **Paradigma Visual:** Constituye el núcleo del modelo **VisQuill A1 Collision Density ("Profiles along a line")**, donde las isolíneas concéntricas de escala y la altura de las barras curvilíneas reflejan la concentración espacial de eventos a lo largo de la carretera.
+- **Especificado en:** [`specs/03-lrs-projection-engine.md`](file:///d:/Projects/RoadSafetyScan/specs/03-lrs-projection-engine.md) (Sección 2) y [`specs/06-curvilinear-profile-along-line.md`](file:///d:/Projects/RoadSafetyScan/specs/06-curvilinear-profile-along-line.md).
+- **Implementado en:** [`src/pkg/lrs/aggregator.ts`](file:///d:/Projects/RoadSafetyScan/src/pkg/lrs/aggregator.ts) (`bin.densityPerKm`), [`src/pkg/curvilinear/curvilinear-builder.ts`](file:///d:/Projects/RoadSafetyScan/src/pkg/curvilinear/curvilinear-builder.ts) y [`src/pkg/export/csv.ts`](file:///d:/Projects/RoadSafetyScan/src/pkg/export/csv.ts) (`densidad_por_km`).
+
+---
+
+## 4. Matriz de Trazabilidad (Constitución $\rightarrow$ Especificación)
 
 | Sección de la Constitución | Principio / Alcance | Especificación Relacionada |
 | :--- | :--- | :--- |
 | **Principle 1** | Gobernanza Spec-First | [`specs/README.md`](file:///d:/Projects/RoadSafetyScan/specs/README.md) (Normativa y Plantilla) |
-| **Principle 2 & Module 1** | Procesamiento Client-Side & Ingesta | [`specs/01-data-ingestion-indexing.md`](file:///d:/Projects/RoadSafetyScan/specs/01-data-ingestion-indexing.md) |
-| **Module 2** | Trazo, Importación y Cadenamiento | [`specs/02-geometric-trace-alignment.md`](file:///d:/Projects/RoadSafetyScan/specs/02-geometric-trace-alignment.md) |
-| **Principle 3 & Module 3** | Proyección LRS, Buffer y Agregación | [`specs/03-lrs-projection-engine.md`](file:///d:/Projects/RoadSafetyScan/specs/03-lrs-projection-engine.md) |
-| **Principle 4 & Module 4** | Perfil Curvilíneo en Mapa ("Profiles along a line") | [`specs/06-curvilinear-profile-along-line.md`](file:///d:/Projects/RoadSafetyScan/specs/06-curvilinear-profile-along-line.md) |
-| **Principle 5 & Module 5** | Formatos Abiertos y Exportación | [`specs/05-export-interoperability.md`](file:///d:/Projects/RoadSafetyScan/specs/05-export-interoperability.md) |
+| **Principle 2 & Module 1** | Procesamiento Client-Side & Ingesta | [`specs/01-data-ingestion-indexing.md`](file:///d:/Projects/RoadSafetyScan/specs/01-data-ingestion-indexing.md), [`specs/14-database-integration-and-severity-profiling.md`](file:///d:/Projects/RoadSafetyScan/specs/14-database-integration-and-severity-profiling.md) |
+| **Module 2** | Trazo, Importación, Dibujo y Cadenamiento | [`specs/02-geometric-trace-alignment.md`](file:///d:/Projects/RoadSafetyScan/specs/02-geometric-trace-alignment.md), [`specs/15-interactive-trace-drawing-and-gtfs-storage.md`](file:///d:/Projects/RoadSafetyScan/specs/15-interactive-trace-drawing-and-gtfs-storage.md) |
+| **Principle 3 & Module 3** | Proyección LRS, Buffer, EPDO y Densidad | [`specs/03-lrs-projection-engine.md`](file:///d:/Projects/RoadSafetyScan/specs/03-lrs-projection-engine.md), [`specs/14-database-integration-and-severity-profiling.md`](file:///d:/Projects/RoadSafetyScan/specs/14-database-integration-and-severity-profiling.md) |
+| **Principle 4 & Module 4** | Perfil Curvilíneo en Mapa ("Profiles along a line") | [`specs/06-curvilinear-profile-along-line.md`](file:///d:/Projects/RoadSafetyScan/specs/06-curvilinear-profile-along-line.md), [`specs/17-map-curvilinear-stacked-persons-by-severity.md`](file:///d:/Projects/RoadSafetyScan/specs/17-map-curvilinear-stacked-persons-by-severity.md) |
+| **Principle 5 & Module 5** | Formatos Abiertos y Exportación (CSV, GeoJSON, GTFS) | [`specs/05-export-interoperability.md`](file:///d:/Projects/RoadSafetyScan/specs/05-export-interoperability.md), [`specs/15-interactive-trace-drawing-and-gtfs-storage.md`](file:///d:/Projects/RoadSafetyScan/specs/15-interactive-trace-drawing-and-gtfs-storage.md) |
 
 ---
 
-## 4. Ciclo de Vida de una Especificación (Spec Lifecycle)
+## 5. Ciclo de Vida de una Especificación (Spec Lifecycle)
 
 ```mermaid
 stateDiagram-v2
@@ -57,7 +94,7 @@ stateDiagram-v2
 
 1. **DRAFT:** Borrador técnico en elaboración.
 2. **IN_REVIEW:** Listo para revisión por el auditor/usuario líder.
-3. **REVISED:** Ajustado con observaciones o requisitos complementarios.
+3. **REVISED:** Ajustado con observaciones o recomendaciones complementarias.
 4. **APPROVED:** Aprobado formalmente; no se admiten cambios estructurales sin RFC.
 5. **FROZEN:** Congelado. Se habilita la fase de codificación TDD (Test-Driven Development).
 6. **IMPLEMENTED:** Todos los criterios de aceptación y tests sintéticos son verificados exitosamente.
