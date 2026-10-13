@@ -13,7 +13,8 @@ import {
   SelectionState,
   VizEvent,
   VizSubscriber,
-  MetricMode
+  MetricMode,
+  TimeRange
 } from './types.js';
 
 export const DEFAULT_FILTERS: FilterState = {
@@ -31,7 +32,8 @@ export const DEFAULT_FILTERS: FilterState = {
     CrashType.CAIDA_PASAJERO,
     CrashType.INCENDIO,
     CrashType.OTRO
-  ]
+  ],
+  timeRange: null
 };
 
 export const DEFAULT_VIZ_CONFIG: VizConfig = {
@@ -122,6 +124,10 @@ export class VizStore {
     this.emit({ type: 'FILTERS_UPDATED', payload: this.state.filters, timestamp: performance.now() });
   }
 
+  public setTimeRange(timeRange: TimeRange | null): void {
+    this.updateFilters({ timeRange });
+  }
+
   public hoverBin(binIndex: number | null): void {
     this.state.selection.hoveredBinIndex = binIndex;
 
@@ -206,7 +212,7 @@ export class VizStore {
   }
 
   private recomputeFilteredCrashes(): void {
-    const { severities, types, startYear, endYear } = this.state.filters;
+    const { severities, types, startYear, endYear, timeRange } = this.state.filters;
     const sevSet = new Set(severities);
     const typeSet = new Set(types);
 
@@ -216,6 +222,18 @@ export class VizStore {
       if (crash.year !== undefined) {
         if (startYear !== undefined && crash.year < startYear) return false;
         if (endYear !== undefined && crash.year > endYear) return false;
+      }
+      if (timeRange && crash.timestamp) {
+        const d = new Date(crash.timestamp);
+        // Usar hora local o UTC de forma consistente (UTC dado formato ISO)
+        const crashMinutes = d.getUTCHours() * 60 + d.getUTCMinutes();
+        const { startMinute, endMinute } = timeRange;
+        if (startMinute <= endMinute) {
+          if (crashMinutes < startMinute || crashMinutes > endMinute) return false;
+        } else {
+          // Ventana que cruza la medianoche (ej. 23:21 a 18:00)
+          if (crashMinutes < startMinute && crashMinutes > endMinute) return false;
+        }
       }
       return true;
     });

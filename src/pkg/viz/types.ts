@@ -22,11 +22,17 @@ export const BUFFER_FILL_COLOR = '#0284C7'; // Azul cielo translúcido
 
 export type MetricMode = 'COUNT' | 'EPDO' | 'DENSITY_KM';
 
+export interface TimeRange {
+  startMinute: number; // 0 a 1439 minutos desde 00:00
+  endMinute: number;   // 0 a 1439 minutos desde 00:00
+}
+
 export interface FilterState {
   severities: SeverityLevel[];
   types: CrashType[];
   startYear?: number;
   endYear?: number;
+  timeRange?: TimeRange | null;
 }
 
 export interface SelectionState {

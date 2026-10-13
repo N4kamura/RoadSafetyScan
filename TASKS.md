@@ -17,6 +17,7 @@ Este documento gestiona la ejecución técnica del proyecto bajo **Spec-Driven D
 | **Fase 6: Diagnóstico & Render Cartográfico** | [`specs/07-map-layer-rendering-diagnostics.md`](file:///d:/Projects/RoadSafetyScan/specs/07-map-layer-rendering-diagnostics.md) | `COMPLETADO (IMPLEMENTED)` | 100% (Renderizado de trazo, puntos y perfil) |
 | **Fase 7: Puntos según Zoom (SPEC-08)** | [`specs/08-crash-points-zoom-visibility.md`](file:///d:/Projects/RoadSafetyScan/specs/08-crash-points-zoom-visibility.md) | `COMPLETADO (IMPLEMENTED)` | 100% (minzoom 13.5 en puntos de accidentes) |
 | **Fase 8: Auto-Escalado y Límites de Zoom (SPEC-09)** | [`specs/09-zoom-limits-and-autoscale.md`](file:///d:/Projects/RoadSafetyScan/specs/09-zoom-limits-and-autoscale.md) | `COMPLETADO (IMPLEMENTED)` | 100% (minZoom 10.5 y escala adaptativa) |
+| **Fase 9: Reloj Dinámico Circular (SPEC-10)** | [`specs/10-circular-time-range-clock.md`](file:///d:/Projects/RoadSafetyScan/specs/10-circular-time-range-clock.md) | `COMPLETADO (IMPLEMENTED)` | 100% (Reloj circular dinámico y filtro temporal) |
 
 ---
 
@@ -127,3 +128,15 @@ Este documento gestiona la ejecución técnica del proyecto bajo **Spec-Driven D
 - [x] **TASK-9.1.3:** Conectar reactividad por evento de zoom en `MapViewController`.
 - [x] **TASK-9.2.1:** Extender tests unitarios en `tests/unit/curvilinear/curvilinear.test.ts`.
 - [x] **TASK-9.2.2:** Validar con `npm test` y compilación con Vite.
+
+---
+
+## Fase 9: SPEC-10 — Reloj Dinámico Circular de Rango Horario (`pkg/viz` & `ui/time-clock`) [COMPLETADO]
+- [x] **TASK-10.1.1:** Actualizar `FilterState` en `src/pkg/viz/types.ts` con `timeRange`.
+- [x] **TASK-10.1.2:** Actualizar filtrado temporal en `src/pkg/viz/store.ts` y añadir método `setTimeRange`.
+- [x] **TASK-10.2.1:** Implementar componente `CircularTimeClockController` en `src/ui/time-clock.ts`.
+- [x] **TASK-10.2.2:** Integrar `#time-clock-container` en `index.html` y reubicar la leyenda.
+- [x] **TASK-10.2.3:** Añadir estilos CSS en `src/ui/styles.css`.
+- [x] **TASK-10.2.4:** Instanciar reloj en `src/main.ts`.
+- [x] **TASK-10.3.1:** Crear suite de pruebas unitarias en `tests/unit/viz/time-clock-filter.test.ts`.
+- [x] **TASK-10.3.2:** Validar con `npm test` y compilación con Vite.

@@ -379,8 +379,8 @@ input[type="range"] {
 /* Map Floating Legend - Bottom Left */
 .map-floating-overlay {
   position: absolute;
-  bottom: 1.25rem;
-  left: 1rem;
+  top: 1rem;
+  right: 1rem;
   background-color: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(8px);
   padding: 0.6rem 0.85rem;
@@ -399,6 +399,101 @@ input[type="range"] {
   display: flex;
   align-items: center;
   gap: 0.45rem;
+}
+
+/* Reloj Dinámico Circular de Rango Horario (SPEC-10) */
+.map-time-clock-overlay {
+  position: absolute;
+  bottom: 1.25rem;
+  left: 1rem;
+  z-index: 15;
+  user-select: none;
+}
+
+.time-clock-card {
+  position: relative;
+  width: 176px;
+  height: 176px;
+  border-radius: 50%;
+  background: #EBF2FE;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.22), inset 0 0 0 2px #FFFFFF;
+  border: 3px solid #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.time-clock-card:active {
+  cursor: grabbing;
+}
+
+.time-clock-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: auto;
+  border-radius: 50%;
+}
+
+.time-clock-handle {
+  cursor: pointer;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+  transition: r 0.15s ease;
+}
+
+.time-clock-handle:hover {
+  r: 11;
+}
+
+.time-clock-center-content {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  font-family: 'JetBrains Mono', monospace, -apple-system, sans-serif;
+  text-align: center;
+}
+
+.time-clock-time-val {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #1E293B;
+  line-height: 1.15;
+  letter-spacing: -0.5px;
+}
+
+.time-clock-label-to {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #64748B;
+  margin: 1px 0;
+}
+
+.time-clock-btn-reset {
+  pointer-events: auto;
+  margin-top: 4px;
+  background: #1E293B;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 12px;
+  font-size: 0.6rem;
+  font-weight: 600;
+  padding: 2px 7px;
+  cursor: pointer;
+  opacity: 0.75;
+  transition: opacity 0.15s ease, transform 0.1s ease;
+}
+
+.time-clock-btn-reset:hover {
+  opacity: 1;
+  transform: scale(1.05);
 }
 
 /* Map Attribution & Advice Badge */

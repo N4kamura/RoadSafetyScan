@@ -11,6 +11,7 @@ import { VizStore } from './pkg/viz/store.js';
 import { MapViewController } from './ui/map-view.js';
 import { LongitudinalProfileView } from './ui/profile-view.js';
 import { SidebarController } from './ui/sidebar.js';
+import { CircularTimeClockController } from './ui/time-clock.js';
 import { CrashPoint } from './pkg/lrs/types.js';
 
 // Cargar datos simulados del corredor Panamericana Sur
@@ -38,6 +39,7 @@ function initApp() {
   // 4. Inicializar Controladores de la Interfaz
   const mapController = new MapViewController('map-container', store);
   const sidebarController = new SidebarController(store);
+  const timeClockController = new CircularTimeClockController('time-clock-container', store);
 
   const profileContainer = document.getElementById('visquill-longitudinal-profile');
   if (profileContainer) {
