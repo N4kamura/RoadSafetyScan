@@ -398,8 +398,9 @@ export class MapViewController {
       this.store.selectBin(props.binIndex);
     });
 
-    // 2. Hover sobre siniestros individuales en el mapa (Puntos)
+    // 2. Hover sobre siniestros individuales en el mapa (Puntos - visibles en zoom >= 13.5 SPEC-08)
     this.map.on('mouseenter', 'layer-crashes-points', (e) => {
+      if (this.map.getZoom() < 13.5) return;
       this.map.getCanvas().style.cursor = 'pointer';
 
       if (!e.features || e.features.length === 0) return;
@@ -432,6 +433,7 @@ export class MapViewController {
     });
 
     this.map.on('click', 'layer-crashes-points', (e) => {
+      if (this.map.getZoom() < 13.5) return;
       if (!e.features || e.features.length === 0) return;
       const feature = e.features[0];
       const props = feature.properties as any;

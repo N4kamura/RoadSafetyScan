@@ -15,6 +15,7 @@ Este documento gestiona la ejecución técnica del proyecto bajo **Spec-Driven D
 | **Fase 4: Visualización Cartesiana**| [`specs/04-reactive-visualization-profiler.md`](file:///d:/Projects/RoadSafetyScan/specs/04-reactive-visualization-profiler.md) | `SUPERSEDED` por Fase 5 | 100% |
 | **Fase 5: Perfil Curvilíneo en Mapa** | [`specs/06-curvilinear-profile-along-line.md`](file:///d:/Projects/RoadSafetyScan/specs/06-curvilinear-profile-along-line.md) | `COMPLETADO (IMPLEMENTED)` | 100% (Profiles along a line - VisQuill A1) |
 | **Fase 6: Diagnóstico & Render Cartográfico** | [`specs/07-map-layer-rendering-diagnostics.md`](file:///d:/Projects/RoadSafetyScan/specs/07-map-layer-rendering-diagnostics.md) | `COMPLETADO (IMPLEMENTED)` | 100% (Renderizado de trazo, puntos y perfil) |
+| **Fase 7: Puntos según Zoom (SPEC-08)** | [`specs/08-crash-points-zoom-visibility.md`](file:///d:/Projects/RoadSafetyScan/specs/08-crash-points-zoom-visibility.md) | `COMPLETADO (IMPLEMENTED)` | 100% (minzoom 13.5 en puntos de accidentes) |
 
 ---
 
@@ -108,4 +109,11 @@ Este documento gestiona la ejecución técnica del proyecto bajo **Spec-Driven D
 - [x] **TASK-7.3.2:** Validar con `npm test` y compilación de producción con Vite (`dist/`).
 - [x] **TASK-7.3.3:** Verificación e inspección automatizada en navegador headless (CDP) con captura visual de pantalla libre de errores.
 
+---
 
+## Fase 7: SPEC-08 — Visibilidad de Puntos de Accidentes según Zoom (`pkg/viz` & `ui/map-view`) [COMPLETADO]
+- [x] **TASK-8.1.1:** Configurar `minzoom: 13.5` para la capa `layer-crashes-points` en `src/pkg/viz/maplibre-adapter.ts`.
+- [x] **TASK-8.1.2:** Ajustar interacciones de hover/click de puntos en `src/ui/map-view.ts` para que solo se activen en zoom >= 13.5.
+- [x] **TASK-8.1.3:** Actualizar indicador de visibilidad de puntos en la leyenda en `index.html`.
+- [x] **TASK-8.2.1:** Extender tests unitarios en `tests/unit/viz/maplibre-render.test.ts`.
+- [x] **TASK-8.2.2:** Validar con `npm test` y compilación de producción con Vite.

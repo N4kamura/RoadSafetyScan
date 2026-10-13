@@ -23,6 +23,12 @@ export interface MapLibreLayerSpec {
   source: string;
   paint: Record<string, any>;
   layout?: Record<string, any>;
+  minzoom?: number;
+  maxzoom?: number;
+}
+
+export interface MapLibreAdapterOptions {
+  crashPointsMinZoom?: number;
 }
 
 /**
@@ -32,7 +38,8 @@ export interface MapLibreLayerSpec {
 export function buildMapLibreConfig(
   alignment: Alignment,
   results: LrsAnalysisResult,
-  highlightedRange: [number, number] | null = null
+  highlightedRange: [number, number] | null = null,
+  options?: MapLibreAdapterOptions
 ): {
   sources: MapLibreGeoJsonSource[];
   layers: MapLibreLayerSpec[];
@@ -151,11 +158,12 @@ export function buildMapLibreConfig(
         'line-opacity': highlightCoords.length >= 2 ? 0.95 : 0.0
       }
     },
-    // 4. Capa de Puntos de Siniestros (Círculos nítidos de 7px con borde blanco)
+    // 4. Capa de Puntos de Siniestros (Círculos nítidos de 7px con borde blanco, visibles en zoom cercano - SPEC-08)
     {
       id: 'layer-crashes-points',
       type: 'circle',
       source: 'source-crashes',
+      minzoom: options?.crashPointsMinZoom ?? 13.5,
       paint: {
         'circle-radius': 7,
         'circle-color': ['get', 'pointColor'],

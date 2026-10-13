@@ -101,4 +101,20 @@ describe('MapLibre Render Pipeline & Diagnostics (pkg/viz) - SPEC-07 Compliance'
     expect(curvBundle.layers.some((l) => l.id === 'layer-curvilinear-baseline')).toBe(true);
     expect(curvBundle.layers.some((l) => l.id === 'layer-curvilinear-isolines')).toBe(true);
   });
+
+  it('debe cumplir con SPEC-08: Visibilidad de Puntos de Accidentes según Zoom (minzoom >= 13.5)', () => {
+    const results = analyzeLrs(alignment, crashes);
+
+    // Por defecto, minzoom debe ser 13.5
+    const defaultConfig = buildMapLibreConfig(alignment, results);
+    const defaultLayer = defaultConfig.layers.find((l) => l.id === 'layer-crashes-points');
+    expect(defaultLayer).toBeDefined();
+    expect(defaultLayer?.minzoom).toBe(13.5);
+
+    // Personalizado mediante opciones
+    const customConfig = buildMapLibreConfig(alignment, results, null, { crashPointsMinZoom: 14.0 });
+    const customLayer = customConfig.layers.find((l) => l.id === 'layer-crashes-points');
+    expect(customLayer).toBeDefined();
+    expect(customLayer?.minzoom).toBe(14.0);
+  });
 });
