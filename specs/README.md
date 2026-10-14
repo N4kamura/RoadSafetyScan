@@ -42,6 +42,7 @@ Bajo este marco metodológico:
 | **SPEC-24** | Mapeo por Longitud de Arco & Barras Inalteradas | [`specs/24-visquill-arc-length-baseline-mapping-and-distortionless-bars.md`](file:///d:/Projects/RoadSafetyScan/specs/24-visquill-arc-length-baseline-mapping-and-distortionless-bars.md) | `pkg/curvilinear` / `ui/map-view` | Mapeo por Desplazamiento VisQuill, Anclaje en Baseline, Supresión de Cero | `IMPLEMENTED` (100% Tests Pass) |
 | **SPEC-25** | Segmentación Fija a 100m & Ancho Uniforme | [`specs/25-fixed-100m-segmentation-and-uniform-bar-widths.md`](file:///d:/Projects/RoadSafetyScan/specs/25-fixed-100m-segmentation-and-uniform-bar-widths.md) | `pkg/curvilinear` / `ui/map-view` | Bins de 100m Constantes, Ancho Uniforme, Tramos Vacíos | `IMPLEMENTED` (100% Tests Pass) |
 | **SPEC-26** | Constreñimiento 1D del Puntero en Línea Base | [`specs/26-1d-baseline-constrained-pointer-slider.md`](file:///d:/Projects/RoadSafetyScan/specs/26-1d-baseline-constrained-pointer-slider.md) | `pkg/curvilinear` / `ui/map-view` | Puntero Riel 1D, Anclado a Línea Base Offset, Sin Despegue | `IMPLEMENTED` (100% Tests Pass) |
+| **SPEC-27** | Mapeo Local Estacionado & Desviación Acotada | [`specs/27-local-station-coordinated-baseline-mapping.md`](file:///d:/Projects/RoadSafetyScan/specs/27-local-station-coordinated-baseline-mapping.md) | `pkg/curvilinear` / `ui/map-view` | Vínculo Local $s \mapsto B(s)$, Desviación $\le 25\text{m}$, Conector Ortogonal | `IMPLEMENTED` (100% Tests Pass) |
 
 ---
 

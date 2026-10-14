@@ -106,6 +106,69 @@ export function untanglePolyline(
 }
 
 /**
+ * Desenreda una polilínea y mantiene la correspondencia 1 a 1 de las progresivas viales asociadas (SPEC-27).
+ *
+ * @param coordinates Coordenadas [lon, lat]
+ * @param stations Progresivas métricas de carretera correspondientes a cada coordenada
+ * @param maxIterations Límite de iteraciones
+ */
+export function untanglePolylineWithStations(
+  coordinates: [number, number][],
+  stations: number[],
+  maxIterations: number = 25
+): { coordinates: [number, number][]; stations: number[] } {
+  if (coordinates.length < 4 || stations.length !== coordinates.length) {
+    return { coordinates: coordinates.slice(), stations: stations.slice() };
+  }
+
+  let pts = coordinates.slice();
+  let sts = stations.slice();
+  let iteration = 0;
+  let hasIntersection = true;
+
+  while (hasIntersection && iteration < maxIterations) {
+    hasIntersection = false;
+    iteration++;
+
+    const n = pts.length;
+    let loopFound = false;
+
+    for (let i = 0; i < n - 2 && !loopFound; i++) {
+      for (let j = i + 2; j < n - 1 && !loopFound; j++) {
+        if (j === i + 1) continue;
+
+        const inter = findSegmentIntersection(pts[i], pts[i + 1], pts[j], pts[j + 1]);
+        if (inter) {
+          const newPts: [number, number][] = [];
+          const newSts: number[] = [];
+
+          for (let k = 0; k <= i; k++) {
+            newPts.push(pts[k]);
+            newSts.push(sts[k]);
+          }
+
+          // Punto de intersección desenredado con progresiva interpolada
+          newPts.push(inter);
+          newSts.push((sts[i] + sts[j + 1]) / 2);
+
+          for (let k = j + 1; k < n; k++) {
+            newPts.push(pts[k]);
+            newSts.push(sts[k]);
+          }
+
+          pts = newPts;
+          sts = newSts;
+          hasIntersection = true;
+          loopFound = true;
+        }
+      }
+    }
+  }
+
+  return { coordinates: pts, stations: sts };
+}
+
+/**
  * Aplica un filtro de suavizado gaussiano/laplaciano espacial sobre una secuencia
  * de coordenadas, preservando intactos los puntos extremos inicial y final.
  *

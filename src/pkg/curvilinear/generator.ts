@@ -13,6 +13,7 @@ import {
 } from './normals.js';
 import {
   untanglePolyline,
+  untanglePolylineWithStations,
   smoothCoordinates
 } from './anti-knot.js';
 import {
@@ -36,29 +37,41 @@ export const DEFAULT_CURVILINEAR_OPTIONS: CurvilinearProfileOptions = {
 };
 
 /**
- * Representación parametrizada por longitud de arco de la línea base regularizada (SPEC-24)
+ * Representación parametrizada de la línea base regularizada (SPEC-24, SPEC-27)
  */
 export interface BaselineArcLengthProfile {
   coordinates: [number, number][];
+  stations?: number[];           // Progresivas viales vinculadas a cada vértice (SPEC-27)
   cumulativeDistances: number[]; // metros acumulados desde 0 hasta totalLength
   totalLength: number;
   normals: UnitVector2D[];       // Vectores normales unitarios orientados hacia el exterior
 }
 
 /**
- * Construye el perfil de longitud de arco y normales continuas de la línea base (SPEC-24)
- * a partir de las coordenadas desplazadas brutas.
+ * Construye el perfil de la línea base regularizada (SPEC-24, SPEC-27)
+ * a partir de las coordenadas desplazadas brutas y sus progresivas viales correspondientes.
  *
  * @param rawCoordinates Polilínea de offset bruta
  * @param side Lado del perfil ('RIGHT' o 'LEFT')
+ * @param inputStations Progresivas viales asociadas a cada coordenada (SPEC-27)
  */
 export function buildBaselineArcLengthProfile(
   rawCoordinates: [number, number][],
-  side: 'LEFT' | 'RIGHT' = 'RIGHT'
+  side: 'LEFT' | 'RIGHT' = 'RIGHT',
+  inputStations?: number[]
 ): BaselineArcLengthProfile {
-  // 1. Desenredo de lazos y suavizado gaussiano (SPEC-20)
-  const untangled = untanglePolyline(rawCoordinates);
-  const smoothed = smoothCoordinates(untangled, 5, 2);
+  // 1. Desenredo de lazos y suavizado gaussiano (SPEC-20, SPEC-27)
+  let smoothed: [number, number][];
+  let stations: number[] | undefined = undefined;
+
+  if (inputStations && inputStations.length === rawCoordinates.length) {
+    const untangled = untanglePolylineWithStations(rawCoordinates, inputStations);
+    smoothed = smoothCoordinates(untangled.coordinates, 5, 2);
+    stations = untangled.stations;
+  } else {
+    const untangled = untanglePolyline(rawCoordinates);
+    smoothed = smoothCoordinates(untangled, 5, 2);
+  }
 
   if (smoothed.length === 0) {
     return {
@@ -130,9 +143,65 @@ export function buildBaselineArcLengthProfile(
 
   return {
     coordinates: smoothed,
+    stations,
     cumulativeDistances,
     totalLength,
     normals
+  };
+}
+
+/**
+ * Muestrea una posición exacta y vector normal sobre la línea base regularizada
+ * correspondiente a la progresiva vial s (SPEC-27: Mapeo Local Estacionado).
+ *
+ * Acota estrictamente la desviación respecto a la proyección ortogonal pura a <= 25 m,
+ * eliminando el desfase longitudinal acumulativo en curvas.
+ */
+export function sampleBaselineAtStation(
+  baseline: BaselineArcLengthProfile,
+  s: number
+): { coord: [number, number]; normal: UnitVector2D } {
+  const { coordinates, stations, normals } = baseline;
+  if (!coordinates || coordinates.length === 0) {
+    return { coord: [0, 0], normal: { x: 1, y: 0 } };
+  }
+  if (coordinates.length === 1 || !stations || stations.length < 2) {
+    return { coord: coordinates[0], normal: normals[0] || { x: 1, y: 0 } };
+  }
+
+  const sMin = stations[0];
+  const sMax = stations[stations.length - 1];
+  const clampedS = Math.max(sMin, Math.min(sMax, s));
+
+  for (let i = 0; i < stations.length - 1; i++) {
+    const sStart = stations[i];
+    const sEnd = stations[i + 1];
+
+    if (clampedS >= sStart && (clampedS <= sEnd || i === stations.length - 2)) {
+      const segSpan = sEnd - sStart;
+      const t = segSpan > 0 ? (clampedS - sStart) / segSpan : 0;
+      const p1 = coordinates[i];
+      const p2 = coordinates[i + 1];
+
+      const lon = Number((p1[0] + t * (p2[0] - p1[0])).toFixed(6));
+      const lat = Number((p1[1] + t * (p2[1] - p1[1])).toFixed(6));
+
+      const n1 = normals[i];
+      const n2 = normals[i + 1] || n1;
+      const nx = n1.x + t * (n2.x - n1.x);
+      const ny = n1.y + t * (n2.y - n1.y);
+      const len = Math.hypot(nx, ny) || 1;
+
+      return {
+        coord: [lon, lat],
+        normal: { x: nx / len, y: ny / len }
+      };
+    }
+  }
+
+  return {
+    coord: coordinates[coordinates.length - 1],
+    normal: normals[normals.length - 1]
   };
 }
 
@@ -332,8 +401,8 @@ export function generateCurvilinearProfile(
     return offsetCoordinate(coord, normal, baseOffsetMeters);
   });
 
-  // Construir el perfil parametrizado por longitud de arco de la línea base (SPEC-24)
-  const baselineProfile = buildBaselineArcLengthProfile(rawBaselineCoordinates, opts.side);
+  // Construir el perfil parametrizado de la línea base con vinculación local de progresivas (SPEC-24, SPEC-27)
+  const baselineProfile = buildBaselineArcLengthProfile(rawBaselineCoordinates, opts.side, uniqueStations);
   const baselineCoordinates = baselineProfile.coordinates;
   const LB = baselineProfile.totalLength;
 
@@ -347,7 +416,7 @@ export function generateCurvilinearProfile(
     };
   }
 
-  // 3. Generar Barras Poligonales Extruidas Ortogonalmente a la Línea Base (SPEC-24)
+  // 3. Generar Barras Poligonales Extruidas Ortogonalmente a la Línea Base (SPEC-24, SPEC-27)
   const bars: CurvilinearBarFeature[] = [];
 
   for (const bin of results.bins) {
@@ -365,12 +434,14 @@ export function generateCurvilinearProfile(
     const clampedEnd = Math.min(rangeEnd, sEnd);
     if (clampedEnd <= clampedStart) continue;
 
-    // Mapeo por longitud de arco: u(s) = ((s - rangeStart) / rangeLength) * LB (SPEC-24)
-    const uStart = ((clampedStart - rangeStart) / rangeLength) * LB;
-    const uEnd = ((clampedEnd - rangeStart) / rangeLength) * LB;
+    // SPEC-27: Mapeo local estacionado para eliminar desfase longitudinal acumulativo
+    const baseStart = baselineProfile.stations
+      ? sampleBaselineAtStation(baselineProfile, clampedStart)
+      : sampleBaselineAtArcLength(baselineProfile, ((clampedStart - rangeStart) / rangeLength) * LB);
 
-    const baseStart = sampleBaselineAtArcLength(baselineProfile, uStart);
-    const baseEnd = sampleBaselineAtArcLength(baselineProfile, uEnd);
+    const baseEnd = baselineProfile.stations
+      ? sampleBaselineAtStation(baselineProfile, clampedEnd)
+      : sampleBaselineAtArcLength(baselineProfile, ((clampedEnd - rangeStart) / rangeLength) * LB);
 
     const pStart = baseStart.coord;
     const pEnd = baseEnd.coord;
@@ -583,8 +654,9 @@ export function generateCurvilinearProfile(
     // Conectores transversales intermedios de la grilla (VisQuill radial grid)
     const gridTicks = [0.25, 0.5, 0.75];
     for (const frac of gridTicks) {
-      const uGrid = frac * LB;
-      const sampled = sampleBaselineAtArcLength(baselineProfile, uGrid);
+      const sampled = baselineProfile.stations
+        ? sampleBaselineAtStation(baselineProfile, rangeStart + frac * rangeLength)
+        : sampleBaselineAtArcLength(baselineProfile, frac * LB);
       connectorLines.push([
         sampled.coord,
         offsetCoordinate({ longitude: sampled.coord[0], latitude: sampled.coord[1] }, sampled.normal, maxExtrusionMeters)

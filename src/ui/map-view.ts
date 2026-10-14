@@ -605,10 +605,9 @@ export class MapViewController {
 
         let s: number;
         if (this.cachedBaselineProfile && this.cachedBaselineProfile.totalLength > 0) {
-          // SPEC-26: Proyectar cursor sobre la línea base para constreñimiento 1D estricto
-          const proj = projectPointToBaselineArcLength(this.cachedBaselineProfile, [lngLat.lng, lngLat.lat]);
-          const tau = proj.arcLengthMeters / this.cachedBaselineProfile.totalLength;
-          s = tau * currentState.alignment.totalLength;
+          // SPEC-26 & SPEC-27: Proyectar cursor sobre la línea base con mapeo local estacionado
+          const proj = projectPointToBaselineArcLength(this.cachedBaselineProfile, [lngLat.lng, lngLat.lat], currentState.alignment.totalLength);
+          s = proj.stationMeters ?? ((proj.arcLengthMeters / this.cachedBaselineProfile.totalLength) * currentState.alignment.totalLength);
         } else {
           s = projectPointToAlignmentChainage(currentState.alignment, [lngLat.lng, lngLat.lat]);
         }
@@ -1061,13 +1060,13 @@ export class MapViewController {
       this.updateCurvilinearOnly();
     });
 
-    // SPEC-26: Interacción al hacer clic en el trazo offset negro para mover el puntero
+    // SPEC-26 & SPEC-27: Interacción al hacer clic en el trazo offset negro para mover el puntero
     this.map.on('click', 'layer-curvilinear-baseline-line', (e) => {
       const currentState = this.store.getState();
       if (!currentState.alignment || !this.cachedBaselineProfile) return;
-      const proj = projectPointToBaselineArcLength(this.cachedBaselineProfile, [e.lngLat.lng, e.lngLat.lat]);
-      const tau = proj.arcLengthMeters / (this.cachedBaselineProfile.totalLength || 1);
-      this.currentPointerChainage = Math.max(0, Math.min(currentState.alignment.totalLength, tau * currentState.alignment.totalLength));
+      const proj = projectPointToBaselineArcLength(this.cachedBaselineProfile, [e.lngLat.lng, e.lngLat.lat], currentState.alignment.totalLength);
+      const s = proj.stationMeters ?? ((proj.arcLengthMeters / (this.cachedBaselineProfile.totalLength || 1)) * currentState.alignment.totalLength);
+      this.currentPointerChainage = Math.max(0, Math.min(currentState.alignment.totalLength, s));
       this.isPointerLineVisible = true;
       this.updatePointerVisuals();
     });

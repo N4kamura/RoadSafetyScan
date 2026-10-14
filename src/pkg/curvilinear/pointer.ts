@@ -9,7 +9,8 @@ import {
   interpolateAtStation,
   BaselineArcLengthProfile,
   buildBaselineArcLengthProfile,
-  sampleBaselineAtArcLength
+  sampleBaselineAtArcLength,
+  sampleBaselineAtStation
 } from './generator.js';
 import { formatStation, toRadians, EARTH_RADIUS_METERS } from '../tracer/geodesy.js';
 import { projectPointOnSegment } from '../lrs/projection.js';
@@ -61,9 +62,11 @@ export function computePointerGeometry(
       : baselineOrCoords;
 
     if (profile.coordinates.length >= 2 && profile.totalLength > 0) {
-      const tau = alignment.totalLength > 0 ? clampedS / alignment.totalLength : 0;
-      const u = tau * profile.totalLength;
-      const sampled = sampleBaselineAtArcLength(profile, u);
+      // SPEC-27: Si el perfil tiene estaciones locales vinculadas, usar mapeo local estacionado
+      const sampled = profile.stations && profile.stations.length >= 2
+        ? sampleBaselineAtStation(profile, clampedS)
+        : sampleBaselineAtArcLength(profile, (alignment.totalLength > 0 ? clampedS / alignment.totalLength : 0) * profile.totalLength);
+
       baselineCoord = sampled.coord;
       normalVector = sampled.normal;
       const angleRad = Math.atan2(normalVector.y, normalVector.x);
@@ -201,16 +204,19 @@ export function convertDragToHeightScale(
  */
 export function projectPointToBaselineArcLength(
   baseline: BaselineArcLengthProfile,
-  point: [number, number]
+  point: [number, number],
+  roadTotalLength?: number
 ): {
   arcLengthMeters: number;
+  stationMeters?: number;
   projectedCoord: [number, number];
   lateralDistanceMeters: number;
 } {
-  const { coordinates, cumulativeDistances, totalLength } = baseline;
+  const { coordinates, stations, cumulativeDistances, totalLength } = baseline;
   if (!coordinates || coordinates.length < 2 || totalLength <= 0) {
     return {
       arcLengthMeters: 0,
+      stationMeters: stations ? stations[0] : 0,
       projectedCoord: coordinates[0] || point,
       lateralDistanceMeters: 0
     };
@@ -218,6 +224,7 @@ export function projectPointToBaselineArcLength(
 
   let bestDist = Infinity;
   let bestArcLength = 0;
+  let bestStation: number | undefined = undefined;
   let bestCoord: [number, number] = coordinates[0];
 
   for (let i = 0; i < coordinates.length - 1; i++) {
@@ -254,14 +261,19 @@ export function projectPointToBaselineArcLength(
     if (dist < bestDist) {
       bestDist = dist;
       bestArcLength = u1 + t * segLen;
+      if (stations && stations.length > i + 1) {
+        bestStation = stations[i] + t * (stations[i + 1] - stations[i]);
+      }
       const projLon = Number((p1[0] + t * (p2[0] - p1[0])).toFixed(6));
       const projLat = Number((p1[1] + t * (p2[1] - p1[1])).toFixed(6));
       bestCoord = [projLon, projLat];
     }
   }
 
+  const finalArcLength = Math.max(0, Math.min(totalLength, bestArcLength));
   return {
-    arcLengthMeters: Math.max(0, Math.min(totalLength, bestArcLength)),
+    arcLengthMeters: finalArcLength,
+    stationMeters: bestStation ?? (roadTotalLength ? (finalArcLength / totalLength) * roadTotalLength : undefined),
     projectedCoord: bestCoord,
     lateralDistanceMeters: bestDist
   };
