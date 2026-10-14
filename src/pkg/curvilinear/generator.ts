@@ -279,6 +279,41 @@ export function computeZoomScaleFactor(
 }
 
 /**
+ * Calcula exactamente 4 marcas de escala concéntricas legibles para la grilla (SPEC-28).
+ * Siempre retorna un arreglo de 4 valores monótonos crecientes [S, 2S, 3S, 4S].
+ *
+ * @param maxVal Valor máximo registrado en los bins analizados
+ * @returns Tupla con exactamente 4 marcas de graduación regulares
+ */
+export function compute4ScaleTicks(maxVal: number): [number, number, number, number] {
+  if (maxVal <= 0) {
+    return [10, 20, 30, 40];
+  }
+
+  // Se necesita un paso S tal que 4 * S >= maxVal
+  const rawStep = maxVal / 4;
+  const p = Math.floor(Math.log10(rawStep));
+  const base = Math.pow(10, p);
+  const f = rawStep / base;
+
+  let factor = 1;
+  if (f <= 1) factor = 1;
+  else if (f <= 1.5) factor = 1.5;
+  else if (f <= 2) factor = 2;
+  else if (f <= 2.5) factor = 2.5;
+  else if (f <= 3) factor = 3;
+  else if (f <= 5) factor = 5;
+  else if (f <= 7.5) factor = 7.5;
+  else factor = 10;
+
+  let step = factor * base;
+  if (step < 1) step = 1;
+  step = Math.round(step * 100) / 100;
+
+  return [step, step * 2, step * 3, step * 4];
+}
+
+/**
  * Interpola una coordenada geográfica y su vector normal para una progresiva métrica s
  */
 export function interpolateAtStation(
@@ -590,29 +625,19 @@ export function generateCurvilinearProfile(
     }
   }
 
-  // 4. Generar Isolíneas Concéntricas de Escala Curvilíneas sobre la Línea Base (SPEC-24)
-  let activeTicks = opts.scaleTicks;
-  if (!options?.scaleTicks && results.bins.length > 0) {
+  // 4. Generar Isolíneas Concéntricas de Escala Curvilíneas sobre la Línea Base (SPEC-24, SPEC-28)
+  let activeTicks: number[] = opts.scaleTicks;
+  if (!options?.scaleTicks || options.scaleTicks.length !== 4) {
     const maxVal = results.bins.reduce((max, b) => {
       let v = b.totalCount;
-      if (opts.metricMode === 'VEHICLES') v = b.totalVehicles;
-      else if (opts.metricMode === 'PERSONS') v = b.totalPersons;
-      else if (opts.metricMode === 'EPDO') v = b.epdoScore;
-      else if (opts.metricMode === 'DENSITY_KM') v = b.densityPerKm;
+      if (opts.metricMode === 'VEHICLES') v = b.totalVehicles ?? 0;
+      else if (opts.metricMode === 'PERSONS') v = b.totalPersons ?? 0;
+      else if (opts.metricMode === 'EPDO') v = b.epdoScore ?? 0;
+      else if (opts.metricMode === 'DENSITY_KM') v = b.densityPerKm ?? 0;
       return Math.max(max, v);
     }, 0);
 
-    if (maxVal > 0) {
-      const ceiling = Math.ceil(maxVal * 1.15);
-      const step = ceiling <= 10 ? 2 : ceiling <= 25 ? 5 : ceiling <= 60 ? 10 : ceiling <= 150 ? 25 : 50;
-      activeTicks = [];
-      for (let t = step; t <= ceiling; t += step) {
-        activeTicks.push(t);
-      }
-      if (activeTicks.length === 0) activeTicks = [step];
-    } else {
-      activeTicks = [5, 10];
-    }
+    activeTicks = compute4ScaleTicks(maxVal);
   }
 
   const isolines: CurvilinearIsolineFeature[] = [];

@@ -43,6 +43,7 @@ Bajo este marco metodológico:
 | **SPEC-25** | Segmentación Fija a 100m & Ancho Uniforme | [`specs/25-fixed-100m-segmentation-and-uniform-bar-widths.md`](file:///d:/Projects/RoadSafetyScan/specs/25-fixed-100m-segmentation-and-uniform-bar-widths.md) | `pkg/curvilinear` / `ui/map-view` | Bins de 100m Constantes, Ancho Uniforme, Tramos Vacíos | `IMPLEMENTED` (100% Tests Pass) |
 | **SPEC-26** | Constreñimiento 1D del Puntero en Línea Base | [`specs/26-1d-baseline-constrained-pointer-slider.md`](file:///d:/Projects/RoadSafetyScan/specs/26-1d-baseline-constrained-pointer-slider.md) | `pkg/curvilinear` / `ui/map-view` | Puntero Riel 1D, Anclado a Línea Base Offset, Sin Despegue | `IMPLEMENTED` (100% Tests Pass) |
 | **SPEC-27** | Mapeo Local Estacionado & Desviación Acotada | [`specs/27-local-station-coordinated-baseline-mapping.md`](file:///d:/Projects/RoadSafetyScan/specs/27-local-station-coordinated-baseline-mapping.md) | `pkg/curvilinear` / `ui/map-view` | Vínculo Local $s \mapsto B(s)$, Desviación $\le 25\text{m}$, Conector Ortogonal | `IMPLEMENTED` (100% Tests Pass) |
+| **SPEC-28** | Grilla Cuádruple Fija & Botón de Escala Confinado | [`specs/28-4-scale-grid-and-constrained-scale-handle.md`](file:///d:/Projects/RoadSafetyScan/specs/28-4-scale-grid-and-constrained-scale-handle.md) | `pkg/curvilinear` / `ui/map-view` | 4 Escalas Concéntricas, Handle en Nivel 1 por Defecto, Confinamiento 1D a Grilla | `IMPLEMENTED` (100% Tests Pass) |
 
 ---
 

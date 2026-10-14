@@ -128,8 +128,9 @@ export const MAX_HEIGHT_SCALE = 120;
 export const SCALE_REFERENCE_VALUE = 4.0; // Factor métrico para situar el handle exactamente sobre la grilla visual de las barras
 
 /**
- * Calcula la coordenada geográfica del botón rectangular de escala (SPEC-12, SPEC-24)
+ * Calcula la coordenada geográfica del botón rectangular de escala (SPEC-12, SPEC-24, SPEC-28)
  * ubicado en la grilla transversal a la misma progresiva s que el puntero.
+ * Por defecto (gridLevel = 1.0), se sitúa exactamente sobre el primer nivel de la grilla (más abajo).
  */
 export function computeScaleHandleCoordinate(
   alignment: Alignment,
@@ -138,10 +139,14 @@ export function computeScaleHandleCoordinate(
   heightScaleMetersPerUnit: number,
   side: 'LEFT' | 'RIGHT' = 'RIGHT',
   smoothingWindowSize: number = 3,
-  baselineOrCoords?: BaselineArcLengthProfile | [number, number][]
+  baselineOrCoords?: BaselineArcLengthProfile | [number, number][],
+  gridLevel: number = 1.0,
+  firstTickDistanceMeters?: number
 ): {
   handleCoord: [number, number];
   rotationDegrees: number;
+  distanceAlongNormal: number;
+  gridLevel: number;
 } {
   const pointerGeom = computePointerGeometry(
     alignment,
@@ -153,7 +158,9 @@ export function computeScaleHandleCoordinate(
   );
 
   const clampedScale = Math.max(MIN_HEIGHT_SCALE, Math.min(MAX_HEIGHT_SCALE, heightScaleMetersPerUnit));
-  const handleDistanceAlongNormal = clampedScale * SCALE_REFERENCE_VALUE;
+  // SPEC-28: Distancia del nivel 1 de la grilla o fallback por compatibilidad
+  const baseD1 = firstTickDistanceMeters ?? (clampedScale * SCALE_REFERENCE_VALUE);
+  const handleDistanceAlongNormal = gridLevel * baseD1;
 
   const handleCoord = offsetCoordinate(
     { longitude: pointerGeom.baselineCoord[0], latitude: pointerGeom.baselineCoord[1] },
@@ -165,7 +172,57 @@ export function computeScaleHandleCoordinate(
 
   return {
     handleCoord,
-    rotationDegrees
+    rotationDegrees,
+    distanceAlongNormal: handleDistanceAlongNormal,
+    gridLevel
+  };
+}
+
+/**
+ * Proyecta una coordenada de cursor arrastrado estrictamente sobre el rayo transversal 1D
+ * de la grilla a la progresiva s, calculando el nivel relativo de grilla y la coordenada confinada (SPEC-28).
+ *
+ * @param baselineCoord Origen del rayo sobre la línea base B(s)
+ * @param cursorCoord Coordenada geográfica del cursor arrastrado
+ * @param normalVector Vector normal unitario de extrusión de la grilla
+ * @param firstTickDistanceMeters Distancia métrica de la primera isolínea (Nivel 1)
+ * @returns Nivel de grilla continuo lambda, distancia acotada y coordenada geográfica confinada
+ */
+export function projectPointToGridRay(
+  baselineCoord: [number, number],
+  cursorCoord: [number, number],
+  normalVector: UnitVector2D,
+  firstTickDistanceMeters: number
+): {
+  gridLevel: number;
+  clampedDistanceMeters: number;
+  clampedCoord: [number, number];
+} {
+  const meanLat = toRadians((baselineCoord[1] + cursorCoord[1]) / 2);
+  const dx = toRadians(cursorCoord[0] - baselineCoord[0]) * EARTH_RADIUS_METERS * Math.cos(meanLat);
+  const dy = toRadians(cursorCoord[1] - baselineCoord[1]) * EARTH_RADIUS_METERS;
+
+  // Proyección escalar sobre la normal exterior de la grilla
+  const rawDist = dx * normalVector.x + dy * normalVector.y;
+
+  // La grilla tiene 4 niveles, desde 0.25 hasta 4.0 veces la primera escala
+  const d1 = Math.max(1, firstTickDistanceMeters);
+  const minDist = 0.25 * d1;
+  const maxDist = 4.0 * d1;
+
+  const clampedDist = Math.max(minDist, Math.min(maxDist, rawDist));
+  const gridLevel = Number((clampedDist / d1).toFixed(2));
+
+  const clampedCoord = offsetCoordinate(
+    { longitude: baselineCoord[0], latitude: baselineCoord[1] },
+    normalVector,
+    clampedDist
+  );
+
+  return {
+    gridLevel,
+    clampedDistanceMeters: clampedDist,
+    clampedCoord
   };
 }
 
@@ -176,8 +233,16 @@ export function convertDragToHeightScale(
   baselineCoord: [number, number],
   cursorCoord: [number, number],
   normalVector: UnitVector2D,
-  side: 'LEFT' | 'RIGHT' = 'RIGHT'
+  side: 'LEFT' | 'RIGHT' = 'RIGHT',
+  firstTickDistanceMeters?: number,
+  baseScaleMetersPerUnit: number = 40
 ): number {
+  if (firstTickDistanceMeters && firstTickDistanceMeters > 0) {
+    const proj = projectPointToGridRay(baselineCoord, cursorCoord, normalVector, firstTickDistanceMeters);
+    const scale = proj.gridLevel * baseScaleMetersPerUnit;
+    return Math.round(Math.max(MIN_HEIGHT_SCALE, Math.min(MAX_HEIGHT_SCALE, scale)));
+  }
+
   const sideSign = side === 'RIGHT' ? 1 : -1;
   const meanLat = toRadians((baselineCoord[1] + cursorCoord[1]) / 2);
   const dx = toRadians(cursorCoord[0] - baselineCoord[0]) * EARTH_RADIUS_METERS * Math.cos(meanLat);

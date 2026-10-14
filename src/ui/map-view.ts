@@ -12,7 +12,8 @@ import {
   generateCurvilinearProfile,
   computeZoomScaleFactor,
   computeVisibleStationRange,
-  computeZoomAdaptiveBinSize
+  computeZoomAdaptiveBinSize,
+  compute4ScaleTicks
 } from '../pkg/curvilinear/index.js';
 import { buildCurvilinearMapLibreLayers } from '../pkg/curvilinear/maplibre-layers.js';
 import {
@@ -20,7 +21,8 @@ import {
   projectPointToAlignmentChainage,
   computeScaleHandleCoordinate,
   convertDragToHeightScale,
-  projectPointToBaselineArcLength
+  projectPointToBaselineArcLength,
+  projectPointToGridRay
 } from '../pkg/curvilinear/pointer.js';
 import { VizStoreState, VizEvent } from '../pkg/viz/types.js';
 import { RouteManager } from '../pkg/tracer/route-manager.js';
@@ -46,10 +48,11 @@ export class MapViewController {
   private pointerElement: HTMLElement | null = null;
   private isDraggingPointer: boolean = false;
 
-  // SPEC-12: Botón Rectangular Desplazable de Escala
+  // SPEC-12 & SPEC-28: Botón Rectangular Desplazable de Escala sobre la Grilla
   private scaleHandleMarker: maplibregl.Marker | null = null;
   private scaleHandleElement: HTMLElement | null = null;
   private isDraggingScaleHandle: boolean = false;
+  private scaleHandleGridLevel: number = 1.0; // Nivel 1 (más abajo) por defecto
   private cachedBaselineProfile: any = null;
 
   public getPointerMarker(): maplibregl.Marker | null {
@@ -185,6 +188,9 @@ export class MapViewController {
         event.type === 'CONFIG_UPDATED' ||
         event.type === 'FILTERS_UPDATED'
       ) {
+        if (!this.isDraggingScaleHandle) {
+          this.scaleHandleGridLevel = Math.max(0.25, Math.min(4.0, state.config.curvilinearHeightScale / 40));
+        }
         this.updateZoomLimits();
         this.updateView();
       } else if (
@@ -206,6 +212,26 @@ export class MapViewController {
     const currentZoom = this.map ? this.map.getZoom() : 13.0;
     const factor = computeZoomScaleFactor(currentZoom);
     return baseScale * factor;
+  }
+
+  /**
+   * SPEC-28: Obtiene la distancia métrica del primer nivel de la grilla (Nivel 1, más abajo)
+   */
+  private getFirstTickDistance(): number {
+    const state = this.store.getState();
+    if (!state.alignment || !state.lrsResults) return 160;
+    const maxVal = state.lrsResults.bins.reduce((max, b) => {
+      let v = b.totalCount;
+      if (state.config.metricMode === 'VEHICLES') v = b.totalVehicles ?? 0;
+      else if (state.config.metricMode === 'PERSONS') v = b.totalPersons ?? 0;
+      else if (state.config.metricMode === 'EPDO') v = b.epdoScore ?? 0;
+      else if (state.config.metricMode === 'DENSITY_KM') v = b.densityPerKm ?? 0;
+      return Math.max(max, v);
+    }, 0);
+    const ticks = compute4ScaleTicks(maxVal);
+    const t1 = ticks[0];
+    const effectiveScale = this.getEffectiveCurvilinearScale();
+    return Math.max(10, t1 * effectiveScale);
   }
 
   /**
@@ -553,6 +579,7 @@ export class MapViewController {
       this.cachedBaselineProfile
     );
 
+    const d1 = this.getFirstTickDistance();
     const scaleGeom = computeScaleHandleCoordinate(
       state.alignment,
       this.currentPointerChainage,
@@ -560,7 +587,9 @@ export class MapViewController {
       this.getEffectiveCurvilinearScale(),
       state.config.curvilinearSide,
       3,
-      this.cachedBaselineProfile
+      this.cachedBaselineProfile,
+      this.scaleHandleGridLevel,
+      d1
     );
 
     // 1. Botón Semicircular sobre la Baseline del Perfil (SPEC-11)
@@ -667,16 +696,31 @@ export class MapViewController {
           currentState.alignment,
           this.currentPointerChainage,
           currentState.config.curvilinearOffsetMeters,
-          currentState.config.curvilinearSide
+          currentState.config.curvilinearSide,
+          3,
+          this.cachedBaselineProfile
         );
 
         const markerLngLat = this.scaleHandleMarker!.getLngLat();
-        const newScale = convertDragToHeightScale(
+        const d1 = this.getFirstTickDistance();
+
+        // SPEC-28: Confinamiento 1D estricto sobre el rayo transversal de la grilla
+        const proj = projectPointToGridRay(
           pGeom.baselineCoord,
           [markerLngLat.lng, markerLngLat.lat],
           pGeom.normalVector,
-          currentState.config.curvilinearSide
+          d1
         );
+
+        // Clampear la posición del marcador en pantalla sobre el rayo de la grilla
+        this.scaleHandleMarker!.setLngLat(proj.clampedCoord);
+
+        // Guardar el nivel de grilla continuo (1.0 = nivel 1 por defecto, o entre escalas ej. 1.5, 2.3)
+        this.scaleHandleGridLevel = proj.gridLevel;
+
+        // Escala de extrusión en m/u según el nivel
+        const baseScale = 40;
+        const newScale = Math.round(Math.max(10, Math.min(120, baseScale * this.scaleHandleGridLevel)));
 
         const badge = scaleEl.querySelector('.scale-handle-badge');
         if (badge) {
@@ -729,8 +773,9 @@ export class MapViewController {
     this.pointerMarker.setLngLat(geom.baselineCoord);
     this.pointerMarker.setRotation(geom.pointerRotationDegrees);
 
-    // SPEC-12: Actualizar posición, rotación y badge del botón rectangular de escala
+    // SPEC-12 & SPEC-28: Actualizar posición, rotación y badge del botón rectangular de escala
     if (this.scaleHandleMarker) {
+      const d1 = this.getFirstTickDistance();
       const scaleGeom = computeScaleHandleCoordinate(
         state.alignment,
         this.currentPointerChainage,
@@ -738,7 +783,9 @@ export class MapViewController {
         this.getEffectiveCurvilinearScale(),
         state.config.curvilinearSide,
         3,
-        this.cachedBaselineProfile
+        this.cachedBaselineProfile,
+        this.scaleHandleGridLevel,
+        d1
       );
       if (!this.isDraggingScaleHandle) {
         this.scaleHandleMarker.setLngLat(scaleGeom.handleCoord);
