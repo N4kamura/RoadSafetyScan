@@ -398,6 +398,16 @@ body {
   flex-shrink: 0;
   overflow-y: auto;
   z-index: 500;
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
+}
+
+.app-sidebar.collapsed {
+  width: 0 !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  border-right: none !important;
 }
 
 .sidebar-section {
@@ -591,7 +601,38 @@ input[type="range"] {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-/* Map Floating Legend - Bottom Left */
+/* SPEC-29: Botón flotante para alternar panel lateral sobre el mapa */
+.sidebar-floating-toggle-btn {
+  position: absolute;
+  top: 110px;
+  left: 10px;
+  z-index: 20;
+  width: 29px;
+  height: 29px;
+  background-color: var(--panel-overlay-bg, #ffffff);
+  color: var(--panel-overlay-text, #0f172a);
+  border: 1px solid var(--border-color, #cbd5e1);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0;
+  transition: background-color 0.15s, color 0.15s, transform 0.1s;
+}
+
+.sidebar-floating-toggle-btn:hover {
+  background-color: var(--bg-hover, #f1f5f9);
+}
+
+.sidebar-floating-toggle-btn:active {
+  transform: scale(0.95);
+}
+
+/* Map Floating Legend (SPEC-29) */
 .map-floating-overlay {
   position: absolute;
   top: 1rem;
@@ -609,6 +650,50 @@ input[type="range"] {
   gap: 0.35rem;
   z-index: 10;
   max-width: 270px;
+  transition: padding 0.2s ease, box-shadow 0.2s ease;
+}
+
+.map-floating-overlay.minimized {
+  padding: 0.4rem 0.65rem;
+  gap: 0;
+}
+
+.legend-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.btn-legend-toggle {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-size: 0.7rem;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-legend-toggle:hover {
+  background-color: rgba(0, 0, 0, 0.08);
+}
+
+.legend-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 0.25rem;
+}
+
+.map-floating-overlay.minimized .legend-body {
+  display: none !important;
 }
 
 .map-floating-overlay span {

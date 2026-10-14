@@ -78,7 +78,7 @@ function initApp() {
   (window as any).themeController = themeController;
 
   const mapController = new MapViewController('map-container', store, routeManager);
-  const sidebarController = new SidebarController(store, routeManager, mapController.getTraceDrawer());
+  const sidebarController = new SidebarController(store, routeManager, mapController.getTraceDrawer(), mapController);
   const timeClockController = new CircularTimeClockController('time-clock-container', store);
 
   (window as any).mapViewController = mapController;

@@ -36,6 +36,11 @@
     </div>
 
     <div class="header-actions">
+      <!-- SPEC-29: Alternar Visibilidad del Panel Lateral -->
+      <button id="btn-toggle-sidebar" class="btn btn-outline" title="Ocultar Panel Lateral" aria-label="Ocultar o Mostrar Panel Lateral">
+        ◀ Panel
+      </button>
+
       <!-- Alternar Tema Claro / Oscuro (SPEC-16) -->
       <button id="btn-toggle-theme" class="btn btn-outline" title="Alternar Modo Claro / Oscuro" aria-label="Alternar Modo Claro y Oscuro">
         🌙 Oscuro
@@ -344,29 +349,37 @@
           </div>
         </div>
 
+        <!-- SPEC-29: Botón Flotante para Alternar Panel Lateral sobre el Mapa -->
+        <button id="btn-toggle-sidebar-floating" class="sidebar-floating-toggle-btn" title="Ocultar Panel Lateral" aria-label="Ocultar o Mostrar Panel Lateral">
+          ◀
+        </button>
+
         <!-- Reloj Dinámico Circular de Rango Horario (SPEC-10) -->
         <div id="time-clock-container" class="map-time-clock-overlay"></div>
 
-        <!-- Leyenda Cartográfica Flotante -->
-        <div class="map-floating-overlay">
-          <div style="font-weight: 700; color: #0f172a; margin-bottom: 3px; font-size: 0.78rem;">
-            🗺️ Leyenda del Perfilador
+        <!-- Leyenda Cartográfica Flotante (SPEC-29) -->
+        <div class="map-floating-overlay" id="map-legend-overlay">
+          <div class="legend-header" id="legend-header" title="Alternar visibilidad de la leyenda">
+            <span style="font-weight: 700; color: inherit; font-size: 0.78rem;">🗺️ Leyenda del Perfilador</span>
+            <button id="btn-legend-collapse" class="btn-legend-toggle" title="Minimizar Leyenda" aria-label="Minimizar Leyenda">▼</button>
           </div>
-          <span><span class="color-dot" style="background-color: #1e293b;"></span> <strong>Eje Vial:</strong> Ruta de Ejemplo (Panamericana Sur)</span>
-          <span><span class="color-line" style="background-color: #1e293b;"></span> <strong>Línea Base B(s):</strong> Desplazada en paralelo</span>
-          <span><span class="color-rect" style="background-color: #7c3aed;"></span> <strong>Perfil Curvilíneo:</strong> VisQuill A1</span>
-          <span><span class="color-dot" style="background-color: #10b981;"></span> <strong>Tramo Resaltado:</strong> Enlace interactivo</span>
-          
-          <div style="border-top: 1px solid #e2e8f0; margin-top: 4px; padding-top: 4px; display: flex; flex-direction: column; gap: 2px;">
-            <div style="font-size: 0.65rem; color: #64748b; font-weight: 600; text-transform: uppercase;">Personas (Gravedad ONSV):</div>
-            <span><span class="color-dot" style="background-color: #dc2626;"></span> Fallecido</span>
-            <span><span class="color-dot" style="background-color: #ea580c;"></span> Lesionado</span>
-            <span><span class="color-dot" style="background-color: #94a3b8;"></span> No se conoce</span>
-            <span><span class="color-dot" style="background-color: #10b981;"></span> Ileso</span>
-          </div>
+          <div class="legend-body" id="legend-body">
+            <span><span class="color-dot" style="background-color: #1e293b;"></span> <strong>Eje Vial:</strong> Ruta de Ejemplo (Panamericana Sur)</span>
+            <span><span class="color-line" style="background-color: #1e293b;"></span> <strong>Línea Base B(s):</strong> Desplazada en paralelo</span>
+            <span><span class="color-rect" style="background-color: #7c3aed;"></span> <strong>Perfil Curvilíneo:</strong> VisQuill A1</span>
+            <span><span class="color-dot" style="background-color: #10b981;"></span> <strong>Tramo Resaltado:</strong> Enlace interactivo</span>
+            
+            <div style="border-top: 1px solid var(--border-color, #e2e8f0); margin-top: 4px; padding-top: 4px; display: flex; flex-direction: column; gap: 2px;">
+              <div style="font-size: 0.65rem; color: var(--text-muted, #64748b); font-weight: 600; text-transform: uppercase;">Personas (Gravedad ONSV):</div>
+              <span><span class="color-dot" style="background-color: #dc2626;"></span> Fallecido</span>
+              <span><span class="color-dot" style="background-color: #ea580c;"></span> Lesionado</span>
+              <span><span class="color-dot" style="background-color: #94a3b8;"></span> No se conoce</span>
+              <span><span class="color-dot" style="background-color: #10b981;"></span> Ileso</span>
+            </div>
 
-          <div style="border-top: 1px solid #e2e8f0; margin-top: 3px; padding-top: 3px; font-size: 0.65rem;">
-            <span><span class="color-dot" style="background-color: #0284c7;"></span> <strong>Vehículos:</strong> Cantidad involucrada</span>
+            <div style="border-top: 1px solid var(--border-color, #e2e8f0); margin-top: 3px; padding-top: 3px; font-size: 0.65rem;">
+              <span><span class="color-dot" style="background-color: #0284c7;"></span> <strong>Vehículos:</strong> Cantidad involucrada</span>
+            </div>
           </div>
         </div>
 

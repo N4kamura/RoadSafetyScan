@@ -28,15 +28,18 @@ export class SidebarController {
   private store: VizStore;
   private routeManager?: RouteManager;
   private traceDrawer?: TraceDrawerController;
+  private mapController?: { resize: () => void };
 
   constructor(
     store: VizStore,
     routeManager?: RouteManager,
-    traceDrawer?: TraceDrawerController
+    traceDrawer?: TraceDrawerController,
+    mapController?: { resize: () => void }
   ) {
     this.store = store;
     this.routeManager = routeManager;
     this.traceDrawer = traceDrawer;
+    this.mapController = mapController;
 
     this.initCorridorSelector();
     this.initTraceDrawingButtons();
@@ -44,6 +47,7 @@ export class SidebarController {
     this.initControls();
     this.initCurvilinearControls();
     this.initFloatingMapControls();
+    this.initPanelVisibilityControls(mapController);
     this.initYearFilterControls();
     this.initExportButtons();
     this.initFileLoader();
@@ -455,6 +459,84 @@ export class SidebarController {
         }
       });
     });
+  }
+
+  /**
+   * SPEC-29: Controles de visibilidad y colapso de la leyenda cartográfica y panel lateral
+   */
+  public initPanelVisibilityControls(mapController?: { resize: () => void }): void {
+    if (mapController) {
+      this.mapController = mapController;
+    }
+
+    // 1. Control de colapso de la leyenda cartográfica (#map-legend-overlay)
+    const legendOverlay = document.getElementById('map-legend-overlay');
+    const legendHeader = document.getElementById('legend-header');
+    const btnLegendCollapse = document.getElementById('btn-legend-collapse');
+
+    const toggleLegend = () => {
+      if (!legendOverlay) return;
+      const isMinimized = legendOverlay.classList.toggle('minimized');
+      if (btnLegendCollapse) {
+        btnLegendCollapse.textContent = isMinimized ? '▲' : '▼';
+        btnLegendCollapse.title = isMinimized ? 'Expandir Leyenda' : 'Minimizar Leyenda';
+        btnLegendCollapse.setAttribute('aria-label', isMinimized ? 'Expandir Leyenda' : 'Minimizar Leyenda');
+      }
+    };
+
+    if (btnLegendCollapse) {
+      btnLegendCollapse.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleLegend();
+      });
+    }
+
+    if (legendHeader) {
+      legendHeader.addEventListener('click', (e) => {
+        if (e.target !== btnLegendCollapse) {
+          toggleLegend();
+        }
+      });
+    }
+
+    // 2. Control de colapso del panel lateral (.app-sidebar)
+    const sidebar = document.querySelector('.app-sidebar');
+    const btnToggleSidebarHeader = document.getElementById('btn-toggle-sidebar');
+    const btnToggleSidebarFloating = document.getElementById('btn-toggle-sidebar-floating');
+
+    const toggleSidebar = () => {
+      if (!sidebar) return;
+      const isCollapsed = sidebar.classList.toggle('collapsed');
+
+      const labelHeader = isCollapsed ? '▶ Panel' : '◀ Panel';
+      const labelFloating = isCollapsed ? '▶' : '◀';
+      const titleText = isCollapsed ? 'Mostrar Panel Lateral' : 'Ocultar Panel Lateral';
+
+      if (btnToggleSidebarHeader) {
+        btnToggleSidebarHeader.textContent = labelHeader;
+        btnToggleSidebarHeader.title = titleText;
+        btnToggleSidebarHeader.setAttribute('aria-label', titleText);
+      }
+
+      if (btnToggleSidebarFloating) {
+        btnToggleSidebarFloating.textContent = labelFloating;
+        btnToggleSidebarFloating.title = titleText;
+        btnToggleSidebarFloating.setAttribute('aria-label', titleText);
+      }
+
+      // Redimensionar el mapa luego de la transición CSS (250ms)
+      setTimeout(() => {
+        this.mapController?.resize();
+      }, 260);
+    };
+
+    if (btnToggleSidebarHeader) {
+      btnToggleSidebarHeader.addEventListener('click', toggleSidebar);
+    }
+
+    if (btnToggleSidebarFloating) {
+      btnToggleSidebarFloating.addEventListener('click', toggleSidebar);
+    }
   }
 
   private setMetricMode(mode: MetricMode): void {

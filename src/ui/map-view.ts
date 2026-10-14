@@ -67,6 +67,16 @@ export class MapViewController {
     return this.traceDrawer;
   }
 
+  public resize(): void {
+    if (this.map) {
+      this.map.resize();
+    }
+  }
+
+  public getMap(): maplibregl.Map {
+    return this.map;
+  }
+
   constructor(containerId: string, store: VizStore, routeManager?: RouteManager) {
     this.store = store;
     this.routeManager = routeManager;
@@ -962,13 +972,17 @@ export class MapViewController {
       }
     }
 
+    const legendEl = document.getElementById('map-legend-overlay');
+    const isLegendMinimized = legendEl?.classList.contains('minimized');
+    const rightPadding = isLegendMinimized ? 80 : 300;
+
     this.map.fitBounds(
       [
         [minLng, minLat],
         [maxLng, maxLat]
       ],
       {
-        padding: { top: 80, bottom: 80, left: 80, right: 300 }, // Margen derecho para no solapar con leyenda
+        padding: { top: 80, bottom: 80, left: 80, right: rightPadding }, // Margen dinámico según estado de leyenda (SPEC-29)
         duration: 700,
         maxZoom: 15
       }
