@@ -537,6 +537,57 @@ export class SidebarController {
     if (btnToggleSidebarFloating) {
       btnToggleSidebarFloating.addEventListener('click', toggleSidebar);
     }
+
+    // 3. Control de colapso de la barra superior flotante de métricas (#map-floating-controls) - SPEC-30
+    const floatingControls = document.getElementById('map-floating-controls');
+    const btnToggleFloatingControls = document.getElementById('btn-toggle-floating-controls');
+
+    const updateFloatingControlsButton = (isMinimized: boolean) => {
+      if (!btnToggleFloatingControls) return;
+      if (isMinimized) {
+        const currentMode = this.store.getState().config.metricMode || 'COUNT';
+        const label = this.getMetricLabel(currentMode);
+        btnToggleFloatingControls.textContent = `${label} ▼`;
+        btnToggleFloatingControls.title = 'Mostrar controles rápidos';
+        btnToggleFloatingControls.setAttribute('aria-label', 'Mostrar controles rápidos');
+      } else {
+        btnToggleFloatingControls.textContent = '▲';
+        btnToggleFloatingControls.title = 'Ocultar controles rápidos';
+        btnToggleFloatingControls.setAttribute('aria-label', 'Ocultar controles rápidos');
+      }
+    };
+
+    const toggleFloatingControls = () => {
+      if (!floatingControls) return;
+      const isMinimized = floatingControls.classList.toggle('minimized');
+      updateFloatingControlsButton(isMinimized);
+    };
+
+    if (btnToggleFloatingControls) {
+      btnToggleFloatingControls.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleFloatingControls();
+      });
+    }
+
+    if (floatingControls) {
+      floatingControls.addEventListener('click', (e) => {
+        if (floatingControls.classList.contains('minimized') && e.target !== btnToggleFloatingControls) {
+          toggleFloatingControls();
+        }
+      });
+    }
+  }
+
+  private getMetricLabel(mode: MetricMode): string {
+    switch (mode) {
+      case 'COUNT': return '📊 Siniestros';
+      case 'VEHICLES': return '🚗 Vehículos';
+      case 'PERSONS': return '👥 Personas';
+      case 'EPDO': return '⚖️ EPDO';
+      case 'DENSITY_KM': return '📈 Densidad (/km)';
+      default: return '📊 Métricas';
+    }
   }
 
   private setMetricMode(mode: MetricMode): void {
@@ -558,6 +609,14 @@ export class SidebarController {
         DENSITY_KM: 'Densidad (/km)'
       };
       badge.textContent = labels[mode] || mode;
+    }
+
+    // SPEC-30: Sincronizar etiqueta del botón minimizado si la barra flotante está oculta
+    const floatingControls = document.getElementById('map-floating-controls');
+    const btnToggleFloatingControls = document.getElementById('btn-toggle-floating-controls');
+    if (floatingControls?.classList.contains('minimized') && btnToggleFloatingControls) {
+      const label = this.getMetricLabel(mode);
+      btnToggleFloatingControls.textContent = `${label} ▼`;
     }
 
     this.store.updateConfig({ metricMode: mode });

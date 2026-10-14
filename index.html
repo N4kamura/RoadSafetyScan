@@ -315,38 +315,45 @@
       <div class="map-pane">
         <div id="map-container"></div>
 
-        <!-- Pastillas Flotantes de Control Rápido sobre el Mapa -->
-        <div class="map-floating-controls">
-          <div class="map-pill-group">
-            <button class="map-pill-btn map-metric-pill active" data-mode="COUNT" title="Mostrar número de siniestros">
-              📊 Siniestros
-            </button>
-            <button class="map-pill-btn map-metric-pill" data-mode="VEHICLES" title="Mostrar cantidad de vehículos involucrados">
-              🚗 Vehículos
-            </button>
-            <button class="map-pill-btn map-metric-pill" data-mode="PERSONS" title="Mostrar personas involucradas (apiladas por gravedad)">
-              👥 Personas
-            </button>
-            <button class="map-pill-btn map-metric-pill" data-mode="EPDO" title="Mostrar índice de severidad EPDO ponderado según MTC">
-              ⚖️ EPDO
-            </button>
-            <button class="map-pill-btn map-metric-pill" data-mode="DENSITY_KM" title="Mostrar densidad de accidentes por kilómetro">
-              📈 Densidad (/km)
-            </button>
+        <!-- Pastillas Flotantes de Control Rápido sobre el Mapa (SPEC-30) -->
+        <div class="map-floating-controls" id="map-floating-controls">
+          <div class="map-floating-controls-body" id="map-floating-controls-body">
+            <div class="map-pill-group">
+              <button class="map-pill-btn map-metric-pill active" data-mode="COUNT" title="Mostrar número de siniestros">
+                📊 Siniestros
+              </button>
+              <button class="map-pill-btn map-metric-pill" data-mode="VEHICLES" title="Mostrar cantidad de vehículos involucrados">
+                🚗 Vehículos
+              </button>
+              <button class="map-pill-btn map-metric-pill" data-mode="PERSONS" title="Mostrar personas involucradas (apiladas por gravedad)">
+                👥 Personas
+              </button>
+              <button class="map-pill-btn map-metric-pill" data-mode="EPDO" title="Mostrar índice de severidad EPDO ponderado según MTC">
+                ⚖️ EPDO
+              </button>
+              <button class="map-pill-btn map-metric-pill" data-mode="DENSITY_KM" title="Mostrar densidad de accidentes por kilómetro">
+                📈 Densidad (/km)
+              </button>
+            </div>
+
+            <div class="map-pill-group">
+              <button class="map-pill-btn" id="btn-map-toggle-side" title="Alternar lado del perfil">
+                ➡️ Lado: Derecha (Este)
+              </button>
+            </div>
+
+            <div class="map-pill-group" title="Separación lateral rápida">
+              <span class="map-pill-label">Offset:</span>
+              <button class="map-pill-btn map-offset-pill" data-offset="800">800m</button>
+              <button class="map-pill-btn map-offset-pill active" data-offset="1200">1200m</button>
+              <button class="map-pill-btn map-offset-pill" data-offset="1800">1800m</button>
+            </div>
           </div>
 
-          <div class="map-pill-group">
-            <button class="map-pill-btn" id="btn-map-toggle-side" title="Alternar lado del perfil">
-              ➡️ Lado: Derecha (Este)
-            </button>
-          </div>
-
-          <div class="map-pill-group" title="Separación lateral rápida">
-            <span class="map-pill-label">Offset:</span>
-            <button class="map-pill-btn map-offset-pill" data-offset="800">800m</button>
-            <button class="map-pill-btn map-offset-pill active" data-offset="1200">1200m</button>
-            <button class="map-pill-btn map-offset-pill" data-offset="1800">1800m</button>
-          </div>
+          <!-- SPEC-30: Botón de Alternancia / Píldora Minimizada -->
+          <button id="btn-toggle-floating-controls" class="map-floating-controls-toggle" title="Ocultar barra de métricas" aria-label="Ocultar o mostrar barra de métricas">
+            ▲
+          </button>
         </div>
 
         <!-- SPEC-29: Botón Flotante para Alternar Panel Lateral sobre el Mapa -->

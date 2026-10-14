@@ -79,12 +79,16 @@ describe('SPEC-29: Ocultamiento Colapsable de Leyenda Cartográfica y Panel Late
       'btn-legend-collapse': new MockElement(),
       'btn-toggle-sidebar': new MockElement(),
       'btn-toggle-sidebar-floating': new MockElement(),
-      '.app-sidebar': new MockElement()
+      '.app-sidebar': new MockElement(),
+      'map-floating-controls': new MockElement(),
+      'map-floating-controls-body': new MockElement(),
+      'btn-toggle-floating-controls': new MockElement()
     };
 
     elements['btn-legend-collapse'].textContent = '▼';
     elements['btn-toggle-sidebar'].textContent = '◀ Panel';
     elements['btn-toggle-sidebar-floating'].textContent = '◀';
+    elements['btn-toggle-floating-controls'].textContent = '▲';
 
     mockMapController = {
       resize: vi.fn()
@@ -204,5 +208,77 @@ describe('SPEC-29: Ocultamiento Colapsable de Leyenda Cartográfica y Panel Late
     // Al completarse el delay de 260ms
     vi.advanceTimersByTime(160);
     expect(mockMapController.resize).toHaveBeenCalledTimes(1);
+  });
+
+  describe('SPEC-30: Ocultamiento Colapsable de la Barra Superior de Métricas', () => {
+    it('Test Case 30.1 & 30.2: Colapso y expansión de la barra flotante con clase .minimized', () => {
+      const sidebar = new SidebarController(store, undefined, undefined, mockMapController);
+
+      const floatingControls = elements['map-floating-controls'];
+      const btnToggle = elements['btn-toggle-floating-controls'];
+
+      expect(floatingControls.classList.contains('minimized')).toBe(false);
+      expect(btnToggle.textContent).toBe('▲');
+
+      // 1. Clic en el botón para colapsar
+      btnToggle.click();
+
+      expect(floatingControls.classList.contains('minimized')).toBe(true);
+      expect(btnToggle.textContent).toBe('📊 Siniestros ▼');
+      expect(btnToggle.title).toBe('Mostrar controles rápidos');
+      expect(btnToggle.getAttribute('aria-label')).toBe('Mostrar controles rápidos');
+
+      // 2. Clic en el botón para restaurar
+      btnToggle.click();
+
+      expect(floatingControls.classList.contains('minimized')).toBe(false);
+      expect(btnToggle.textContent).toBe('▲');
+      expect(btnToggle.title).toBe('Ocultar controles rápidos');
+      expect(btnToggle.getAttribute('aria-label')).toBe('Ocultar controles rápidos');
+    });
+
+    it('Test Case 30.3: Clic en el contenedor minimizado expande los controles', () => {
+      const sidebar = new SidebarController(store, undefined, undefined, mockMapController);
+
+      const floatingControls = elements['map-floating-controls'];
+      const btnToggle = elements['btn-toggle-floating-controls'];
+
+      // Colapsar
+      btnToggle.click();
+      expect(floatingControls.classList.contains('minimized')).toBe(true);
+
+      // Clic sobre el contenedor minimizado
+      floatingControls.click();
+
+      expect(floatingControls.classList.contains('minimized')).toBe(false);
+      expect(btnToggle.textContent).toBe('▲');
+    });
+
+    it('Test Case 30.4: Sincronización dinámica de la etiqueta de métrica activa en estado minimizado', () => {
+      const sidebar = new SidebarController(store, undefined, undefined, mockMapController);
+
+      const floatingControls = elements['map-floating-controls'];
+      const btnToggle = elements['btn-toggle-floating-controls'];
+
+      // Colapsar barra en modo COUNT
+      btnToggle.click();
+      expect(btnToggle.textContent).toBe('📊 Siniestros ▼');
+
+      // Cambiar métrica a EPDO desde sidebar
+      (sidebar as any).setMetricMode('EPDO');
+      expect(btnToggle.textContent).toBe('⚖️ EPDO ▼');
+
+      // Cambiar métrica a VEHICLES
+      (sidebar as any).setMetricMode('VEHICLES');
+      expect(btnToggle.textContent).toBe('🚗 Vehículos ▼');
+
+      // Cambiar métrica a PERSONS
+      (sidebar as any).setMetricMode('PERSONS');
+      expect(btnToggle.textContent).toBe('👥 Personas ▼');
+
+      // Cambiar métrica a DENSITY_KM
+      (sidebar as any).setMetricMode('DENSITY_KM');
+      expect(btnToggle.textContent).toBe('📈 Densidad (/km) ▼');
+    });
   });
 });
