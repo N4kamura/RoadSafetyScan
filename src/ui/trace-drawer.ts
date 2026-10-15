@@ -228,9 +228,9 @@ export class TraceDrawerController {
     }
     const lenKm = (totalLen / 1000).toFixed(2);
 
-    const defaultId = `TRAZO-${Date.now().toString().slice(-4)}`;
-    const routeId = prompt('Código o Identificador de la nueva ruta (ej. CORREDOR-01):', defaultId)?.trim() || defaultId;
-    const routeName = prompt('Nombre descriptivo del trazado:', `Nuevo Eje Vial (${lenKm} km)`)?.trim() || `Nuevo Eje Vial (${lenKm} km)`;
+    const routeName = prompt('Nombre del trazado:', `Nuevo Eje Vial (${lenKm} km)`)?.trim() || `Nuevo Eje Vial (${lenKm} km)`;
+    const safeSlug = routeName.toUpperCase().replace(/[^A-Z0-9]/g, '_').slice(0, 16).replace(/^_+|_+$/g, '');
+    const routeId = `RUTA_${safeSlug || 'TRAZO'}_${Date.now().toString().slice(-4)}`;
 
     const palette = ['#8B5CF6', '#EC4899', '#F59E0B', '#06B6D4', '#E11D48', '#10B981'];
     const selectedColor = palette[Math.floor(Math.random() * palette.length)];
@@ -241,7 +241,7 @@ export class TraceDrawerController {
         routeId,
         routeName,
         {
-          shortName: routeId,
+          shortName: routeName,
           description: `Trazo interactivo creado el ${new Date().toLocaleDateString()}`,
           color: selectedColor
         }
@@ -250,13 +250,13 @@ export class TraceDrawerController {
       this.routeManager.addRoute(alignment, true);
 
       const txtContent = generateTxtAlignmentTrace(alignment);
-      triggerBrowserDownload(txtContent, `${routeId}.txt`, 'text/plain;charset=utf-8');
+      triggerBrowserDownload(txtContent, `${routeName}.txt`, 'text/plain;charset=utf-8');
 
       if (this.onTraceCreatedCallback) {
         this.onTraceCreatedCallback(alignment);
       }
 
-      alert(`✓ ¡Trazo "${routeName}" creado exitosamente!\nSe ha guardado en el sistema y descargado en formato .txt (${routeId}.txt).`);
+      alert(`✓ ¡Trazo "${routeName}" creado exitosamente!\nSe ha guardado en el sistema y descargado en formato .txt.`);
     } catch (err: any) {
       alert(`Error creando alineamiento: ${err.message}`);
     } finally {

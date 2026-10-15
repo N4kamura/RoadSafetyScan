@@ -3,6 +3,8 @@
  * Conforme a SPEC-06 (pkg/curvilinear) - Paradigma VisQuill GDK A1 Collision Density
  */
 
+export type BaselineMode = 'RECTILINEAR' | 'CURVED_OFFSET';
+
 export interface CurvilinearProfileOptions {
   /** Desplazamiento lateral de la línea base respecto a la carretera en metros (default: 1200 m) */
   offsetDistanceMeters: number;
@@ -24,6 +26,12 @@ export interface CurvilinearProfileOptions {
 
   /** Rango métrico de progresivas visibles [sMin, sMax] para recorte dinámico al viewport (SPEC-23) */
   visibleRange?: [number, number];
+
+  /** Modo de generación de línea base: 'RECTILINEAR' (VisQuill limpio) o 'CURVED_OFFSET' (offset local curvo) (SPEC-31) */
+  baselineMode?: BaselineMode;
+
+  /** Fracción de longitud en los extremos del corredor para empalmes y bordes curvos (default: 0.15) (SPEC-32) */
+  borderCurvatureRatio?: number;
 }
 
 export interface CurvilinearBarFeature {

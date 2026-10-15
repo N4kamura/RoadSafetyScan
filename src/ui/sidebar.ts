@@ -120,6 +120,19 @@ export class SidebarController {
       const card = document.createElement('div');
       card.className = `route-item-card ${r.id === primary?.id ? 'is-primary' : ''}`;
 
+      card.style.cursor = 'pointer';
+      card.addEventListener('click', (e) => {
+        const target = e.target as HTMLElement;
+        if (target.closest('.route-item-actions') || target.closest('.route-visibility-cb')) {
+          return;
+        }
+        this.routeManager?.setPrimaryRoute(r.id);
+      });
+
+      // ── Primera línea: Checkbox, Punto de color, Nombre y Longitud ──
+      const header = document.createElement('div');
+      header.className = 'route-item-header';
+
       const left = document.createElement('div');
       left.className = 'route-item-left';
 
@@ -139,15 +152,13 @@ export class SidebarController {
       dot.className = 'route-color-pill';
       dot.style.backgroundColor = r.color;
 
-      // Info
-      const meta = document.createElement('div');
-      meta.className = 'route-meta-info';
-      meta.title = `${r.name} (${(r.totalLengthMeters / 1000).toFixed(2)} km)`;
-
+      // Nombre limpio en la primera línea (sin etiqueta [EJEMPLO])
       const title = document.createElement('span');
       title.className = 'route-meta-title';
-      title.textContent = `[${r.shortName}] ${r.name}`;
-      title.addEventListener('click', () => {
+      title.textContent = r.name;
+      title.title = `${r.name} (${(r.totalLengthMeters / 1000).toFixed(2)} km)`;
+      title.addEventListener('click', (e) => {
+        e.stopPropagation();
         this.routeManager?.setPrimaryRoute(r.id);
       });
 
@@ -155,60 +166,38 @@ export class SidebarController {
       len.className = 'route-meta-length';
       len.textContent = `${(r.totalLengthMeters / 1000).toFixed(2)} km`;
 
-      meta.appendChild(title);
-      meta.appendChild(len);
-
       left.appendChild(cb);
       left.appendChild(dot);
-      left.appendChild(meta);
+      left.appendChild(title);
 
-      // Acciones derecha
+      header.appendChild(left);
+      header.appendChild(len);
+
+      // ── Segunda línea: Botones de Acción (📥 Descargar, ✏️ Editar, 🗑️ Eliminar) ──
       const actions = document.createElement('div');
       actions.className = 'route-item-actions';
 
-      // Botón Analizar / Activo (Desmarcar)
-      if (r.id === primary?.id) {
-        const btnDeselect = document.createElement('button');
-        btnDeselect.className = 'btn-route-action';
-        btnDeselect.style.color = '#2563eb';
-        btnDeselect.style.fontWeight = '700';
-        btnDeselect.textContent = '● Activo (Desmarcar)';
-        btnDeselect.title = 'Hacer clic para desmarcar y navegar libremente por el Perú';
-        btnDeselect.addEventListener('click', () => {
-          this.routeManager?.setPrimaryRoute(null);
-        });
-        actions.appendChild(btnDeselect);
-      } else {
-        const btnSelect = document.createElement('button');
-        btnSelect.className = 'btn-route-action btn-route-select';
-        btnSelect.textContent = '🎯 Analizar';
-        btnSelect.title = 'Activar como eje principal de auditoría LRS';
-        btnSelect.addEventListener('click', () => {
-          this.routeManager?.setPrimaryRoute(r.id);
-        });
-        actions.appendChild(btnSelect);
-      }
-
-      // Botón exportar .txt individual
+      // Botón exportar .txt (icono de descarga)
       const btnTxt = document.createElement('button');
       btnTxt.className = 'btn-route-action';
-      btnTxt.textContent = '.txt';
+      btnTxt.textContent = '📥';
       btnTxt.title = 'Descargar trazo en formato .txt';
-      btnTxt.addEventListener('click', () => {
+      btnTxt.addEventListener('click', (e) => {
+        e.stopPropagation();
         const txt = generateTxtAlignmentTrace(r.alignment);
         triggerBrowserDownload(txt, `${r.id}.txt`, 'text/plain;charset=utf-8');
       });
       actions.appendChild(btnTxt);
 
-      // Botón de Bloqueo / Desbloqueo y Edición (SPEC-21)
+      // Botón de Edición (icono de lápiz, sin texto)
       const isLocked = r.isLocked !== false;
       const btnLock = document.createElement('button');
       btnLock.className = `btn-route-action ${isLocked ? 'btn-route-locked' : 'btn-route-unlocked'}`;
-      btnLock.innerHTML = isLocked ? '🔒 Editar' : '✏️ Editando...';
+      btnLock.innerHTML = '✏️';
       btnLock.title = isLocked
-        ? 'Trazo protegido. Haz clic para desbloquear y editar vértices en el mapa'
-        : 'Ruta en edición activa. Haz clic para bloquear y finalizar';
-      btnLock.style.fontSize = '0.72rem';
+        ? `Editar vértices del trazo "${r.name}" en el mapa`
+        : `Finalizar edición de "${r.name}"`;
+      btnLock.style.fontSize = '0.78rem';
       btnLock.style.padding = '0.2rem 0.45rem';
 
       btnLock.addEventListener('click', (e) => {
@@ -234,21 +223,20 @@ export class SidebarController {
       });
       actions.appendChild(btnLock);
 
-      // Botón borrar si es ruta personalizada
-      if (r.isCustom) {
-        const btnDel = document.createElement('button');
-        btnDel.className = 'btn-route-action';
-        btnDel.textContent = '🗑️';
-        btnDel.title = 'Eliminar trazo personalizado';
-        btnDel.addEventListener('click', () => {
-          if (confirm(`¿Deseas eliminar la ruta "${r.name}"?`)) {
-            this.routeManager?.removeRoute(r.id);
-          }
-        });
-        actions.appendChild(btnDel);
-      }
+      // Botón borrar disponible para cualquier ruta si se desea eliminar
+      const btnDel = document.createElement('button');
+      btnDel.className = 'btn-route-action';
+      btnDel.textContent = '🗑️';
+      btnDel.title = 'Eliminar trazado';
+      btnDel.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (confirm(`¿Deseas eliminar la ruta "${r.name}"?`)) {
+          this.routeManager?.removeRoute(r.id);
+        }
+      });
+      actions.appendChild(btnDel);
 
-      card.appendChild(left);
+      card.appendChild(header);
       card.appendChild(actions);
       container.appendChild(card);
     }
@@ -272,7 +260,7 @@ export class SidebarController {
     for (const r of routes) {
       const opt = document.createElement('option');
       opt.value = r.id;
-      opt.textContent = `🛣️ ${r.shortName}: ${r.name}`;
+      opt.textContent = `🛣️ ${r.name}`;
       if (primary && r.id === primary.id) {
         opt.selected = true;
       }
@@ -287,14 +275,13 @@ export class SidebarController {
     const headerBadge = document.getElementById('header-corridor-badge');
     if (headerBadge) {
       headerBadge.textContent = primary
-        ? `${primary.shortName}: ${primary.name}`
+        ? primary.name
         : '🗺️ Exploración Libre (Perú)';
     }
   }
 
   private initCorridorSelector(): void {
     const selector = document.getElementById('select-corridor-trace') as HTMLSelectElement;
-    const btnCalc = document.getElementById('btn-run-calculation');
 
     const loadCorridor = (code: string) => {
       if (code === 'CUSTOM') {
@@ -311,20 +298,6 @@ export class SidebarController {
     if (selector) {
       selector.addEventListener('change', () => {
         loadCorridor(selector.value);
-      });
-    }
-
-    if (btnCalc) {
-      btnCalc.addEventListener('click', () => {
-        const code = selector ? selector.value : 'EJEMPLO';
-        loadCorridor(code);
-        const originalText = btnCalc.textContent;
-        btnCalc.textContent = '✓ ¡Auditoría Calculada!';
-        btnCalc.style.backgroundColor = '#16a34a';
-        setTimeout(() => {
-          btnCalc.textContent = originalText || '⚡ Calcular LRS';
-          btnCalc.style.backgroundColor = '#2563eb';
-        }, 1200);
       });
     }
   }

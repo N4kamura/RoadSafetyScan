@@ -33,31 +33,67 @@ def format_station(meters):
     remainder = meters - (km * 1000)
     return f"km {km}+{remainder:06.2f}"
 
-# Definición de ruta de ejemplo (Panamericana Sur Km 18 al 25)
+# Definición de ruta oficial de ejemplo (Panamericana)
 ROUTES = [
     {
         "route_id": "EJEMPLO",
         "route_short_name": "EJEMPLO",
-        "route_long_name": "Ruta de Ejemplo - Panamericana Sur (Km 18 al 25)",
-        "route_desc": "Trazo de alineamiento vial de ejemplo (Km 18 al 25)",
+        "route_long_name": "Ruta de Ejemplo: Panamericana",
+        "route_desc": "Trazo vial de ejemplo basado en el corredor Panamericana",
         "route_type": "3",  # 3 = Bus / Road Corridor
         "route_color": "2563EB",
         "route_text_color": "FFFFFF",
         "txt_filename": "ruta_ejemplo.txt",
         "coordinates": [
-            [-76.960, -12.180],
-            [-76.958, -12.185],
-            [-76.955, -12.192],
-            [-76.951, -12.200],
-            [-76.948, -12.206],
-            [-76.944, -12.213],
-            [-76.940, -12.221],
-            [-76.937, -12.228],
-            [-76.933, -12.235],
-            [-76.930, -12.242]
+            [-76.976926, -12.217337],
+            [-76.972565, -12.1934],
+            [-76.973034, -12.190041],
+            [-76.975464, -12.182705],
+            [-76.982077, -12.16091],
+            [-76.983571, -12.155341],
+            [-76.983861, -12.151644],
+            [-76.982531, -12.147232],
+            [-76.981459, -12.142202],
+            [-76.980364, -12.137228],
+            [-76.978941, -12.133567],
+            [-76.977193, -12.128358],
+            [-76.976959, -12.124784],
+            [-76.977454, -12.116034],
+            [-76.978783, -12.106113],
+            [-76.980011, -12.097034],
+            [-76.981106, -12.088132],
+            [-76.98215, -12.086014],
+            [-76.982202, -12.085325],
+            [-76.981915, -12.084407],
+            [-76.978681, -12.081604],
+            [-76.97675, -12.079487],
+            [-76.975393, -12.076706],
+            [-76.972158, -12.068772],
+            [-76.971349, -12.065813],
+            [-76.971427, -12.063288],
+            [-76.972028, -12.06145],
+            [-76.973723, -12.057751],
+            [-76.975628, -12.052946],
+            [-76.97688, -12.05116],
+            [-76.97868, -12.0494],
+            [-76.985515, -12.04348],
+            [-76.986702, -12.042273],
+            [-76.987885, -12.040244],
+            [-76.98876, -12.036823],
+            [-76.989691, -12.034571],
+            [-76.990894, -12.032584],
+            [-76.992977, -12.030844],
+            [-76.994992, -12.029668],
+            [-76.996212, -12.029122],
+            [-76.998075, -12.029055],
+            [-77.002071, -12.030682],
+            [-77.005289, -12.031908],
+            [-77.008203, -12.033548],
+            [-77.013094, -12.037441]
         ]
     }
 ]
+
 
 def generate_files(target_dir):
     os.makedirs(target_dir, exist_ok=True)
@@ -102,7 +138,7 @@ def generate_files(target_dir):
         f.write("\n".join(trips_rows) + "\n")
 
     # Limpiar archivos obsoletos previos si existen
-    for old_file in ["PE-1S.txt", "PE-1N.txt"]:
+    for old_file in ["PE-1S.txt", "PE-1N.txt", "panamericana.txt"]:
         old_path = os.path.join(target_dir, old_file)
         if os.path.exists(old_path):
             os.remove(old_path)

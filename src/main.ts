@@ -52,7 +52,8 @@ function initApp() {
   });
 
   // SPEC-14: Conexión con BBDD ONSV (SQLite3 convertida a formato web)
-  fetch('/data/crashes_web.json')
+  const dataUrl = `${import.meta.env.BASE_URL}data/crashes_web.json`;
+  fetch(dataUrl)
     .then((res) => {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       return res.json();

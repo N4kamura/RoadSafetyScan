@@ -28,7 +28,8 @@ describe('SPEC-25: Segmentación Métrica Fija a 100m y Barras de Ancho Uniforme
     const results = analyzeLrs(alignment, crashes, { binSizeMeters: FIXED_BIN_SIZE_METERS });
     const profile = generateCurvilinearProfile(alignment, results, {
       offsetDistanceMeters: 600,
-      side: 'RIGHT'
+      side: 'RIGHT',
+      borderCurvatureRatio: 0
     });
 
     expect(profile.bars).toHaveLength(3);

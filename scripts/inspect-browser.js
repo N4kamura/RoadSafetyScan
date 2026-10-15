@@ -82,7 +82,7 @@ async function run() {
           const sel = document.getElementById('select-corridor-trace');
           sel.value = 'PE-1N';
           sel.dispatchEvent(new Event('change'));
-          document.getElementById('btn-run-calculation').click();
+          document.getElementById('btn-run-calculation')?.click();
         })()
       `
     });

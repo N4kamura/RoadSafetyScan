@@ -5,141 +5,596 @@
 import { CrashPoint, SeverityLevel, CrashType } from './pkg/lrs/types.js';
 
 export const MOCK_ALIGNMENT_DATA = {
-  "id": "AL-PE-PANASUR-01",
-  "name": "Corredor Panamericana Sur (Km 18 al 25)",
-  "totalLength": 7634.47,
+  "id": "EJEMPLO",
+  "name": "Ruta de Ejemplo: Panamericana",
+  "totalLength": 24769.83,
   "vertices": [
     {
       "index": 0,
       "coordinates": {
-        "longitude": -76.96,
-        "latitude": -12.18
+        "longitude": -76.976926,
+        "latitude": -12.217337
       },
-      "cumulativeDistance": 0,
+      "cumulativeDistance": 0.0,
       "stationFormatted": "km 0+000.00"
     },
     {
       "index": 1,
       "coordinates": {
-        "longitude": -76.958,
-        "latitude": -12.185
+        "longitude": -76.972565,
+        "latitude": -12.1934
       },
-      "cumulativeDistance": 596.96,
-      "stationFormatted": "km 0+596.96"
+      "cumulativeDistance": 2703.55,
+      "stationFormatted": "km 2+703.55"
     },
     {
       "index": 2,
       "coordinates": {
-        "longitude": -76.955,
-        "latitude": -12.192
+        "longitude": -76.973034,
+        "latitude": -12.190041
       },
-      "cumulativeDistance": 1440.86,
-      "stationFormatted": "km 1+440.86"
+      "cumulativeDistance": 3080.51,
+      "stationFormatted": "km 3+080.51"
     },
     {
       "index": 3,
       "coordinates": {
-        "longitude": -76.951,
-        "latitude": -12.2
+        "longitude": -76.975464,
+        "latitude": -12.182705
       },
-      "cumulativeDistance": 2430.98,
-      "stationFormatted": "km 2+430.98"
+      "cumulativeDistance": 3937.93,
+      "stationFormatted": "km 3+937.93"
     },
     {
       "index": 4,
       "coordinates": {
-        "longitude": -76.948,
-        "latitude": -12.206
+        "longitude": -76.982077,
+        "latitude": -12.16091
       },
-      "cumulativeDistance": 3173.55,
-      "stationFormatted": "km 3+173.55"
+      "cumulativeDistance": 6465.78,
+      "stationFormatted": "km 6+465.78"
     },
     {
       "index": 5,
       "coordinates": {
-        "longitude": -76.944,
-        "latitude": -12.213
+        "longitude": -76.983571,
+        "latitude": -12.155341
       },
-      "cumulativeDistance": 4065.09,
-      "stationFormatted": "km 4+065.09"
+      "cumulativeDistance": 7105.97,
+      "stationFormatted": "km 7+105.97"
     },
     {
       "index": 6,
       "coordinates": {
-        "longitude": -76.94,
-        "latitude": -12.221
+        "longitude": -76.983861,
+        "latitude": -12.151644
       },
-      "cumulativeDistance": 5055.18,
-      "stationFormatted": "km 5+055.18"
+      "cumulativeDistance": 7518.26,
+      "stationFormatted": "km 7+518.26"
     },
     {
       "index": 7,
       "coordinates": {
-        "longitude": -76.937,
-        "latitude": -12.228
+        "longitude": -76.982531,
+        "latitude": -12.147232
       },
-      "cumulativeDistance": 5899.07,
-      "stationFormatted": "km 5+899.07"
+      "cumulativeDistance": 8029.71,
+      "stationFormatted": "km 8+029.71"
     },
     {
       "index": 8,
       "coordinates": {
-        "longitude": -76.933,
-        "latitude": -12.235
+        "longitude": -76.981459,
+        "latitude": -12.142202
       },
-      "cumulativeDistance": 6790.59,
-      "stationFormatted": "km 6+790.59"
+      "cumulativeDistance": 8601.04,
+      "stationFormatted": "km 8+601.04"
     },
     {
       "index": 9,
       "coordinates": {
-        "longitude": -76.93,
-        "latitude": -12.242
+        "longitude": -76.980364,
+        "latitude": -12.137228
       },
-      "cumulativeDistance": 7634.47,
-      "stationFormatted": "km 7+634.47"
+      "cumulativeDistance": 9166.78,
+      "stationFormatted": "km 9+166.78"
+    },
+    {
+      "index": 10,
+      "coordinates": {
+        "longitude": -76.978941,
+        "latitude": -12.133567
+      },
+      "cumulativeDistance": 9602.27,
+      "stationFormatted": "km 9+602.27"
+    },
+    {
+      "index": 11,
+      "coordinates": {
+        "longitude": -76.977193,
+        "latitude": -12.128358
+      },
+      "cumulativeDistance": 10211.86,
+      "stationFormatted": "km 10+211.86"
+    },
+    {
+      "index": 12,
+      "coordinates": {
+        "longitude": -76.976959,
+        "latitude": -12.124784
+      },
+      "cumulativeDistance": 10610.09,
+      "stationFormatted": "km 10+610.09"
+    },
+    {
+      "index": 13,
+      "coordinates": {
+        "longitude": -76.977454,
+        "latitude": -12.116034
+      },
+      "cumulativeDistance": 11584.53,
+      "stationFormatted": "km 11+584.53"
+    },
+    {
+      "index": 14,
+      "coordinates": {
+        "longitude": -76.978783,
+        "latitude": -12.106113
+      },
+      "cumulativeDistance": 12697.12,
+      "stationFormatted": "km 12+697.12"
+    },
+    {
+      "index": 15,
+      "coordinates": {
+        "longitude": -76.980011,
+        "latitude": -12.097034
+      },
+      "cumulativeDistance": 13715.45,
+      "stationFormatted": "km 13+715.45"
+    },
+    {
+      "index": 16,
+      "coordinates": {
+        "longitude": -76.981106,
+        "latitude": -12.088132
+      },
+      "cumulativeDistance": 14712.44,
+      "stationFormatted": "km 14+712.44"
+    },
+    {
+      "index": 17,
+      "coordinates": {
+        "longitude": -76.98215,
+        "latitude": -12.086014
+      },
+      "cumulativeDistance": 14973.88,
+      "stationFormatted": "km 14+973.88"
+    },
+    {
+      "index": 18,
+      "coordinates": {
+        "longitude": -76.982202,
+        "latitude": -12.085325
+      },
+      "cumulativeDistance": 15050.7,
+      "stationFormatted": "km 15+050.70"
+    },
+    {
+      "index": 19,
+      "coordinates": {
+        "longitude": -76.981915,
+        "latitude": -12.084407
+      },
+      "cumulativeDistance": 15157.45,
+      "stationFormatted": "km 15+157.45"
+    },
+    {
+      "index": 20,
+      "coordinates": {
+        "longitude": -76.978681,
+        "latitude": -12.081604
+      },
+      "cumulativeDistance": 15627.33,
+      "stationFormatted": "km 15+627.33"
+    },
+    {
+      "index": 21,
+      "coordinates": {
+        "longitude": -76.97675,
+        "latitude": -12.079487
+      },
+      "cumulativeDistance": 15942.76,
+      "stationFormatted": "km 15+942.76"
+    },
+    {
+      "index": 22,
+      "coordinates": {
+        "longitude": -76.975393,
+        "latitude": -12.076706
+      },
+      "cumulativeDistance": 16285.4,
+      "stationFormatted": "km 16+285.40"
+    },
+    {
+      "index": 23,
+      "coordinates": {
+        "longitude": -76.972158,
+        "latitude": -12.068772
+      },
+      "cumulativeDistance": 17235.16,
+      "stationFormatted": "km 17+235.16"
+    },
+    {
+      "index": 24,
+      "coordinates": {
+        "longitude": -76.971349,
+        "latitude": -12.065813
+      },
+      "cumulativeDistance": 17575.74,
+      "stationFormatted": "km 17+575.74"
+    },
+    {
+      "index": 25,
+      "coordinates": {
+        "longitude": -76.971427,
+        "latitude": -12.063288
+      },
+      "cumulativeDistance": 17856.64,
+      "stationFormatted": "km 17+856.64"
+    },
+    {
+      "index": 26,
+      "coordinates": {
+        "longitude": -76.972028,
+        "latitude": -12.06145
+      },
+      "cumulativeDistance": 18071.21,
+      "stationFormatted": "km 18+071.21"
+    },
+    {
+      "index": 27,
+      "coordinates": {
+        "longitude": -76.973723,
+        "latitude": -12.057751
+      },
+      "cumulativeDistance": 18521.93,
+      "stationFormatted": "km 18+521.93"
+    },
+    {
+      "index": 28,
+      "coordinates": {
+        "longitude": -76.975628,
+        "latitude": -12.052946
+      },
+      "cumulativeDistance": 19094.98,
+      "stationFormatted": "km 19+094.98"
+    },
+    {
+      "index": 29,
+      "coordinates": {
+        "longitude": -76.97688,
+        "latitude": -12.05116
+      },
+      "cumulativeDistance": 19335.76,
+      "stationFormatted": "km 19+335.76"
+    },
+    {
+      "index": 30,
+      "coordinates": {
+        "longitude": -76.97868,
+        "latitude": -12.0494
+      },
+      "cumulativeDistance": 19612.55,
+      "stationFormatted": "km 19+612.55"
+    },
+    {
+      "index": 31,
+      "coordinates": {
+        "longitude": -76.985515,
+        "latitude": -12.04348
+      },
+      "cumulativeDistance": 20605.42,
+      "stationFormatted": "km 20+605.42"
+    },
+    {
+      "index": 32,
+      "coordinates": {
+        "longitude": -76.986702,
+        "latitude": -12.042273
+      },
+      "cumulativeDistance": 20791.64,
+      "stationFormatted": "km 20+791.64"
+    },
+    {
+      "index": 33,
+      "coordinates": {
+        "longitude": -76.987885,
+        "latitude": -12.040244
+      },
+      "cumulativeDistance": 21051.35,
+      "stationFormatted": "km 21+051.35"
+    },
+    {
+      "index": 34,
+      "coordinates": {
+        "longitude": -76.98876,
+        "latitude": -12.036823
+      },
+      "cumulativeDistance": 21443.47,
+      "stationFormatted": "km 21+443.47"
+    },
+    {
+      "index": 35,
+      "coordinates": {
+        "longitude": -76.989691,
+        "latitude": -12.034571
+      },
+      "cumulativeDistance": 21713.58,
+      "stationFormatted": "km 21+713.58"
+    },
+    {
+      "index": 36,
+      "coordinates": {
+        "longitude": -76.990894,
+        "latitude": -12.032584
+      },
+      "cumulativeDistance": 21970.35,
+      "stationFormatted": "km 21+970.35"
+    },
+    {
+      "index": 37,
+      "coordinates": {
+        "longitude": -76.992977,
+        "latitude": -12.030844
+      },
+      "cumulativeDistance": 22268.26,
+      "stationFormatted": "km 22+268.26"
+    },
+    {
+      "index": 38,
+      "coordinates": {
+        "longitude": -76.994992,
+        "latitude": -12.029668
+      },
+      "cumulativeDistance": 22523.45,
+      "stationFormatted": "km 22+523.45"
+    },
+    {
+      "index": 39,
+      "coordinates": {
+        "longitude": -76.996212,
+        "latitude": -12.029122
+      },
+      "cumulativeDistance": 22669.36,
+      "stationFormatted": "km 22+669.36"
+    },
+    {
+      "index": 40,
+      "coordinates": {
+        "longitude": -76.998075,
+        "latitude": -12.029055
+      },
+      "cumulativeDistance": 22872.1,
+      "stationFormatted": "km 22+872.10"
+    },
+    {
+      "index": 41,
+      "coordinates": {
+        "longitude": -77.002071,
+        "latitude": -12.030682
+      },
+      "cumulativeDistance": 23342.83,
+      "stationFormatted": "km 23+342.83"
+    },
+    {
+      "index": 42,
+      "coordinates": {
+        "longitude": -77.005289,
+        "latitude": -12.031908
+      },
+      "cumulativeDistance": 23718.41,
+      "stationFormatted": "km 23+718.41"
+    },
+    {
+      "index": 43,
+      "coordinates": {
+        "longitude": -77.008203,
+        "latitude": -12.033548
+      },
+      "cumulativeDistance": 24084.04,
+      "stationFormatted": "km 24+084.04"
+    },
+    {
+      "index": 44,
+      "coordinates": {
+        "longitude": -77.013094,
+        "latitude": -12.037441
+      },
+      "cumulativeDistance": 24769.83,
+      "stationFormatted": "km 24+769.83"
     }
   ],
   "coordinates": [
     [
-      -76.96,
-      -12.18
+      -76.976926,
+      -12.217337
     ],
     [
-      -76.958,
-      -12.185
+      -76.972565,
+      -12.1934
     ],
     [
-      -76.955,
-      -12.192
+      -76.973034,
+      -12.190041
     ],
     [
-      -76.951,
-      -12.2
+      -76.975464,
+      -12.182705
     ],
     [
-      -76.948,
-      -12.206
+      -76.982077,
+      -12.16091
     ],
     [
-      -76.944,
-      -12.213
+      -76.983571,
+      -12.155341
     ],
     [
-      -76.94,
-      -12.221
+      -76.983861,
+      -12.151644
     ],
     [
-      -76.937,
-      -12.228
+      -76.982531,
+      -12.147232
     ],
     [
-      -76.933,
-      -12.235
+      -76.981459,
+      -12.142202
     ],
     [
-      -76.93,
-      -12.242
+      -76.980364,
+      -12.137228
+    ],
+    [
+      -76.978941,
+      -12.133567
+    ],
+    [
+      -76.977193,
+      -12.128358
+    ],
+    [
+      -76.976959,
+      -12.124784
+    ],
+    [
+      -76.977454,
+      -12.116034
+    ],
+    [
+      -76.978783,
+      -12.106113
+    ],
+    [
+      -76.980011,
+      -12.097034
+    ],
+    [
+      -76.981106,
+      -12.088132
+    ],
+    [
+      -76.98215,
+      -12.086014
+    ],
+    [
+      -76.982202,
+      -12.085325
+    ],
+    [
+      -76.981915,
+      -12.084407
+    ],
+    [
+      -76.978681,
+      -12.081604
+    ],
+    [
+      -76.97675,
+      -12.079487
+    ],
+    [
+      -76.975393,
+      -12.076706
+    ],
+    [
+      -76.972158,
+      -12.068772
+    ],
+    [
+      -76.971349,
+      -12.065813
+    ],
+    [
+      -76.971427,
+      -12.063288
+    ],
+    [
+      -76.972028,
+      -12.06145
+    ],
+    [
+      -76.973723,
+      -12.057751
+    ],
+    [
+      -76.975628,
+      -12.052946
+    ],
+    [
+      -76.97688,
+      -12.05116
+    ],
+    [
+      -76.97868,
+      -12.0494
+    ],
+    [
+      -76.985515,
+      -12.04348
+    ],
+    [
+      -76.986702,
+      -12.042273
+    ],
+    [
+      -76.987885,
+      -12.040244
+    ],
+    [
+      -76.98876,
+      -12.036823
+    ],
+    [
+      -76.989691,
+      -12.034571
+    ],
+    [
+      -76.990894,
+      -12.032584
+    ],
+    [
+      -76.992977,
+      -12.030844
+    ],
+    [
+      -76.994992,
+      -12.029668
+    ],
+    [
+      -76.996212,
+      -12.029122
+    ],
+    [
+      -76.998075,
+      -12.029055
+    ],
+    [
+      -77.002071,
+      -12.030682
+    ],
+    [
+      -77.005289,
+      -12.031908
+    ],
+    [
+      -77.008203,
+      -12.033548
+    ],
+    [
+      -77.013094,
+      -12.037441
     ]
   ]
 };

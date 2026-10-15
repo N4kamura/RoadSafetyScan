@@ -31,7 +31,7 @@
     </div>
 
     <div class="header-badges">
-      <span class="badge-corridor" id="header-corridor-badge">Ruta de Ejemplo: Panamericana Sur (Km 18 al 25)</span>
+      <span class="badge-corridor" id="header-corridor-badge">Ruta de Ejemplo: Panamericana</span>
       <span class="badge-spec" id="header-source-badge" style="background-color: #047857; color: #ecfdf5; display: inline-flex;">BBDD ONSV: SQLite3 / Web</span>
     </div>
 
@@ -74,7 +74,6 @@
       <section class="sidebar-section">
         <div class="sidebar-title">
           <span>Rutas y Trazados Viales</span>
-          <span style="font-size: 0.65rem; color: #10b981;">● Activo</span>
         </div>
 
         <div class="control-group" style="margin-bottom: 0.45rem;">
@@ -82,18 +81,15 @@
             <span>Eje Principal en Análisis:</span>
           </label>
           <select id="select-corridor-trace" style="width: 100%; padding: 0.45rem 0.6rem; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.78rem; background: #ffffff; color: #0f172a; font-weight: 600;">
-            <option value="EJEMPLO" selected>🛣️ Ruta de Ejemplo: Panamericana Sur (Km 18-25)</option>
+            <option value="EJEMPLO" selected>🛣️ Ruta de Ejemplo: Panamericana</option>
             <option value="NONE">🗺️ Ninguna ruta (Exploración libre por el Perú)</option>
             <option value="CUSTOM">📂 Cargar archivo personalizado...</option>
           </select>
         </div>
 
-        <div style="display: flex; gap: 0.35rem; margin-bottom: 0.65rem;">
-          <button id="btn-draw-trace-sidebar" class="btn btn-secondary" style="flex: 1; justify-content: center; font-size: 0.75rem; font-weight: 600;">
+        <div style="margin-bottom: 0.65rem;">
+          <button id="btn-draw-trace-sidebar" class="btn btn-secondary" style="width: 100%; justify-content: center; font-size: 0.75rem; font-weight: 600;">
             ✏️ Dibujar Trazo
-          </button>
-          <button id="btn-run-calculation" class="btn" style="flex: 1; justify-content: center; background-color: #2563eb; color: #ffffff; border: none; padding: 0.45rem 0.5rem; font-weight: 600; font-size: 0.75rem; border-radius: 6px; cursor: pointer;">
-            ⚡ Calcular LRS
           </button>
         </div>
 
@@ -103,8 +99,45 @@
           <span style="font-size: 0.68rem; color: #64748b;">(👁️ Visible / 🎯 Perfil)</span>
         </div>
         <div id="routes-manager-list" class="routes-manager-list"></div>
+      </section>
 
-        <div class="sidebar-title" style="margin-top: 1rem;">
+      <!-- Sección 2: Parámetros de Referenciación Lineal (LRS) (SPEC-37) -->
+      <section class="sidebar-section">
+        <div class="sidebar-title">Parámetros LRS</div>
+        
+        <!-- Slider Ancho de Buffer -->
+        <div class="control-group">
+          <div class="control-label">
+            <span>Ancho de Faja (Buffer):</span>
+            <span class="control-value" id="val-buffer-width">25 m</span>
+          </div>
+          <input type="range" id="slider-buffer-width" min="5" max="100" step="5" value="25" aria-label="Ancho de Buffer en metros">
+          <div style="display: flex; justify-content: space-between; font-size: 0.65rem; color: #94a3b8; margin-top: 2px;">
+            <span>5 m (Calzada)</span>
+            <span>50 m</span>
+            <span>100 m (Entorno)</span>
+          </div>
+        </div>
+
+        <!-- Slider Tamaño de Bin Métrico -->
+        <div class="control-group">
+          <div class="control-label">
+            <span>Segmentación Métrica (ΔS):</span>
+            <span class="control-value" id="val-bin-size">100 m</span>
+          </div>
+          <input type="range" id="slider-bin-size" min="100" max="2000" step="100" value="100" aria-label="Tamaño de bin métrico en metros (mínimo 100m)">
+          <div style="display: flex; gap: 0.35rem; margin-top: 0.45rem;">
+            <button class="btn btn-outline btn-preset-bin" data-bin="100" style="padding: 2px 6px; font-size: 0.65rem; color: #475569;" title="Mínimo normativo (100m)">Detalle (100m)</button>
+            <button class="btn btn-outline btn-preset-bin" data-bin="200" style="padding: 2px 6px; font-size: 0.65rem; color: #475569;">Urbano (200m)</button>
+            <button class="btn btn-outline btn-preset-bin" data-bin="500" style="padding: 2px 6px; font-size: 0.65rem; color: #475569;">Carretera (500m)</button>
+            <button class="btn btn-outline btn-preset-bin" data-bin="1000" style="padding: 2px 6px; font-size: 0.65rem; color: #475569;">Regional (1km)</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Sección 3: Diagnóstico del Corredor y Dimensión a Graficar -->
+      <section class="sidebar-section">
+        <div class="sidebar-title">
           <span>Diagnóstico del Corredor</span>
         </div>
 
@@ -162,7 +195,7 @@
         </div>
       </section>
 
-      <!-- Sección 2: Parámetros del Perfil Curvilíneo ("Profiles along a line") -->
+      <!-- Sección 4: Parámetros del Perfil Curvilíneo ("Profiles along a line") -->
       <section class="sidebar-section">
         <div class="sidebar-title">
           <span>Perfil Curvilíneo Paralelo</span>
@@ -175,11 +208,11 @@
             <span>Separación Lateral (D<sub>offset</sub>):</span>
             <span class="control-value" id="val-curv-offset">1200 m</span>
           </div>
-          <input type="range" id="slider-curv-offset" min="400" max="2500" step="100" value="1200" aria-label="Separación lateral del perfil en metros">
+          <input type="range" id="slider-curv-offset" min="400" max="8000" step="100" value="1200" aria-label="Separación lateral del perfil en metros">
           <div style="display: flex; justify-content: space-between; font-size: 0.65rem; color: #94a3b8; margin-top: 2px;">
             <span>400 m</span>
-            <span>1200 m</span>
-            <span>2500 m</span>
+            <span>4000 m</span>
+            <span>8000 m</span>
           </div>
         </div>
 
@@ -210,41 +243,7 @@
         </div>
       </section>
 
-      <!-- Sección 3: Parámetros de Referenciación Lineal (LRS) -->
-      <section class="sidebar-section">
-        <div class="sidebar-title">Parámetros LRS</div>
-        
-        <!-- Slider Ancho de Buffer -->
-        <div class="control-group">
-          <div class="control-label">
-            <span>Ancho de Faja (Buffer):</span>
-            <span class="control-value" id="val-buffer-width">25 m</span>
-          </div>
-          <input type="range" id="slider-buffer-width" min="5" max="100" step="5" value="25" aria-label="Ancho de Buffer en metros">
-          <div style="display: flex; justify-content: space-between; font-size: 0.65rem; color: #94a3b8; margin-top: 2px;">
-            <span>5 m (Calzada)</span>
-            <span>50 m</span>
-            <span>100 m (Entorno)</span>
-          </div>
-        </div>
-
-        <!-- Slider Tamaño de Bin Métrico -->
-        <div class="control-group">
-          <div class="control-label">
-            <span>Segmentación Métrica (ΔS):</span>
-            <span class="control-value" id="val-bin-size">100 m</span>
-          </div>
-          <input type="range" id="slider-bin-size" min="100" max="2000" step="100" value="100" aria-label="Tamaño de bin métrico en metros (mínimo 100m)">
-          <div style="display: flex; gap: 0.35rem; margin-top: 0.45rem;">
-            <button class="btn btn-outline btn-preset-bin" data-bin="100" style="padding: 2px 6px; font-size: 0.65rem; color: #475569;" title="Mínimo normativo (100m)">Detalle (100m)</button>
-            <button class="btn btn-outline btn-preset-bin" data-bin="200" style="padding: 2px 6px; font-size: 0.65rem; color: #475569;">Urbano (200m)</button>
-            <button class="btn btn-outline btn-preset-bin" data-bin="500" style="padding: 2px 6px; font-size: 0.65rem; color: #475569;">Carretera (500m)</button>
-            <button class="btn btn-outline btn-preset-bin" data-bin="1000" style="padding: 2px 6px; font-size: 0.65rem; color: #475569;">Regional (1km)</button>
-          </div>
-        </div>
-      </section>
-
-      <!-- Sección 4: Filtros de Siniestralidad Vial -->
+      <!-- Sección 5: Filtros de Siniestralidad Vial -->
       <section class="sidebar-section">
         <div class="sidebar-title">Severidad Vial (MTC Perú)</div>
         <div class="checkbox-group">
@@ -271,7 +270,7 @@
         </div>
       </section>
 
-      <!-- Sección 5: Filtro Temporal por Años (SPEC-13) -->
+      <!-- Sección 6: Filtro Temporal por Años (SPEC-13) -->
       <section class="sidebar-section" id="section-year-filter">
         <div class="sidebar-title">
           <span>Años de Siniestros</span>
@@ -287,7 +286,7 @@
         </div>
       </section>
 
-      <!-- Sección 6: Exportación de Datos Interoperables -->
+      <!-- Sección 7: Exportación de Datos Interoperables -->
       <section class="sidebar-section" style="margin-top: auto;">
         <div class="sidebar-title">Exportación de Resultados</div>
         <div style="display: flex; flex-direction: column; gap: 0.45rem;">
@@ -317,6 +316,11 @@
 
         <!-- Pastillas Flotantes de Control Rápido sobre el Mapa (SPEC-30) -->
         <div class="map-floating-controls" id="map-floating-controls">
+          <!-- SPEC-30: Botón de Alternancia / Píldora Minimizada (Lado Izquierdo) -->
+          <button id="btn-toggle-floating-controls" class="map-floating-controls-toggle" title="Ocultar barra de métricas" aria-label="Ocultar o mostrar barra de métricas">
+            ▲
+          </button>
+
           <div class="map-floating-controls-body" id="map-floating-controls-body">
             <div class="map-pill-group">
               <button class="map-pill-btn map-metric-pill active" data-mode="COUNT" title="Mostrar número de siniestros">
@@ -345,15 +349,11 @@
             <div class="map-pill-group" title="Separación lateral rápida">
               <span class="map-pill-label">Offset:</span>
               <button class="map-pill-btn map-offset-pill" data-offset="800">800m</button>
-              <button class="map-pill-btn map-offset-pill active" data-offset="1200">1200m</button>
-              <button class="map-pill-btn map-offset-pill" data-offset="1800">1800m</button>
+              <button class="map-pill-btn map-offset-pill" data-offset="1500">1.5km</button>
+              <button class="map-pill-btn map-offset-pill" data-offset="3000">3km</button>
+              <button class="map-pill-btn map-offset-pill" data-offset="5000">5km</button>
             </div>
           </div>
-
-          <!-- SPEC-30: Botón de Alternancia / Píldora Minimizada -->
-          <button id="btn-toggle-floating-controls" class="map-floating-controls-toggle" title="Ocultar barra de métricas" aria-label="Ocultar o mostrar barra de métricas">
-            ▲
-          </button>
         </div>
 
         <!-- SPEC-29: Botón Flotante para Alternar Panel Lateral sobre el Mapa -->
@@ -371,7 +371,7 @@
             <button id="btn-legend-collapse" class="btn-legend-toggle" title="Minimizar Leyenda" aria-label="Minimizar Leyenda">▼</button>
           </div>
           <div class="legend-body" id="legend-body">
-            <span><span class="color-dot" style="background-color: #1e293b;"></span> <strong>Eje Vial:</strong> Ruta de Ejemplo (Panamericana Sur)</span>
+            <span><span class="color-dot" style="background-color: #1e293b;"></span> <strong>Eje Vial:</strong> Ruta de Ejemplo (Panamericana)</span>
             <span><span class="color-line" style="background-color: #1e293b;"></span> <strong>Línea Base B(s):</strong> Desplazada en paralelo</span>
             <span><span class="color-rect" style="background-color: #7c3aed;"></span> <strong>Perfil Curvilíneo:</strong> VisQuill A1</span>
             <span><span class="color-dot" style="background-color: #10b981;"></span> <strong>Tramo Resaltado:</strong> Enlace interactivo</span>

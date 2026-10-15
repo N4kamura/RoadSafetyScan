@@ -38,21 +38,30 @@ export class RouteManager {
   }
 
   private initDefaultRoutes(): void {
-    // Ruta de Ejemplo: Panamericana Sur (Km 18 al 25)
+    if (typeof localStorage !== 'undefined') {
+      try {
+        if (localStorage.getItem('roadSafety_default_route_deleted') === 'true') {
+          this.primaryRouteId = null;
+          return;
+        }
+      } catch (e) {}
+    }
+
+    // Ruta inicial oficial (Panamericana)
     const coords = MOCK_ALIGNMENT_DATA.coordinates.map((c: number[]) => ({
       longitude: c[0],
       latitude: c[1]
     }));
-    const al = createAlignment(coords, 'EJEMPLO', 'Ruta de Ejemplo - Panamericana Sur (Km 18 al 25)', {
-      shortName: 'EJEMPLO',
-      description: 'Trazo de alineamiento vial de ejemplo (Km 18 al 25)',
+    const al = createAlignment(coords, 'EJEMPLO', 'Panamericana', {
+      shortName: 'PANAMERICANA',
+      description: 'Corredor Panamericana (24.77 km)',
       color: '#2563EB'
     });
 
     this.routes.set('EJEMPLO', {
       id: 'EJEMPLO',
-      name: al.name,
-      shortName: 'EJEMPLO',
+      name: 'Panamericana',
+      shortName: 'PANAMERICANA',
       description: al.description,
       color: '#2563EB',
       totalLengthMeters: al.totalLength,
@@ -86,6 +95,7 @@ export class RouteManager {
       this.primaryRouteId = null;
       for (const r of this.routes.values()) {
         r.isPrimary = false;
+        r.visibleOnMap = false;
       }
       this.notify();
       return;
@@ -95,10 +105,9 @@ export class RouteManager {
 
     this.primaryRouteId = id;
     for (const [routeId, r] of this.routes) {
-      r.isPrimary = (routeId === id);
-      if (r.isPrimary) {
-        r.visibleOnMap = true; // La ruta primaria siempre es visible en el mapa
-      }
+      const isTarget = (routeId === id);
+      r.isPrimary = isTarget;
+      r.visibleOnMap = isTarget; // Solo la ruta seleccionada para análisis se activa en el mapa
     }
     this.notify();
   }
@@ -107,13 +116,19 @@ export class RouteManager {
     const route = this.routes.get(id);
     if (!route) return;
 
-    if (route.isPrimary && visible === false) {
-      // La ruta primaria no se puede ocultar si está en análisis
-      return;
+    const newVis = visible !== undefined ? visible : !route.visibleOnMap;
+    if (newVis) {
+      // Al marcar la visibilidad de una ruta, se activa exclusivamente como ruta en análisis
+      this.setPrimaryRoute(id);
+    } else {
+      // Si se desmarca la ruta activa, se pasa a modo exploración libre
+      if (route.isPrimary) {
+        this.setPrimaryRoute(null);
+      } else {
+        route.visibleOnMap = false;
+        this.notify();
+      }
     }
-
-    route.visibleOnMap = visible !== undefined ? visible : !route.visibleOnMap;
-    this.notify();
   }
 
   public lockRoute(id: string): void {
@@ -187,7 +202,9 @@ export class RouteManager {
     if (setPrimary) {
       this.primaryRouteId = alignment.id;
       for (const [routeId, r] of this.routes) {
-        r.isPrimary = (routeId === alignment.id);
+        const isTarget = (routeId === alignment.id);
+        r.isPrimary = isTarget;
+        r.visibleOnMap = isTarget;
       }
     }
 
@@ -198,13 +215,25 @@ export class RouteManager {
 
   public removeRoute(id: string): boolean {
     const route = this.routes.get(id);
-    if (!route || !route.isCustom) return false;
+    if (!route) return false;
 
     this.routes.delete(id);
+
+    if (id === 'EJEMPLO') {
+      if (typeof localStorage !== 'undefined') {
+        try {
+          localStorage.setItem('roadSafety_default_route_deleted', 'true');
+        } catch (e) {}
+      }
+    }
+
     if (this.primaryRouteId === id) {
-      this.primaryRouteId = 'EJEMPLO';
-      const ej = this.routes.get('EJEMPLO');
-      if (ej) ej.isPrimary = true;
+      const remaining = Array.from(this.routes.values());
+      if (remaining.length > 0) {
+        this.setPrimaryRoute(remaining[0].id);
+      } else {
+        this.setPrimaryRoute(null);
+      }
     }
 
     this.saveCustomRoutesToStorage();
@@ -224,6 +253,7 @@ export class RouteManager {
           description: r.description,
           color: r.color,
           isLocked: r.isLocked !== false,
+          visibleOnMap: r.visibleOnMap,
           coordinates: r.alignment.vertices.map(v => [v.coordinates.longitude, v.coordinates.latitude])
         }));
       localStorage.setItem(STORAGE_KEY, JSON.stringify(customList));
@@ -240,7 +270,13 @@ export class RouteManager {
       const list = JSON.parse(raw);
       if (!Array.isArray(list)) return;
 
-      for (const item of list) {
+      // Limpiar 'EJEMPLO' o 'PANAMERICANA' de la lista persistida si existían
+      const cleaned = list.filter((item: any) => item.id !== 'EJEMPLO' && item.id !== 'PANAMERICANA');
+      if (cleaned.length !== list.length) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(cleaned));
+      }
+
+      for (const item of cleaned) {
         if (!item.coordinates || item.coordinates.length < 2) continue;
         const coords = item.coordinates.map((c: number[]) => ({
           longitude: c[0],
@@ -259,7 +295,7 @@ export class RouteManager {
           color: item.color || '#8B5CF6',
           totalLengthMeters: alignment.totalLength,
           alignment,
-          visibleOnMap: true,
+          visibleOnMap: item.visibleOnMap === true,
           isPrimary: false,
           isCustom: true,
           isLocked: item.isLocked !== undefined ? item.isLocked : true

@@ -18,7 +18,8 @@ describe('Curvilinear Profile along a Line (pkg/curvilinear) - SPEC-06 Complianc
 
     const profile = generateCurvilinearProfile(alignment, results, {
       offsetDistanceMeters: offsetMeters,
-      side: 'RIGHT'
+      side: 'RIGHT',
+      baselineMode: 'CURVED_OFFSET'
     });
 
     // La baseline debe tener coordenadas desplazadas hacia el Este (mayor longitud)

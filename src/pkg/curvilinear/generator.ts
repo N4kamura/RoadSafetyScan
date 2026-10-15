@@ -33,7 +33,9 @@ export const DEFAULT_CURVILINEAR_OPTIONS: CurvilinearProfileOptions = {
   side: 'RIGHT',
   heightScaleMetersPerUnit: 40, // 40 metros de altura visual por unidad de valor
   scaleTicks: [10, 20, 30, 40],
-  smoothingWindowSize: 5
+  smoothingWindowSize: 5,
+  baselineMode: 'RECTILINEAR', // SPEC-31: Línea base rectilínea limpia por defecto (Paradigma VisQuill)
+  borderCurvatureRatio: 0.05   // Curva terminal reservada casi al último (90% plano, 5% remate en cada extremo)
 };
 
 /**
@@ -146,6 +148,199 @@ export function buildBaselineArcLengthProfile(
     stations,
     cumulativeDistances,
     totalLength,
+    normals
+  };
+}
+
+/**
+ * SPEC-31, SPEC-32 & SPEC-34: Construye una línea base estable con bordes curvos
+ * invariables hacia el lado opuesto de las barras en cualquier nivel de zoom (VisQuill Clean & Stable Paradigm).
+ *
+ * - Cuerpo central rectilíneo y ortogonal: Paralelo a la secante del tramo visible o corredor,
+ *   con normal constante, barras ortogonales sin deformación e isolíneas paralelas.
+ * - Bordes curvos en cualquier nivel de zoom (SPEC-34): Los extremos terminales (borderCurvatureRatio, default 0.15)
+ *   SIEMPRE se curvan hacia el lado contrario de las barras (hacia la carretera / hacia abajo),
+ *   con transición continua C1 y deflexión cóncava.
+ * - Proximidad métrica garantizada: La baseline mantiene la distancia offset nominal (offsetDistanceMeters)
+ *   respecto al corredor visible, evitando alejamientos excesivos de los controles.
+ */
+export function buildRectilinearBaselineProfile(
+  alignment: Alignment,
+  vertexNormals: UnitVector2D[],
+  rangeStart: number,
+  rangeEnd: number,
+  offsetDistanceMeters: number,
+  side: 'LEFT' | 'RIGHT' = 'RIGHT',
+  uniqueStations: number[] = [],
+  borderCurvatureRatio: number = 0.05
+): BaselineArcLengthProfile {
+  const totalRoadLength = alignment.totalLength;
+  const sideSign = side === 'RIGHT' ? 1 : -1;
+
+  if (totalRoadLength <= 0 || uniqueStations.length === 0) {
+    return {
+      coordinates: [],
+      stations: [],
+      cumulativeDistances: [],
+      totalLength: 0,
+      normals: []
+    };
+  }
+
+  // 1. Determinar el tramo geométrico de referencia [sMin, sMax] (SPEC-34)
+  const sMin = uniqueStations[0];
+  const sMax = uniqueStations[uniqueStations.length - 1];
+  const span = sMax - sMin;
+
+  const refStart = interpolateAtStation(alignment, vertexNormals, sMin);
+  const refEnd = interpolateAtStation(alignment, vertexNormals, sMax);
+
+  const meanLat = toRadians((refStart.coord.latitude + refEnd.coord.latitude) / 2);
+  const mPerDegLat = toRadians(1) * EARTH_RADIUS_METERS;
+  const mPerDegLon = mPerDegLat * Math.cos(meanLat);
+
+  const cdx = (refEnd.coord.longitude - refStart.coord.longitude) * mPerDegLon;
+  const cdy = (refEnd.coord.latitude - refStart.coord.latitude) * mPerDegLat;
+  const chordLen = Math.hypot(cdx, cdy);
+
+  let tangent: UnitVector2D;
+  let outwardNormal: UnitVector2D;
+
+  if (chordLen > 1.0) {
+    const tux = cdx / chordLen;
+    const tuy = cdy / chordLen;
+    tangent = { x: tux, y: tuy };
+    outwardNormal = {
+      x: sideSign * tuy,
+      y: sideSign * (-tux)
+    };
+  } else {
+    tangent = { x: -sideSign * refStart.normal.y, y: sideSign * refStart.normal.x };
+    outwardNormal = {
+      x: sideSign * refStart.normal.x,
+      y: sideSign * refStart.normal.y
+    };
+  }
+
+  // 2. Garantía Anti-Superposición (SPEC-35): Determinar la flecha máxima del eje vial hacia el lado del perfil
+  let maxRoadBulgeMeters = 0;
+  for (const s of uniqueStations) {
+    const tau = span > 0 ? (s - sMin) / span : 0;
+    const sLon = refStart.coord.longitude + tau * (refEnd.coord.longitude - refStart.coord.longitude);
+    const sLat = refStart.coord.latitude + tau * (refEnd.coord.latitude - refStart.coord.latitude);
+
+    const roadPt = interpolateAtStation(alignment, vertexNormals, s);
+    const rx = (roadPt.coord.longitude - sLon) * mPerDegLon;
+    const ry = (roadPt.coord.latitude - sLat) * mPerDegLat;
+    const lateralDist = rx * outwardNormal.x + ry * outwardNormal.y;
+    if (lateralDist > maxRoadBulgeMeters) {
+      maxRoadBulgeMeters = lateralDist;
+    }
+  }
+
+  // Despeje efectivo garantizado: asegura que incluso en la curva más cerrada, la baseline diste al menos offsetDistanceMeters
+  const effectiveBaseOffset = offsetDistanceMeters + maxRoadBulgeMeters;
+
+  // 3. Evaluar cada progresiva sobre la secante con remates terminales en cuarto de círculo (SPEC-36)
+  const coordinates: [number, number][] = [];
+  const normals: UnitVector2D[] = [];
+
+  const rho = Math.max(0, Math.min(0.40, borderCurvatureRatio));
+  const thetaMax = (45 * Math.PI) / 180; // ~45 grados: deflexión suave y tendida en el último borde
+  const rCurl = Math.min(effectiveBaseOffset * 0.65, span * 0.10); // Curva confinada al remate final (la gran mayoría permanece plana)
+
+  // Puntos de unión con el cuerpo central rectilíneo
+  const tauStartJunc = rho;
+  const tauEndJunc = 1 - rho;
+
+  const spineLonStartJunc = refStart.coord.longitude + tauStartJunc * (refEnd.coord.longitude - refStart.coord.longitude);
+  const spineLatStartJunc = refStart.coord.latitude + tauStartJunc * (refEnd.coord.latitude - refStart.coord.latitude);
+  const ptStartJunc = offsetCoordinate({ longitude: spineLonStartJunc, latitude: spineLatStartJunc }, outwardNormal, effectiveBaseOffset);
+
+  const spineLonEndJunc = refStart.coord.longitude + tauEndJunc * (refEnd.coord.longitude - refStart.coord.longitude);
+  const spineLatEndJunc = refStart.coord.latitude + tauEndJunc * (refEnd.coord.latitude - refStart.coord.latitude);
+  const ptEndJunc = offsetCoordinate({ longitude: spineLonEndJunc, latitude: spineLatEndJunc }, outwardNormal, effectiveBaseOffset);
+
+  for (const s of uniqueStations) {
+    const tau = span > 0 ? Math.max(0, Math.min(1, (s - sMin) / span)) : 0;
+
+    if (rho > 0 && tau < rho) {
+      // Borde Inicial (s -> sMin): Cuarto de circunferencia en espiral curvándose hacia la carretera
+      // u: 0 en la unión (tau = rho), 1 en el extremo inicial (tau = 0)
+      const u = (rho - tau) / rho;
+      const theta = thetaMax * 0.5 * (1 - Math.cos(Math.PI * u));
+
+      // Desplazamiento métrico respecto al punto de unión:
+      // dx: hacia atrás en la dirección tangencial (-tangent)
+      // dy: hacia la carretera (-outwardNormal)
+      const dxMeters = -rCurl * Math.sin(theta);
+      const dyMeters = -rCurl * (1 - Math.cos(theta));
+
+      const dispX = dxMeters * tangent.x + dyMeters * outwardNormal.x;
+      const dispY = dxMeters * tangent.y + dyMeters * outwardNormal.y;
+
+      const lon = Number((ptStartJunc[0] + dispX / mPerDegLon).toFixed(6));
+      const lat = Number((ptStartJunc[1] + dispY / mPerDegLat).toFixed(6));
+
+      // La normal de las barras rota suavemente acompañando la curvatura del arco
+      const nx = Math.cos(theta) * outwardNormal.x - Math.sin(theta) * tangent.x;
+      const ny = Math.cos(theta) * outwardNormal.y - Math.sin(theta) * tangent.y;
+      const nLen = Math.hypot(nx, ny) || 1;
+
+      coordinates.push([lon, lat]);
+      normals.push({ x: nx / nLen, y: ny / nLen });
+    } else if (rho > 0 && tau > 1 - rho) {
+      // Borde Final (s -> sMax): Cuarto de circunferencia en espiral curvándose hacia la carretera (línea verde del usuario)
+      // u: 0 en la unión (tau = 1 - rho), 1 en el extremo final (tau = 1)
+      const u = (tau - (1 - rho)) / rho;
+      const theta = thetaMax * 0.5 * (1 - Math.cos(Math.PI * u));
+
+      // Desplazamiento métrico respecto al punto de unión:
+      // dx: avance a lo largo de la tangente (+tangent)
+      // dy: hacia la carretera (-outwardNormal)
+      const dxMeters = rCurl * Math.sin(theta);
+      const dyMeters = -rCurl * (1 - Math.cos(theta));
+
+      const dispX = dxMeters * tangent.x + dyMeters * outwardNormal.x;
+      const dispY = dxMeters * tangent.y + dyMeters * outwardNormal.y;
+
+      const lon = Number((ptEndJunc[0] + dispX / mPerDegLon).toFixed(6));
+      const lat = Number((ptEndJunc[1] + dispY / mPerDegLat).toFixed(6));
+
+      // La normal de las barras rota suavemente acompañando la curvatura del arco
+      const nx = Math.cos(theta) * outwardNormal.x + Math.sin(theta) * tangent.x;
+      const ny = Math.cos(theta) * outwardNormal.y + Math.sin(theta) * tangent.y;
+      const nLen = Math.hypot(nx, ny) || 1;
+
+      coordinates.push([lon, lat]);
+      normals.push({ x: nx / nLen, y: ny / nLen });
+    } else {
+      // Cuerpo central estrictamente rectilíneo con normal uniforme constante
+      const spineLon = refStart.coord.longitude + tau * (refEnd.coord.longitude - refStart.coord.longitude);
+      const spineLat = refStart.coord.latitude + tau * (refEnd.coord.latitude - refStart.coord.latitude);
+      const pt = offsetCoordinate({ longitude: spineLon, latitude: spineLat }, outwardNormal, effectiveBaseOffset);
+      coordinates.push(pt);
+      normals.push(outwardNormal);
+    }
+  }
+
+  // 3. Distancias acumuladas geodésicas sobre la línea base generada
+  const cumulativeDistances: number[] = [0];
+  let LB = 0;
+  for (let i = 1; i < coordinates.length; i++) {
+    const d = haversineDistance(
+      { longitude: coordinates[i - 1][0], latitude: coordinates[i - 1][1] },
+      { longitude: coordinates[i][0], latitude: coordinates[i][1] }
+    );
+    LB += d;
+    cumulativeDistances.push(LB);
+  }
+
+  return {
+    coordinates,
+    stations: uniqueStations,
+    cumulativeDistances,
+    totalLength: LB,
     normals
   };
 }
@@ -431,13 +626,29 @@ export function generateCurvilinearProfile(
     }
   }
 
-  const rawBaselineCoordinates: [number, number][] = uniqueStations.map((s) => {
-    const { coord, normal } = interpolateAtStation(alignment, vertexNormals, s);
-    return offsetCoordinate(coord, normal, baseOffsetMeters);
-  });
+  // Construir el perfil parametrizado de la línea base (SPEC-24, SPEC-27, SPEC-31)
+  let baselineProfile: BaselineArcLengthProfile;
+  if (opts.baselineMode === 'CURVED_OFFSET') {
+    const rawBaselineCoordinates: [number, number][] = uniqueStations.map((s) => {
+      const { coord, normal } = interpolateAtStation(alignment, vertexNormals, s);
+      return offsetCoordinate(coord, normal, baseOffsetMeters);
+    });
+    baselineProfile = buildBaselineArcLengthProfile(rawBaselineCoordinates, opts.side, uniqueStations);
+  } else {
+    // SPEC-31, SPEC-32 & SPEC-36: Línea Base Estable con Remates Terminales (90% plano, 5% curva en cada extremo)
+    const borderRatio = typeof opts.borderCurvatureRatio === 'number' ? opts.borderCurvatureRatio : 0.05;
+    baselineProfile = buildRectilinearBaselineProfile(
+      alignment,
+      vertexNormals,
+      rangeStart,
+      rangeEnd,
+      opts.offsetDistanceMeters,
+      opts.side,
+      uniqueStations,
+      borderRatio
+    );
+  }
 
-  // Construir el perfil parametrizado de la línea base con vinculación local de progresivas (SPEC-24, SPEC-27)
-  const baselineProfile = buildBaselineArcLengthProfile(rawBaselineCoordinates, opts.side, uniqueStations);
   const baselineCoordinates = baselineProfile.coordinates;
   const LB = baselineProfile.totalLength;
 

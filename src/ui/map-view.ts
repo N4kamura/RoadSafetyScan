@@ -225,6 +225,16 @@ export class MapViewController {
   }
 
   /**
+   * SPEC-35: Escalamiento adaptativo de la separación lateral en zoom alejado (preserva separación visual limpia)
+   */
+  private getEffectiveCurvilinearOffset(): number {
+    const baseOffset = this.store.getState().config.curvilinearOffsetMeters;
+    const currentZoom = this.map ? this.map.getZoom() : 13.0;
+    const factor = computeZoomScaleFactor(currentZoom, 13.0, 0.70, 5.0);
+    return Math.round(baseOffset * factor);
+  }
+
+  /**
    * SPEC-28: Obtiene la distancia métrica del primer nivel de la grilla (Nivel 1, más abajo)
    */
   private getFirstTickDistance(): number {
@@ -294,7 +304,7 @@ export class MapViewController {
 
     // 2. Capas del Perfil Curvilíneo Paralelo al Trazo (VisQuill A1 Collision Density & SPEC-23 Recorte Viewport)
     const curvModel = generateCurvilinearProfile(state.alignment, state.lrsResults, {
-      offsetDistanceMeters: state.config.curvilinearOffsetMeters,
+      offsetDistanceMeters: this.getEffectiveCurvilinearOffset(),
       side: state.config.curvilinearSide,
       heightScaleMetersPerUnit: this.getEffectiveCurvilinearScale(),
       metricMode: state.config.metricMode,
@@ -536,7 +546,7 @@ export class MapViewController {
 
     // 2. Actualizar capas del perfil curvilíneo (SPEC-06 & SPEC-23 Recorte Viewport)
     const curvModel = generateCurvilinearProfile(state.alignment, state.lrsResults, {
-      offsetDistanceMeters: state.config.curvilinearOffsetMeters,
+      offsetDistanceMeters: this.getEffectiveCurvilinearOffset(),
       side: state.config.curvilinearSide,
       heightScaleMetersPerUnit: this.getEffectiveCurvilinearScale(),
       metricMode: state.config.metricMode,
@@ -567,7 +577,14 @@ export class MapViewController {
       }
     }
 
-    // 3. Actualizar puntero semicircular y línea conectora (SPEC-11)
+    // 3. Actualizar puntero semicircular y línea conectora (SPEC-11, SPEC-33)
+    if (!this.isDraggingPointer && !this.isDraggingScaleHandle) {
+      const visibleRange = this.getVisibleStationRange();
+      if (visibleRange && visibleRange[1] > visibleRange[0]) {
+        const sightStation = (visibleRange[0] + visibleRange[1]) / 2;
+        this.currentPointerChainage = Math.max(0, Math.min(state.alignment.totalLength, sightStation));
+      }
+    }
     this.updatePointerVisuals();
   }
 
@@ -583,7 +600,7 @@ export class MapViewController {
     const geom = computePointerGeometry(
       state.alignment,
       this.currentPointerChainage,
-      state.config.curvilinearOffsetMeters,
+      this.getEffectiveCurvilinearOffset(),
       state.config.curvilinearSide,
       3,
       this.cachedBaselineProfile
@@ -593,7 +610,7 @@ export class MapViewController {
     const scaleGeom = computeScaleHandleCoordinate(
       state.alignment,
       this.currentPointerChainage,
-      state.config.curvilinearOffsetMeters,
+      this.getEffectiveCurvilinearOffset(),
       this.getEffectiveCurvilinearScale(),
       state.config.curvilinearSide,
       3,
@@ -705,7 +722,7 @@ export class MapViewController {
         const pGeom = computePointerGeometry(
           currentState.alignment,
           this.currentPointerChainage,
-          currentState.config.curvilinearOffsetMeters,
+          this.getEffectiveCurvilinearOffset(),
           currentState.config.curvilinearSide,
           3,
           this.cachedBaselineProfile
@@ -773,7 +790,7 @@ export class MapViewController {
     const geom = computePointerGeometry(
       state.alignment,
       this.currentPointerChainage,
-      state.config.curvilinearOffsetMeters,
+      this.getEffectiveCurvilinearOffset(),
       state.config.curvilinearSide,
       3,
       this.cachedBaselineProfile
@@ -789,7 +806,7 @@ export class MapViewController {
       const scaleGeom = computeScaleHandleCoordinate(
         state.alignment,
         this.currentPointerChainage,
-        state.config.curvilinearOffsetMeters,
+        this.getEffectiveCurvilinearOffset(),
         this.getEffectiveCurvilinearScale(),
         state.config.curvilinearSide,
         3,
@@ -842,7 +859,7 @@ export class MapViewController {
 
     const activeBinIndex = state.selection.hoveredBinIndex ?? state.selection.selectedBinIndex;
     const curvModel = generateCurvilinearProfile(state.alignment, state.lrsResults, {
-      offsetDistanceMeters: state.config.curvilinearOffsetMeters,
+      offsetDistanceMeters: this.getEffectiveCurvilinearOffset(),
       side: state.config.curvilinearSide,
       heightScaleMetersPerUnit: this.getEffectiveCurvilinearScale(),
       metricMode: state.config.metricMode,
@@ -859,6 +876,14 @@ export class MapViewController {
         }
       } catch (e) {
         // Silencioso si no está listo
+      }
+    }
+    // SPEC-33: Seguimiento dinámico a la mira del viewport si el usuario no está arrastrando manualmente
+    if (!this.isDraggingPointer && !this.isDraggingScaleHandle) {
+      const visibleRange = this.getVisibleStationRange();
+      if (visibleRange && visibleRange[1] > visibleRange[0]) {
+        const sightStation = (visibleRange[0] + visibleRange[1]) / 2;
+        this.currentPointerChainage = Math.max(0, Math.min(state.alignment.totalLength, sightStation));
       }
     }
     this.updatePointerVisuals();
@@ -890,7 +915,7 @@ export class MapViewController {
 
     // Actualizar estado isHovered en las barras curvilíneas
     const curvModel = generateCurvilinearProfile(state.alignment, state.lrsResults, {
-      offsetDistanceMeters: state.config.curvilinearOffsetMeters,
+      offsetDistanceMeters: this.getEffectiveCurvilinearOffset(),
       side: state.config.curvilinearSide,
       heightScaleMetersPerUnit: this.getEffectiveCurvilinearScale(),
       metricMode: state.config.metricMode,
@@ -929,7 +954,7 @@ export class MapViewController {
     // Incluir límites geométricos del perfil curvilíneo para encuadre óptimo
     if (state.lrsResults) {
       const curvModel = generateCurvilinearProfile(state.alignment, state.lrsResults, {
-        offsetDistanceMeters: state.config.curvilinearOffsetMeters,
+        offsetDistanceMeters: this.getEffectiveCurvilinearOffset(),
         side: state.config.curvilinearSide,
         heightScaleMetersPerUnit: state.config.curvilinearHeightScale,
         metricMode: state.config.metricMode

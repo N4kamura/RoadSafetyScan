@@ -19,12 +19,13 @@ describe('RouteManager (pkg/tracer) - SPEC-15 Compliance', () => {
     manager = new RouteManager();
   });
 
-  it('debe inicializar la ruta por defecto EJEMPLO', () => {
+  it('debe inicializar la ruta por defecto EJEMPLO con el trazado de Panamericana', () => {
     const all = manager.getAllRoutes();
     expect(all.length).toBeGreaterThanOrEqual(1);
 
     const ej = all.find(r => r.id === 'EJEMPLO');
     expect(ej).toBeDefined();
+    expect(ej!.name).toBe('Panamericana');
     expect(ej!.isPrimary).toBe(true);
     expect(ej!.visibleOnMap).toBe(true);
   });
@@ -125,5 +126,92 @@ describe('RouteManager (pkg/tracer) - SPEC-15 Compliance', () => {
 
     manager.setPrimaryRoute('EJEMPLO');
     expect(manager.getPrimaryRoute()?.id).toBe('EJEMPLO');
+  });
+
+  it('al analizar una ruta específica, solo dicha ruta debe quedar activa y visible en el mapa', () => {
+    const routeA = createAlignment(
+      [
+        { longitude: -77.05, latitude: -12.05 },
+        { longitude: -77.03, latitude: -12.07 }
+      ],
+      'RUTA-A',
+      'Ruta A'
+    );
+    const routeB = createAlignment(
+      [
+        { longitude: -77.02, latitude: -12.08 },
+        { longitude: -77.01, latitude: -12.09 }
+      ],
+      'RUTA-B',
+      'Ruta B'
+    );
+
+    manager.addRoute(routeA, false);
+    manager.addRoute(routeB, false);
+
+    // Al seleccionar analizar RUTA-A
+    manager.setPrimaryRoute('RUTA-A');
+
+    const all = manager.getAllRoutes();
+    const a = all.find(r => r.id === 'RUTA-A')!;
+    const b = all.find(r => r.id === 'RUTA-B')!;
+    const ej = all.find(r => r.id === 'EJEMPLO')!;
+
+    expect(a.isPrimary).toBe(true);
+    expect(a.visibleOnMap).toBe(true);
+
+    expect(b.isPrimary).toBe(false);
+    expect(b.visibleOnMap).toBe(false);
+
+    expect(ej.isPrimary).toBe(false);
+    expect(ej.visibleOnMap).toBe(false);
+
+    // Al cambiar y analizar RUTA-B, RUTA-A no debe quedarse activa
+    manager.setPrimaryRoute('RUTA-B');
+
+    expect(b.isPrimary).toBe(true);
+    expect(b.visibleOnMap).toBe(true);
+
+    expect(a.isPrimary).toBe(false);
+    expect(a.visibleOnMap).toBe(false);
+
+    expect(ej.isPrimary).toBe(false);
+    expect(ej.visibleOnMap).toBe(false);
+  });
+
+  it('al activar o hacer click en EJEMPLO cuando no está analizado, solo EJEMPLO queda activo y las demás se desactivan', () => {
+    const customRoute = createAlignment(
+      [
+        { longitude: -77.05, latitude: -12.05 },
+        { longitude: -77.03, latitude: -12.07 }
+      ],
+      'CUSTOM-ROUTE',
+      'Ruta Personalizada'
+    );
+    manager.addRoute(customRoute, true);
+
+    // En este punto, CUSTOM-ROUTE está analizada y EJEMPLO no
+    expect(manager.getPrimaryRoute()?.id).toBe('CUSTOM-ROUTE');
+    expect(manager.getRoute('EJEMPLO')?.isPrimary).toBe(false);
+    expect(manager.getRoute('EJEMPLO')?.visibleOnMap).toBe(false);
+
+    // El usuario hace clic / activa EJEMPLO
+    manager.toggleMapVisibility('EJEMPLO', true);
+
+    // Solo EJEMPLO debe quedar activa en el mapa y en análisis
+    expect(manager.getPrimaryRoute()?.id).toBe('EJEMPLO');
+    expect(manager.getRoute('EJEMPLO')?.isPrimary).toBe(true);
+    expect(manager.getRoute('EJEMPLO')?.visibleOnMap).toBe(true);
+
+    const custom = manager.getRoute('CUSTOM-ROUTE')!;
+    expect(custom.isPrimary).toBe(false);
+    expect(custom.visibleOnMap).toBe(false);
+  });
+
+  it('debe permitir eliminar la ruta por defecto si el usuario lo desea', () => {
+    const removed = manager.removeRoute('EJEMPLO');
+    expect(removed).toBe(true);
+    expect(manager.getRoute('EJEMPLO')).toBeUndefined();
+    expect(manager.getPrimaryRoute()).toBeNull();
   });
 });

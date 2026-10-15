@@ -172,7 +172,8 @@ describe('VisQuill Baseline Arc-Length Mapping & Distortionless Bars - SPEC-24 C
     const results = analyzeLrs(curvedAlignment, []);
     const profile = generateCurvilinearProfile(curvedAlignment, results, {
       offsetDistanceMeters: 600,
-      side: 'RIGHT'
+      side: 'RIGHT',
+      baselineMode: 'CURVED_OFFSET'
     });
 
     const pointerGeom = computePointerGeometry(

@@ -33,7 +33,8 @@ describe('Local Station-Coordinated Baseline Mapping - SPEC-27 Compliance', () =
     const profile = generateCurvilinearProfile(multiCurveAlignment, results, {
       offsetDistanceMeters: offsetDist,
       side: 'RIGHT',
-      smoothingWindowSize: 3
+      smoothingWindowSize: 3,
+      baselineMode: 'CURVED_OFFSET'
     });
 
     expect(profile.baselineProfile).toBeDefined();
@@ -72,7 +73,8 @@ describe('Local Station-Coordinated Baseline Mapping - SPEC-27 Compliance', () =
     const results = analyzeLrs(multiCurveAlignment, []);
     const profile = generateCurvilinearProfile(multiCurveAlignment, results, {
       offsetDistanceMeters: offsetDist,
-      side: 'RIGHT'
+      side: 'RIGHT',
+      baselineMode: 'CURVED_OFFSET'
     });
 
     const testStations = [200, 800, 1100, 1500, 2000, 2500];
@@ -119,7 +121,8 @@ describe('Local Station-Coordinated Baseline Mapping - SPEC-27 Compliance', () =
     const results = analyzeLrs(multiCurveAlignment, crashes, { binSizeMeters: 100 });
     const profile = generateCurvilinearProfile(multiCurveAlignment, results, {
       offsetDistanceMeters: offsetDist,
-      side: 'RIGHT'
+      side: 'RIGHT',
+      baselineMode: 'CURVED_OFFSET'
     });
 
     expect(profile.bars.length).toBe(1);
@@ -141,7 +144,8 @@ describe('Local Station-Coordinated Baseline Mapping - SPEC-27 Compliance', () =
     const results = analyzeLrs(multiCurveAlignment, []);
     const profile = generateCurvilinearProfile(multiCurveAlignment, results, {
       offsetDistanceMeters: offsetDist,
-      side: 'RIGHT'
+      side: 'RIGHT',
+      baselineMode: 'CURVED_OFFSET'
     });
 
     const targetStation = 1450;
