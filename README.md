@@ -7,7 +7,7 @@
 
 ### 💖 Agradecimiento Especial a VisQuill
 
-Quiero expresar nuestro más sincero agradecimiento y reconocimiento a **VisQuill**.  
+Quiero expresar mi agradecimiento y reconocimiento a **VisQuill** y a *Benjamín*.  
 Esta plataforma utiliza el paradigma visual y la metodología de **Profiles along a line (VisQuill GDK A1 Collision Density)**. Gracias a la ingeniería geométrica desarrollada por **VisQuill**, es posible proyectar la densidad de accidentes a lo largo de una línea base paralela al trazado vial, convirtiendo matrices numéricas complejas en perfiles gráficos legibles, armónicos e intuitivos para ingenieros, auditores y la comunidad. ¡Infinitas gracias a **VisQuill** por inspirar e impulsar esta herramienta!
 
 ---
